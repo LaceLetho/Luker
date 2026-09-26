@@ -4109,7 +4109,7 @@
     "Permission denied": "权限不足",
     "This viewer shows runtime backend logs captured in memory.": "该查看器显示运行时在内存中捕获的后端日志。",
     "This viewer shows frontend console logs captured in this app session.": "该查看器显示在本次应用会话中捕获的前端控制台日志。",
-    "Verbose frontend debug logs are off. Only frontend errors are captured until you enable them in User Settings.": "前端详细调试日志当前已关闭。启用用户设置中的该开关前，只会捕获前端错误。",
+    "Frontend debug logs are off. Console output of every level is still recorded here; turn the switch on in User Settings to also record API request logs and echo routine output to the browser console.": "前端调试日志已关闭。控制台各层级的输出仍会记录在这里；打开用户设置中的开关后，才会一并记录 API 请求日志，并把常规输出同步到浏览器控制台。",
     "Frontend debug logs": "前端调试日志",
     "Android debug recording": "Android 调试记录",
     "Record additional Android-side diagnostics for crash reports. Off by default. Turn on and reproduce to get more details.": "为崩溃报告记录额外的 Android 端诊断信息。默认关闭。打开后复现问题以获得更详细的信息。",

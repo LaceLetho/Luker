@@ -1684,7 +1684,7 @@ async function openLogsViewer() {
 
         noteElement.text(isFrontendConsoleDebugLoggingEnabled()
             ? t`This viewer shows frontend console logs captured in this app session.`
-            : t`Verbose frontend debug logs are off. Only frontend errors are captured until you enable them in User Settings.`);
+            : t`Frontend debug logs are off. Console output of every level is still recorded here; turn the switch on in User Settings to also record API request logs and echo routine output to the browser console.`);
     };
 
     const isBackendSearchActive = () => currentSource === 'server' && currentSearchTerm.length > 0;
