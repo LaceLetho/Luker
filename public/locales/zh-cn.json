@@ -966,6 +966,8 @@
     "Auto-fix Markdown": "自动修复 Markdown",
     "Disallow embedded media from other domains in chat messages": "禁止在聊天消息中嵌入来自其他域的媒体。",
     "Forbid External Media": "禁止外部媒体",
+    "Lazy-load message images and videos to reduce chat rendering cost. Plugins can opt out by adding data-no-lazy-media.": "懒加载消息中的图片和视频，降低聊天渲染开销。插件可添加 data-no-lazy-media 选择退出。",
+    "Lazy-load Message Media": "懒加载消息媒体",
     "Allow {{char}}: in bot messages": "在机器人消息中允许 {{char}}: ",
     "Allow {{user}}: in bot messages": "在机器人消息中允许 {{user}}: ",
     "Skip encoding  and  characters in message text, allowing a subset of HTML markup as well as Markdown": "跳过消息文本中的编码和字符，允许一部分HTML标记以及Markdown",
