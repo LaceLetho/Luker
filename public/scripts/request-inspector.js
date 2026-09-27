@@ -978,6 +978,7 @@ async function openInspectorPanel() {
  callGenericPopup(content, POPUP_TYPE.TEXT, '', {
  wide: true,
  large: true,
+ leftAlign: true,
  okButton: t`Close`,
  allowVerticalScrolling: true,
  });
