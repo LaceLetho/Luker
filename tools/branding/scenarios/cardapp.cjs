@@ -16,9 +16,11 @@ module.exports.run = async function (page) {
   await page.waitForSelector('#send_but', { timeout: 15000 });
   await page.waitForTimeout(1500);
 
-  await H.dismissFirstRun(page);
+  console.log('[branding] step: first-run dismissed');
   await H.selectCharacter(page, '深渊行者');
+  console.log('[branding] step: character selected');
   await H.closeCharacterPanel(page);
+  console.log('[branding] step: character panel closed');
   await page.waitForTimeout(1500);
   await H.scrubBadgeNow(page);
 
@@ -33,7 +35,7 @@ module.exports.run = async function (page) {
     }
   });
 
-  // Open CardApp Studio directly via the module's exported opener.
+  console.log('[branding] step: opening studio');
   // The UI button lives in the CEA extension settings, which is a much longer click path.
   await page.evaluate(async () => {
     const mod = await import('/scripts/extensions/character-editor-assistant/studio/studio.js');
@@ -44,8 +46,10 @@ module.exports.run = async function (page) {
 
   // Wait for the three-panel Studio layout to fully mount.
   await page.waitForSelector('#card-app-studio-left .card-app-studio-input', { timeout: 10000 });
+  console.log('[branding] step: studio left panel ready');
   await page.waitForSelector('#card-app-studio-right', { timeout: 10000 });
   await page.waitForTimeout(2500); // let CardApp preview render its status bar / buttons
+  console.log('[branding] step: prompt composed');
 
   // Modest, visually-verifiable modification request. Chinese matches the card's language.
   // Simple value edit — reliably produces a diff proposal within ~90s.
@@ -64,24 +68,23 @@ module.exports.run = async function (page) {
   await page.evaluate(() => {
     document.querySelector('button[data-studio-action="send"]')?.click();
   });
+  console.log('[branding] step: send clicked, waiting for approve card');
 
-  // Wait for the AI to produce a diff approval card. Different builds render
-  // the approval UI slightly differently; wait for either the approve button or
-  // the diff container to appear.
-  await page.waitForFunction(() => {
-    // The approve button is inside the diff card. Match multiple selector shapes.
-    return !!Array.from(document.querySelectorAll('button')).find(b => (b.textContent || '').trim() === 'Approve');
-  }, { timeout: 180000 }).catch(() => {});
+  // Wait for the diff approval card. Playwright's own visibility semantics are
+  // used here: the studio keeps hidden button skeletons in the DOM, so a plain
+  // text match or an offsetParent check can fire on the wrong node.
+  const approveBtn = page.getByRole('button', { name: 'Approve', exact: true }).last();
+  await approveBtn.waitFor({ state: 'visible', timeout: 240000 }).catch(() => {});
+  console.log('[branding] step: approve button visible (or timed out)');
 
   // Hold on the diff so the viewer can absorb it before approval.
   await page.waitForTimeout(6000);
 
-  // Approve the diff.
-  await page.evaluate(() => {
-    const approveBtn = Array.from(document.querySelectorAll('button')).find(b => (b.textContent || '').trim() === 'Approve');
-    approveBtn?.click();
-  });
+  await approveBtn.click({ timeout: 15000 }).catch(() => {});
+  console.log('[branding] step: approve clicked');
 
-  // Hold on the applied state so the GIF ends on the "diff accepted" screen.
-  await page.waitForTimeout(6000);
+  // Let the applied state settle, then stop: the studio sends a follow-up round
+  // afterwards, and the recording should end on the accepted diff.
+  await page.waitForTimeout(5000);
+  console.log('[branding] step: scenario complete');
 };
