@@ -18787,9 +18787,11 @@ export async function swipe_right(event = null, { source, repeated, message } = 
  * Imports supported files dropped into the app window.
  * @param {File[]} files Array of files to process
  * @param {Map<File, string>} [data] Extra data to pass to the import function
+ * @param {object} [options] Additional import options
+ * @param {string} [options.preserveChat] Chat pointer of the card being replaced, kept on the stored card
  * @returns {Promise<void>}
  */
-export async function processDroppedFiles(files, data = new Map()) {
+export async function processDroppedFiles(files, data = new Map(), { preserveChat = '' } = {}) {
     const allowedMimeTypes = [
         'application/json',
         'image/png',
@@ -18809,7 +18811,7 @@ export async function processDroppedFiles(files, data = new Map()) {
         const extension = file.name.split('.').pop().toLowerCase();
         if (allowedMimeTypes.some(x => file.type.startsWith(x)) || allowedExtensions.includes(extension)) {
             const preservedName = data instanceof Map && data.get(file);
-            const avatarFileName = await importCharacter(file, { preserveFileName: preservedName });
+            const avatarFileName = await importCharacter(file, { preserveFileName: preservedName, preserveChat });
             if (avatarFileName !== undefined) {
                 avatarFileNames.push(avatarFileName);
             }
@@ -18858,11 +18860,12 @@ function selectImportedChar(charId) {
  * @param {File} file File to import
  * @param {object} [options] - Options
  * @param {string} [options.preserveFileName] Whether to preserve original file name
+ * @param {string} [options.preserveChat] Chat pointer to keep on the stored card when replacing
  * @param {Boolean} [options.importTags=false] Whether to import tags
  * @param {Boolean} [options.suppressToast=false] Whether to suppress success toasts
  * @returns {Promise<string>}
  */
-async function importCharacter(file, { preserveFileName = '', importTags = false, suppressToast = false } = {}) {
+async function importCharacter(file, { preserveFileName = '', importTags = false, suppressToast = false, preserveChat = '' } = {}) {
     if (is_group_generating || is_send_press) {
         toastr.error(t`Cannot import characters while generating. Stop the request and try again.`, t`Import aborted`);
         throw new Error('Cannot import character while generating');
@@ -18882,6 +18885,7 @@ async function importCharacter(file, { preserveFileName = '', importTags = false
     formData.append('file_type', format);
     formData.append('user_name', name1);
     if (preserveFileName) formData.append('preserved_name', preserveFileName);
+    if (preserveFileName && preserveChat) formData.append('preserved_chat', String(preserveChat));
 
     try {
         const result = await fetch('/api/characters/import', {
@@ -21862,7 +21866,7 @@ jQuery(async function () {
                         }
                         if (!replacedCharacter) {
                             if (previousAvatar) {
-                                await getOneCharacter(previousAvatar);
+                                await getOneCharacter(previousAvatar, { preserveChat: true });
                             }
                             replacedCharacter = replacedIndex >= 0
                                 ? characters[replacedIndex]
@@ -21924,7 +21928,7 @@ jQuery(async function () {
                             try {
                                 const data = new Map();
                                 data.set(file, characters[this_chid].avatar);
-                                await processDroppedFiles([file], data);
+                                await processDroppedFiles([file], data, { preserveChat: currentChatFile });
                                 await postReplace();
                                 await emitCharacterReplacedEvent();
                             } catch (error) {
@@ -21944,7 +21948,7 @@ jQuery(async function () {
                             break;
                         }
                         onlineUrl = inputUrl;
-                        await importFromExternalUrl(onlineUrl, { preserveFileName: characters[this_chid].avatar });
+                        await importFromExternalUrl(onlineUrl, { preserveFileName: characters[this_chid].avatar, preserveChat: currentChatFile });
                         await postReplace();
                         await emitCharacterReplacedEvent();
                         break;

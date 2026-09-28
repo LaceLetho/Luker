@@ -2463,12 +2463,26 @@ function getPreservedName(request) {
         : undefined;
 }
 
+/**
+ * Gets the preserved chat pointer for the uploaded file if the request is valid.
+ * @param {import("express").Request} request - Express request object
+ * @returns {string | undefined} - The preserved chat pointer if the request is valid, otherwise undefined
+ */
+function getPreservedChat(request) {
+    const value = typeof request.body.preserved_chat === 'string' ? request.body.preserved_chat.trim() : '';
+    if (!value || value === '.' || value === '..' || value.includes('/') || value.includes('\\')) {
+        return undefined;
+    }
+    return value;
+}
+
 router.post('/import', async function (request, response) {
     if (!request.body || !request.file) return response.sendStatus(400);
 
     const uploadPath = path.join(request.file.destination, request.file.filename);
     const format = request.body.file_type;
     const preservedFileName = getPreservedName(request);
+    const preservedChat = getPreservedChat(request);
 
     const formatImportFunctions = {
         'yaml': importFromYaml,
@@ -2511,6 +2525,24 @@ router.post('/import', async function (request, response) {
             }
         } catch (cardAppErr) {
             console.warn('[card-app] Failed to extract CardApp files during import:', cardAppErr);
+        }
+
+        // Replace / update keeps the chat that was open on the old card. The
+        // pointer is written as part of the import so it survives even when a
+        // later client-side merge-attributes write is dropped. Fresh imports
+        // send no preserved_chat and keep the value produced by the importer.
+        if (preservedFileName && preservedChat) {
+            try {
+                const charFilePath = path.join(request.user.directories.characters, `${fileName}.png`);
+                const rawData = await readCharacterData(charFilePath);
+                if (rawData) {
+                    const charData = JSON.parse(rawData);
+                    charData.chat = preservedChat;
+                    await writeCharacterData(charFilePath, JSON.stringify(charData), fileName.replace('.png', ''), request, undefined, { requireExistingOutput: true });
+                }
+            } catch (preservedChatError) {
+                console.warn('Failed to preserve the chat pointer during import:', preservedChatError);
+            }
         }
 
         response.send({ file_name: fileName });

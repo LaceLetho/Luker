@@ -3256,9 +3256,10 @@ export function setupScrollToTop({ scrollContainerId, buttonId, drawerId, visibi
  * @param {string} url URL or UUID of the content to import.
  * @param {Object} [options={}] Options object.
  * @param {string|null} [options.preserveFileName=null] Optional file name to use for the imported content.
+ * @param {string|null} [options.preserveChat=null] Optional chat pointer to keep on the stored card when replacing.
  * @returns {Promise<void>} A promise that resolves when the import is complete.
  */
-export async function importFromExternalUrl(url, { preserveFileName = null } = {}) {
+export async function importFromExternalUrl(url, { preserveFileName = null, preserveChat = null } = {}) {
     let request;
 
     if (isValidUrl(url)) {
@@ -3296,7 +3297,7 @@ export async function importFromExternalUrl(url, { preserveFileName = null } = {
 
     switch (customContentType) {
         case 'character':
-            await processDroppedFiles([file], extraData);
+            await processDroppedFiles([file], extraData, { preserveChat });
             break;
         case 'lorebook':
             await importWorldInfo(file);
