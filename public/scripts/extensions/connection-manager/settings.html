@@ -33,10 +33,6 @@
                 <i id="delete_connection_profile" class="menu_button fa-solid fa-trash-can" title="Delete a connection profile" data-i18n="[title]Delete a connection profile"></i>
             </div>
         </div>
-        <div id="connection_profile_rpm_limit_block" class="flex-container alignItemsCenter gap10 marginTop10">
-            <label for="connection_profile_rpm_limit" data-i18n="Requests per minute (0 = unlimited)">Requests per minute (0 = unlimited)</label>
-            <input id="connection_profile_rpm_limit" class="text_pole widthUnset" type="number" min="0" step="1" value="0" />
-        </div>
         <div class="inline-drawer wide100p marginTop10">
             <div class="inline-drawer-toggle inline-drawer-header">
                 <b data-i18n="Advanced">Advanced</b>
@@ -56,6 +52,10 @@
                 <div id="connection_profile_function_calling_plain_text_retry_attempts_block" class="flex-container alignItemsCenter gap10 marginTop10">
                     <label for="connection_profile_function_calling_plain_text_error_retry_max_attempts" data-i18n="Plain-text retry attempts">Plain-text retry attempts</label>
                     <input id="connection_profile_function_calling_plain_text_error_retry_max_attempts" class="text_pole widthUnset" type="number" min="1" step="1" value="3" />
+                </div>
+                <div id="connection_profile_rpm_limit_block" class="flex-container alignItemsCenter gap10 marginTop10">
+                    <label for="connection_profile_rpm_limit" data-i18n="Requests per minute (0 = unlimited)">Requests per minute (0 = unlimited)</label>
+                    <input id="connection_profile_rpm_limit" class="text_pole widthUnset" type="number" min="0" step="1" value="0" />
                 </div>
                 <div id="connection_profile_max_request_retries_block" class="flex-container alignItemsCenter gap10 marginTop10">
                     <label for="connection_profile_max_request_retries" data-i18n="Max request retries (0 = disabled)">Max request retries (0 = disabled)</label>
