@@ -1,6 +1,7 @@
 #rm_api_block .connection_profile_toolbar {
     align-items: center;
     display: flex;
+    flex-wrap: wrap;
     gap: 5px;
     min-width: 0;
 }
