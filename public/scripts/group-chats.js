@@ -105,6 +105,7 @@ import {
     getCharacterTalkativeness,
     cloneJsonValue,
     invalidateChatWriteSnapshot,
+    isChatTransitionInProgress,
 } from '../script.js';
 import { settleChatChanged } from './floor-state.js';
 import { printTagList, createTagMapFromList, applyTagsOnCharacterSelect, tag_map, applyTagsOnGroupSelect, printTagFilters, tag_filter_type } from './tags.js';
@@ -673,6 +674,10 @@ async function saveGroupChatInternal(groupId, shouldSaveGroup, force = false, re
     // null-integrity path skips the integrity check and overwrites server
     // data. See saveChatInternal (script.js) for the full rationale.
     if (!chat_metadata?.integrity) {
+        if (isChatTransitionInProgress()) {
+            console.debug('[ChatWrite] Group save dropped: chat transition in progress.');
+            return;
+        }
         console.error('[ChatWrite] Group save refused: chat not fully loaded (integrity missing).');
         toastr.error(
             t`Refusing to save: chat is not fully loaded. Reload the page to prevent data loss.`,

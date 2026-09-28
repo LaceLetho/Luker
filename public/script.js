@@ -2378,6 +2378,7 @@ export async function selectCharacterById(id, { switchMenu = true } = {}) {
             this_edit_mes_id = undefined;
             selected_button = 'character_edit';
             setCharacterId(id);
+            beginChatTransition();
             chat_metadata = {};
             await getChat();
         }
@@ -3212,6 +3213,7 @@ async function deleteCharacterChatInternal(characterId, fileName) {
 
     if (deletedCurrentChat) {
         if (Number(characterId) === Number(this_chid)) {
+            beginChatTransition();
             chat_metadata = {};
             await replaceCurrentChat();
         } else {
@@ -11603,6 +11605,7 @@ export function resetChatState() {
     // sets up system user to tell user about having deleted a character
     chat.splice(0, chat.length, ...SAFETY_CHAT);
     // resets chat metadata
+    beginChatTransition();
     chat_metadata = {};
     // resets the characters array, forcing getcharacters to reset
     characters.length = 0;
@@ -14019,6 +14022,10 @@ async function appendChatMessagesInternal(messages, retryCount = 0) {
     // boolean; return false so the caller's saveChatConditional fallback also
     // trips the guard in saveChatInternal instead of full-saving an empty body.
     if (!chat_metadata?.integrity) {
+        if (isChatTransitionInProgress()) {
+            console.debug('[ChatWrite] Append dropped: chat transition in progress.');
+            return false;
+        }
         console.error('[ChatWrite] Append refused: chat not fully loaded (integrity missing).');
         toastr.error(
             t`Refusing to save: chat is not fully loaded. Reload the page to prevent data loss.`,
@@ -14202,6 +14209,10 @@ async function patchChatMessagesInternal(operations, retryCount = 0) {
     // saveChatInternal for full rationale). Same false-return semantics as
     // appendChatMessagesInternal.
     if (!chat_metadata?.integrity) {
+        if (isChatTransitionInProgress()) {
+            console.debug('[ChatWrite] Patch dropped: chat transition in progress.');
+            return false;
+        }
         console.error('[ChatWrite] Patch refused: chat not fully loaded (integrity missing).');
         toastr.error(
             t`Refusing to save: chat is not fully loaded. Reload the page to prevent data loss.`,
@@ -14443,6 +14454,10 @@ async function saveChatMetadataInternal(withMetadata = undefined, retryCount = 0
     // Data-loss guard: refuse to save when chat is not fully loaded (see
     // saveChatInternal for full rationale).
     if (!chat_metadata?.integrity) {
+        if (isChatTransitionInProgress()) {
+            console.debug('[ChatWrite] Metadata save dropped: chat transition in progress.');
+            return false;
+        }
         console.error('[ChatWrite] Metadata save refused: chat not fully loaded (integrity missing).');
         toastr.error(
             t`Refusing to save: chat is not fully loaded. Reload the page to prevent data loss.`,
@@ -14586,6 +14601,10 @@ async function saveChatInternal({ chatName, withMetadata, mesId, force = false, 
     // /api/chats/save, whose null-integrity path (chats.js:2166) skips the
     // integrity check and overwrites server data.
     if (!chat_metadata?.integrity) {
+        if (isChatTransitionInProgress()) {
+            console.debug('[ChatWrite] Save dropped: chat transition in progress.');
+            return;
+        }
         console.error('[ChatWrite] Save refused: chat not fully loaded (integrity missing).');
         toastr.error(
             t`Refusing to save: chat is not fully loaded. Reload the page to prevent data loss.`,
@@ -14953,6 +14972,26 @@ export async function unshallowCharacter(characterId) {
     await getOneCharacter(avatar, { preserveChat: true });
 }
 
+let chatTransitionInProgress = false;
+
+/**
+ * Marks a deliberate chat transition (delete / switch / new / close) whose
+ * chat_metadata window has no integrity until getChat completes. The write
+ * guards drop late writes silently while this is set instead of reporting
+ * them as load failures. Cleared by getChat.
+ */
+function beginChatTransition() {
+    chatTransitionInProgress = true;
+}
+
+function endChatTransition() {
+    chatTransitionInProgress = false;
+}
+
+export function isChatTransitionInProgress() {
+    return chatTransitionInProgress;
+}
+
 export async function getChat() {
     try {
         await unshallowCharacter(this_chid);
@@ -14976,6 +15015,7 @@ export async function getChat() {
 
         // Corrupted chat file — do NOT overwrite server data
         if (data?.corrupted) {
+            endChatTransition();
             toastr.error(t`Chat data is corrupted. Reload the page to retry.`, t`Chat load failed`);
             return;
         }
@@ -14998,6 +15038,7 @@ export async function getChat() {
         if (!chat_metadata.integrity) {
             chat_metadata.integrity = uuidv4();
         }
+        endChatTransition();
         rememberChatMetadataSnapshot();
         rememberChatMessageSnapshot();
         await getChatResult();
@@ -15011,6 +15052,7 @@ export async function getChat() {
             $('#send_textarea').trigger('click').trigger('focus');
         });
     } catch (error) {
+        endChatTransition();
         toastr.error(t`Chat could not be loaded. Reload the page to retry.`, t`Chat load failed`);
         console.log(error);
     }
@@ -15143,6 +15185,7 @@ export async function openCharacterChat(file_name) {
         return;
     }
     characters[chidSnapshot].chat = file_name;
+    beginChatTransition();
     chat_metadata = {};
     chatServerState.nextOlderIndex = 0;
     chatServerState.totalMessages = 0;
@@ -16500,6 +16543,7 @@ async function createNewCharacterChatForContext(context) {
 
     if (isCurrentChatFileActionContextActive(context)) {
         await clearChat({ clearData: true });
+        beginChatTransition();
         chat_metadata = {};
         character.chat = newChatName;
         $('#selected_chat_pole').val(character.chat);
@@ -19124,6 +19168,7 @@ export async function closeCurrentChat() {
         setActiveCharacter(null);
         setActiveGroup(null);
         this_edit_mes_id = undefined;
+        beginChatTransition();
         chat_metadata = {};
         selected_button = 'characters';
         $('#rm_button_selected_ch').children('h2').text('');
@@ -19402,6 +19447,7 @@ export async function newAssistantChat({ temporary = false } = {}) {
         return openPermanentAssistantChat();
     }
     chat.splice(0, chat.length);
+    beginChatTransition();
     chat_metadata = {};
     setCharacterName(neutralCharacterName);
     sendSystemMessage(system_message_types.ASSISTANT_NOTE);
