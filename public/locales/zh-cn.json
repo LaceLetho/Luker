@@ -5648,7 +5648,6 @@
     ,"📑 List docs": "📑 列出文档"
     ,"📖 Read doc": "📖 读取文档"
     ,"🔌 Toggle CardApp": "🔌 启用/停用 CardApp"
-    ,"Max request retries (0 = disabled)": "请求重试次数上限（0 表示关闭）"
     ,"Applies to both text and image generation. Retries on network errors and rate-limit / server errors. Streaming responses are not retried after the stream begins.": "对文本生成和图像生成请求都生效。遇到网络错误、上游限流或服务器错误时会自动重试。流式响应开始后断开不会重试。"
     ,"Max request retries": "请求重试次数上限"
     ,"Retry status whitelist": "重试状态码白名单"
