@@ -138,6 +138,7 @@ import { power_user, registerDebugFunction, performFuzzySearch } from './power-u
 import { getPresetManager } from './preset-manager.js';
 import { persistPreset } from './preset-persistence.js';
 import * as characterPresets from './character/presets.js';
+import { registerCardBindingSlot, listCardBindingSlots } from './character/card-binding-preservation.js';
 import { decodeCardBoundOptionValue } from './character/preset-ref-codec.js';
 import { humanizedDateTime, isMobile, shouldSendOnEnter } from './RossAscends-mods.js';
 import { ScraperManager } from './scrapers.js';
@@ -2778,6 +2779,8 @@ export function getContext() {
         openThirdPartyExtensionMenu,
         registerExtensionApi,
         getExtensionApi,
+        registerCardBindingSlot,
+        listCardBindingSlots,
         getCharacterState,
         setCharacterState,
         patchCharacterState,

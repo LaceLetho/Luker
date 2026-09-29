@@ -48,6 +48,7 @@ import {
     persistCharacterAdvancedOverride,
     removeCharacterAdvancedOverride,
 } from './character-overrides.js';
+import { registerMemoryGraphCardBindingSlot } from './card-binding-slot.js';
 import {
     sanitizeMemoryGraphFileNamePart,
     getMemoryGraphExportFileName,
@@ -16137,6 +16138,7 @@ jQuery(() => {
         normalizeAdvancedSettings,
         getSettings,
     });
+    registerMemoryGraphCardBindingSlot(getContext());
     generationVisibleHistoryRegexProvider = registerManagedRegexProvider(GENERATION_VISIBLE_HISTORY_REGEX_PROVIDER_ID);
     syncGenerationVisibleHistoryRuntimeRegexScripts();
     saveSettingsDebounced();

@@ -128,6 +128,7 @@ import {
 } from './scripts/openai.js';
 
 import { openManageBoundPresetsDialog } from './scripts/character/manage-bound-presets-dialog.js';
+import { handlePostReplaceBindings } from './scripts/character/card-binding-preservation.js';
 
 import {
     generateNovelWithStreaming,
@@ -21932,10 +21933,16 @@ jQuery(async function () {
                         if (!replacedCharacter) {
                             return;
                         }
+                        const replacedIndexFinal = replacedIndex >= 0 ? replacedIndex : this_chid;
+                        await handlePostReplaceBindings({
+                            characterId: replacedIndexFinal,
+                            previousCharacter,
+                            newCharacter: characters[replacedIndexFinal] || replacedCharacter,
+                        });
                         await eventSource.emit(event_types.CHARACTER_REPLACED, {
                             detail: {
-                                id: replacedIndex >= 0 ? replacedIndex : this_chid,
-                                character: replacedCharacter,
+                                id: replacedIndexFinal,
+                                character: characters[replacedIndexFinal] || replacedCharacter,
                                 previousCharacter,
                                 previousLorebookSnapshot,
                                 source: 'replace_update',
@@ -21950,7 +21957,7 @@ jQuery(async function () {
                 const result = await Popup.show.confirm(t`Replace Character`,
                     `<p>${t`Choose a new character card to replace this character with.`}</p>` +
                     `<p>${t`You can also replace this character with the one from the online source.`}${onlineUrl ? `<br />This character was downloaded from: <var>${onlineUrl}</var>` : ''}</p>` +
-                    `<p>${t`All chats, assets and group memberships will be preserved, but local changes to the character data will be lost.`}<br />${t`Proceed?`}</p>`,
+                    `<p>${t`All chats, assets and group memberships will be preserved. Local bindings on this card (presets, personas, orchestration, memory graph, CardApp) are kept. If the new card brings conflicting bindings, you will be asked.`}<br />${t`Proceed?`}</p>`,
                     {
                         okButton: false,
                         customButtons: [{

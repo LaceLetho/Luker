@@ -74,6 +74,10 @@ When exporting, you can choose PNG or JSON format. PNG format embeds the charact
 Exported character cards include all core field data. If the character card has bound Luker extension data (such as bound presets, orchestration configs), that data is exported as well.
 :::
 
+### Replacing a Character Card
+
+Use **Replace / Update** in the character management menu to swap a card for a newer version while keeping chats, assets, and group memberships. Card content comes from the new file, but local bindings — bound chat completion presets, dedicated personas, orchestration config, Memory Graph schema, and CardApp enablement — are kept from the replaced card. When the new card ships its own version of a binding, Luker asks which one to keep.
+
 ## Luker's Character Card Extensions
 
 Building on the standard V2 format, Luker adds several practical extensions to character cards. This extension data is stored in the `data.extensions.luker` field and doesn't affect compatibility with other tools.
