@@ -2803,7 +2803,7 @@ export function getChildren(store, nodeId) {
     return node.childrenIds.map(id => store.nodes[id]).filter(child => Boolean(child) && !child.archived);
 }
 
-function archiveNode(store, oldId, replacementId = null) {
+export function archiveNode(store, oldId, replacementId = null) {
     const node = store.nodes[oldId];
     if (!node) {
         return;
@@ -6161,7 +6161,9 @@ export function applyExtractionOpsImpl(store, operations, {
                     links: Array.isArray(item?.links) ? item.links : [],
                     raw: item,
                 });
-                applied.push(item);
+                // Carry the resolved node id so write-api can report the real
+                // node (create may merge into an existing latestOnly target).
+                applied.push({ ...item, nodeId: targetNode.id });
             }
         } catch (err) {
             rejected.push({

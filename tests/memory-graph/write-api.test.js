@@ -192,6 +192,7 @@ beforeAll(async () => {
         '../../public/scripts/extensions/memory-graph/write-api.js'
     );
     getMemoryGraphWriteApi = mod.getMemoryGraphWriteApi;
+    archiveProbe.mod = mod; // hoisted function declared at the bottom of this file
 });
 
 function makeContext(initialStore) {
@@ -599,3 +600,133 @@ describe('write-api stamps seqTo from in-flight anchor when chat tail is an assi
         expect(store.nodes[id]?.seqTo).toBe(5);
     });
 });
+
+describe('write-api graph-iteration fixes', () => {
+    const LATEST_ONLY_SETTINGS = {
+        nodeTypeSchema: [
+            {
+                id: 'character_sheet',
+                tableColumns: ['title', 'aliases', 'identity'],
+                primaryKeyColumns: ['title', 'aliases'],
+                latestOnly: true,
+            },
+        ],
+    };
+
+    test('createNode returns the merged target id on a latestOnly upsert (not the last node)', async () => {
+        const ctx = makeContext({
+            nodes: {
+                n_1: {
+                    id: 'n_1', type: 'character_sheet', level: 'semantic', title: 'Seraphina',
+                    fields: { title: 'Seraphina', aliases: 'Sera', identity: 'chart officer' },
+                    childrenIds: [], parentId: '', archived: false, seqTo: 1,
+                },
+                n_2: {
+                    id: 'n_2', type: 'location_state', level: 'semantic', title: 'Bryn headland',
+                    fields: { title: 'Bryn headland' },
+                    childrenIds: [], parentId: '', archived: false, seqTo: 1,
+                },
+            },
+            edges: [],
+            seqCounter: 1,
+            nodeSeq: 2,
+        });
+        const api = getMemoryGraphWriteApi(ctx.__memoryStore, ctx, { settings: LATEST_ONLY_SETTINGS });
+        const res = await api.createNode({
+            type: 'character_sheet',
+            title: 'Sera',
+            fields: { title: 'Sera', aliases: 'Sera', identity: 'updated' },
+        });
+        expect(res.id).toBe('n_1');
+        expect(Object.keys(ctx.__memoryStore.nodes)).toHaveLength(2);
+        expect(ctx.__memoryStore.nodes.n_1.fields.identity).toBe('updated');
+    });
+
+    test('editNode reports an explicit noop and preserves seqTo when nothing changes', async () => {
+        const ctx = makeContext({
+            nodes: [{
+                id: 'n_9', type: 'character_sheet', level: 'semantic', title: 'A',
+                fields: { rank: 'x' }, childrenIds: [], parentId: '', archived: false, seqTo: 5,
+            }].reduce((acc, n) => { acc[n.id] = n; return acc; }, {}),
+            edges: [],
+            seqCounter: 42,
+            nodeSeq: 9,
+        });
+        const api = getMemoryGraphWriteApi(ctx.__memoryStore, ctx);
+        const res = await api.editNode({ id: 'n_9', setFields: { rank: 'x' } });
+        expect(res).toMatchObject({ ok: true, changed: false });
+        expect(ctx.__memoryStore.nodes.n_9.seqTo).toBe(5);
+    });
+
+    test('editNode reports changed:true when a field actually changes', async () => {
+        const ctx = makeContext({
+            nodes: [{
+                id: 'n_9', type: 'character_sheet', level: 'semantic', title: 'A',
+                fields: { rank: 'x' }, childrenIds: [], parentId: '', archived: false, seqTo: 5,
+            }].reduce((acc, n) => { acc[n.id] = n; return acc; }, {}),
+            edges: [],
+            seqCounter: 6,
+            nodeSeq: 9,
+        });
+        const api = getMemoryGraphWriteApi(ctx.__memoryStore, ctx);
+        const res = await api.editNode({ id: 'n_9', setFields: { rank: 'y' } });
+        expect(res).toMatchObject({ ok: true, changed: true });
+    });
+
+    test('upsertLinks reports real added edge count (duplicate link → 0)', async () => {
+        const ctx = makeContext({
+            nodes: {
+                a: { id: 'a', type: 'character_sheet', level: 'semantic', title: 'A', fields: {} },
+                b: { id: 'b', type: 'character_sheet', level: 'semantic', title: 'B', fields: {} },
+            },
+            edges: [{ from: 'a', to: 'b', type: 'mentions' }],
+            seqCounter: 0,
+            nodeSeq: 0,
+        });
+        const api = getMemoryGraphWriteApi(ctx.__memoryStore, ctx);
+        const dup = await api.upsertLinks({
+            source: { id: 'a' },
+            links: [{ targetNodeId: 'b', relation: 'mentions', direction: 'outgoing' }],
+        });
+        expect(dup.applied).toBe(0);
+        const fresh = await api.upsertLinks({
+            source: { id: 'a' },
+            links: [{ targetNodeId: 'b', relation: 'guards', direction: 'outgoing' }],
+        });
+        expect(fresh.applied).toBe(1);
+    });
+
+    test('archiveNode rewrites edges to the replacement, dedupes, and drops self-loops', async () => {
+        const ctx = makeContext({
+            nodes: {
+                a: { id: 'a', type: 'character_sheet', level: 'semantic', title: 'A', fields: {} },
+                b: { id: 'b', type: 'character_sheet', level: 'semantic', title: 'B', fields: {} },
+                c: { id: 'c', type: 'location_state', level: 'semantic', title: 'C', fields: {} },
+            },
+            edges: [
+                { from: 'b', to: 'c', type: 'related' },
+                { from: 'a', to: 'c', type: 'related' },
+                { from: 'a', to: 'b', type: 'related' },
+            ],
+            seqCounter: 0,
+            nodeSeq: 0,
+        });
+        const archive = archiveProbe(ctx);
+        expect(typeof archive).toBe('function');
+        const res = await archive({ id: 'b', replacementId: 'a' });
+        expect(res).toMatchObject({ ok: true, changed: true });
+        expect(ctx.__memoryStore.nodes.b.archived).toBe(true);
+        const related = ctx.__memoryStore.edges.filter(e => e.type === 'related');
+        expect(related).toEqual([{ from: 'a', to: 'c', type: 'related' }]);
+        expect(ctx.__memoryStore.edges.some(e => e.from === e.to)).toBe(false);
+    });
+});
+
+function archiveProbe(ctx) {
+    // Returns a bound archiveNode primitive for a fresh write-api on ctx,
+    // or null when the implementation doesn't expose it yet.
+    const mod = archiveProbe.mod;
+    if (!mod) return null;
+    const api = mod.getMemoryGraphWriteApi(ctx.__memoryStore, ctx);
+    return api.archiveNode ? (args) => api.archiveNode(args) : null;
+}
