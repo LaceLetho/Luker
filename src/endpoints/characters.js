@@ -1983,9 +1983,31 @@ router.post('/delete', validateAvatarUrlMiddleware, async function (request, res
         return response.sendStatus(400);
     }
 
+    // Resolve the name-keyed asset folder before the card is unlinked —
+    // chat image uploads and expression sprites both file themselves under
+    // the sanitized display name, never under the avatar filename.
+    const ownedFolderName = await readCharacterFolderName(avatarPath);
+
     deleteAllCharacterStateSidecars(avatarPath);
     fs.unlinkSync(avatarPath);
     invalidateThumbnail(request.user.directories, 'avatar', request.body.avatar_url);
+
+    // Take the character-owned asset folders with the card, or they linger
+    // on disk with no UI path to reach them again.
+    if (ownedFolderName) {
+        const ownedDirs = [
+            path.join(request.user.directories.characters, ownedFolderName),
+            path.join(request.user.directories.userImages, ownedFolderName),
+        ];
+        for (const ownedDir of ownedDirs) {
+            try {
+                await fsPromises.rm(ownedDir, { recursive: true, force: true });
+            } catch (error) {
+                console.warn('Failed to delete character-owned assets:', ownedDir, error);
+            }
+        }
+    }
+
     let dir_name = (request.body.avatar_url.replace('.png', ''));
 
     if (!dir_name.length) {
@@ -2438,6 +2460,31 @@ function renameAllCharacterStateSidecars(sourceCharacterPath, targetCharacterPat
         }
         fs.copyFileSync(sourceFilePath, targetFilePath);
         fs.unlinkSync(sourceFilePath);
+    }
+}
+
+/**
+ * Resolves the sanitized display name a character files its owned assets
+ * under (chat images in user/images/<name>, expression sprites in
+ * characters/<name>). Returns '' when the card cannot be read or the name
+ * sanitizes to nothing — callers skip the cleanup in that case.
+ *
+ * @param {string} characterFilePath - Absolute path to the character PNG
+ * @returns {Promise<string>}
+ */
+async function readCharacterFolderName(characterFilePath) {
+    try {
+        const rawData = await readCharacterData(characterFilePath);
+        const cardData = rawData ? JSON.parse(rawData) : null;
+        const name = String(cardData?.data?.name ?? cardData?.name ?? '').trim();
+        const folderName = sanitize(name);
+        if (!folderName || folderName === '.' || folderName === '..') {
+            return '';
+        }
+        return folderName;
+    } catch (error) {
+        console.warn('Failed to resolve character name for asset cleanup:', error);
+        return '';
     }
 }
 
