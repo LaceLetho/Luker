@@ -282,7 +282,7 @@ toastr.error('Import failed: ' + error.message);
 
 ## Shared Components
 
-Reusable HTML-string builders for common extension-drawer / popup UI patterns. Each is exposed on all three API layers.
+Reusable HTML-string builders for common extension-drawer / popup UI patterns. Each is exposed on all API layers.
 
 ### renderLukerTabs
 
@@ -298,7 +298,7 @@ renderLukerTabs(options: {
 
 Renders a tabbed panel for extension drawer or popup UIs. Returns a complete HTML string; visibility is toggled by a delegated click handler installed on module load, so callers only need to insert the returned markup. Tab selection persists to `extension_settings[moduleName].tabState[scope]` — distinct `scope` values get independent persisted selections within the same module.
 
-All three layers expose the same function:
+All layers expose the same function:
 
 ```js
 // Layer 1 — ESM
@@ -346,7 +346,7 @@ renderFieldHelpButton(options: {
 
 Renders a small "?" icon button that opens a title + body popup on click. Use it for generic field explanations attached to labels or headings. For preset-slot help (which needs preset-scoped resolution), use `renderPresetHelpButton` instead.
 
-All three layers expose the same function:
+All layers expose the same function:
 
 ```js
 // Layer 1 — ESM

@@ -71,7 +71,7 @@ ctx.macros.register('greet', {
 });
 ```
 
-註冊後 <span v-pre>`{{myStatus}}`</span> 和 <span v-pre>`{{greet::Bob}}`</span> 都能正常工作。
+註冊後 <span v-pre>`{{myStatus}}`</span> 和 <span v-pre>`{{greet::Bob}}`</span> 均能正常工作。
 
 ### macros.registry
 
@@ -168,7 +168,7 @@ const result = ctx.substituteParamsExtended(
 
 ## 變數
 
-有兩個作用域：**本地**（按聊天，持久化在 `chat_metadata.variables`）和**全域**（跨聊天，持久化在 `extension_settings.variables.global`）。
+可用的作用域：**本地**（按聊天，持久化在 `chat_metadata.variables`）和**全域**（跨聊天，持久化在 `extension_settings.variables.global`）。
 
 ### 本地變數
 
@@ -188,14 +188,14 @@ context.variables.local.pop(name: string): string | undefined
 |------|------|
 | `get` | 讀取變數。數字字串會自動強制成數字。不存在時回傳 `''` |
 | `set` | 寫入變數。回傳該值 |
-| `add` | 兩者都是數字時做數字加法。已有值是 JSON 陣列時 push。否則作為字串串接 |
+| `add` | 兩者均為數字時做數字加法。已有值是 JSON 陣列時 push。否則作為字串串接 |
 | `inc` / `dec` | `add(name, ±1)` 的捷徑 |
 | `del` | 移除變數。回傳 `''` |
 | `has` | 布林存在性檢查 |
 | `push` | 把 `value` 推入 `name` 處的 JSON 陣列。缺失時自動建為 `[]`。對應巨集形式 <span v-pre>`{{pushvar::name::value}}`</span> |
 | `pop` | 從 `name` 處的 JSON 陣列彈出最後一個元素。空或缺失時為無操作。對應巨集形式 <span v-pre>`{{popvar::name}}`</span> |
 
-上述每個方法的 `name` 都接受點號路徑（例如 `roster.alice.hp`），用於讀寫一個結構化變數內部的某片葉子。寫入類方法直接就地修改 `chat_metadata.variables[root]`，跟巨集側的 <span v-pre>`{{setvar::roster.alice.hp::value}}`</span> 行為一致；中間節點按需自動建立。
+上述每個方法的 `name` 均接受點號路徑（例如 `roster.alice.hp`），用於讀寫一個結構化變數內部的某片葉子。寫入類方法直接就地修改 `chat_metadata.variables[root]`，跟巨集側的 <span v-pre>`{{setvar::roster.alice.hp::value}}`</span> 行為一致；中間節點按需自動建立。
 
 `get` / `set` 上可選的 `args` 參數支援：
 - `args.key` —— 替代變數名（覆寫 `name`）
@@ -243,7 +243,7 @@ ctx.variables.local.set('inventory', 'shield', { index: 1, as: 'string' });
 
 ### 樓層級寫入
 
-`local` / `global` 七件套之外，luker 在頂層另外導出一個 `setVariable`，支援把單次寫入掛到某一樓——這是 <span v-pre>`{{setvar::name::value}}`</span> 在文字裡寫出來效果的程式碼版等價物。
+`local` / `global` CRUD 之外，luker 在頂層另外導出一個 `setVariable`，支援把單次寫入掛到某一樓——這是 <span v-pre>`{{setvar::name::value}}`</span> 在文字裡寫出來效果的程式碼版等價物。
 
 ```ts
 context.setVariable(
@@ -284,4 +284,4 @@ await ctx.setVariable('hp', 42, { floor: ctx.chat.length - 1 });
 | 提交日誌 | variable-op-log（樓層 `extra.var_ops`） | 樓層結構化提交日誌（`__floor_log`） |
 | 適合 | 跟 AI 寫的 <span v-pre>`{{setvar}}`</span> 共享儲存的可回滾標量 | CardApp / 外掛自己管理的可回滾結構化狀態 |
 
-兩個機制走的是各自獨立的提交日誌，**同一個 key 不要兩邊都寫**——重建順序無保證，容易互相覆蓋。
+這些機制各有獨立的提交日誌，**同一個 key 不要兩邊均寫**——重建順序無保證，容易互相覆蓋。

@@ -18,7 +18,7 @@ With Preset World Info, you can bundle these combinations — when switching pre
 2. Select the World Info to bind with the current preset
 3. Save the preset
 
-Afterward, each time you switch to this preset, the associated World Info will be automatically activated. Switching to other presets does not globally auto-deactivate manually enabled World Info.
+Afterward, switching to this preset automatically activates the associated World Info. Switching to other presets does not globally auto-deactivate manually enabled World Info.
 
 ::: tip
 Preset World Info does not affect the World Info that comes with Character Cards. Character Card World Info is always active; preset-associated World Info is additionally layered on top.
@@ -26,12 +26,12 @@ Preset World Info does not affect the World Info that comes with Character Cards
 
 ## Difference from Manual Activation
 
-World Info has two activation methods: manual activation and preset-associated activation.
+World Info has the following activation methods: manual activation and preset-associated activation.
 
 - **Manually activated** World Info remains active at all times, unaffected by preset switching
 - **Preset-associated** World Info is auto-activated when that preset is selected
 
-The two methods don't interfere with each other. If you want a World Info to be active under all presets, simply activate it manually; if you only want to use it in specific scenarios, preset association is more convenient.
+The methods don't interfere with each other. If you want a World Info to be active under all presets, simply activate it manually; if you only want to use it in specific scenarios, preset association is more convenient.
 
 ## Integration with Other Features
 

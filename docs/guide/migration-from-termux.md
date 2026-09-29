@@ -61,7 +61,7 @@ Luker's importer auto-recognizes subdirectories like `characters/`, `chats/`, `w
 
 Download the latest APK from [GitHub Releases](https://github.com/funnycups/Luker/releases/latest).
 
-The **first time you open** Luker, a **"Welcome to Luker!"** dialog appears. The top of the dialog has a Language selector. The middle has a **"Migrate from SillyTavern"** block with three side-by-side buttons:
+The **first time you open** Luker, a **"Welcome to Luker!"** dialog appears. The top of the dialog has a Language selector. The middle has a **"Migrate from SillyTavern"** block with side-by-side buttons:
 
 | Button | Purpose | What to pick |
 | --- | --- | --- |
@@ -69,7 +69,7 @@ The **first time you open** Luker, a **"Welcome to Luker!"** dialog appears. The
 | **Import config.yaml** | Carry over the original SillyTavern server config | `sillytavern-config.yaml` (optional) |
 | **Import Global Extensions ZIP** | Global third-party extensions | `sillytavern-extensions.zip` (optional) |
 
-Tap each button you need, choose the file in the system picker, and wait for each toast to confirm completion. The three buttons are independent and can be triggered in any order.
+Tap each button you need, choose the file in the system picker, and wait for each toast to confirm completion. The buttons are independent and can be triggered in any order.
 
 ### 3. Finish the wizard
 

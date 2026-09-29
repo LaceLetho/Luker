@@ -53,7 +53,7 @@ You can create any number of connection profiles, for example:
 - A flagship model for high-quality creative writing
 - A profile for local models
 
-The Connection Manager lets you switch between them quickly without re-entering API addresses and keys each time.
+The Connection Manager lets you switch between them quickly without re-entering API addresses and keys.
 
 ## API Key Configuration
 
@@ -136,7 +136,7 @@ Luker's Connection Manager provides slash commands for power users:
 
 ## Request Inspector
 
-Luker includes a built-in Request Inspector that lets you view detailed information about each generation request, including the complete request content sent to the API and the returned response. This is very useful for debugging connection issues or optimizing prompts.
+Luker includes a built-in Request Inspector that lets you view detailed information about generation requests, including the complete request content sent to the API and the returned response. This is very useful for debugging connection issues or optimizing prompts.
 
 ## Next Steps
 

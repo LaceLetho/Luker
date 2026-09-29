@@ -30,7 +30,7 @@ share one merge engine and one resolution UX.
 
 ## API
 
-All three layers expose the same surface:
+All layers expose the same surface:
 
 ```js
 // Layer 1 — ESM

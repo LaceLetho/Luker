@@ -181,7 +181,7 @@ CardApp 的上下文物件提供以下 API：
 | `ctx.getCharacterState(namespace)` | **非同步** 讀取角色綁定的狀態（avatar 自動繫結），跨該角色的所有聊天保留。 |
 | `ctx.setCharacterState(namespace, data)` | **非同步** 寫入角色綁定的狀態（avatar 自動繫結），傳 `null` 表示刪除。 |
 | `ctx.getVariable(key)` | 讀取聊天變數（來自 `chat_metadata.variables`，即 <code v-pre>{{getvar::key}}</code> 讀的同一個桶）。 |
-| `ctx.setVariable(key, value, options?)` | **非同步** 設定聊天變數。預設寫入 `chat_metadata.variables`（會話級，貫穿整個 chat）。傳 `{ floor: <訊息索引> }` 則改走變數 op-log，把這次寫入繫結到該樓的**當前 swipe**——切 swipe / 切回 / 刪樓 / 建立分支都會經過 rebuilder 重放，效果跟 AI 在訊息裡直接寫 <code v-pre>{{setvar}}</code> 一致。繫結樓層的路徑會把 value 強制轉成字串（op-log 的儲存格式只承載字串）。如果需要「結構化的逐樓狀態 + 獨立命名空間 + 自己的 commit log」，改用 `ctx.lukerContext.createFloorState({ namespace })`。 |
+| `ctx.setVariable(key, value, options?)` | **非同步** 設定聊天變數。預設寫入 `chat_metadata.variables`（會話級，貫穿整個 chat）。傳 `{ floor: <訊息索引> }` 則改走變數 op-log，把這次寫入繫結到該樓的**當前 swipe**——切 swipe / 切回 / 刪樓 / 建立分支均會經過 rebuilder 重放，效果跟 AI 在訊息裡直接寫 <code v-pre>{{setvar}}</code> 一致。繫結樓層的路徑會把 value 強制轉成字串（op-log 的儲存格式只承載字串）。如果需要「結構化的逐樓狀態 + 獨立命名空間 + 自己的 commit log」，改用 `ctx.lukerContext.createFloorState({ namespace })`。 |
 
 #### 聊天管理
 
@@ -207,7 +207,7 @@ CardApp 的上下文物件提供以下 API：
 
 | API | 說明 |
 |-----|------|
-| `ctx.eventSource` | Luker 的內部事件匯流排。訂閱用 `ctx.eventSource.on(eventName, handler)`，取消訂閱用 `ctx.eventSource.off(eventName, handler)`。事件名在 `ctx.lukerContext.eventTypes` 上（`CHAT_CHANGED`、`MESSAGE_DELETED`、`MESSAGE_SWIPED` 等）。每次 `.on()` 都搭配 `ctx.onDispose(() => ctx.eventSource.off(eventName, handler))`，CardApp 卸載時監聽器才會被移除乾淨。 |
+| `ctx.eventSource` | Luker 的內部事件匯流排。訂閱用 `ctx.eventSource.on(eventName, handler)`，取消訂閱用 `ctx.eventSource.off(eventName, handler)`。事件名在 `ctx.lukerContext.eventTypes` 上（`CHAT_CHANGED`、`MESSAGE_DELETED`、`MESSAGE_SWIPED` 等）。每次 `.on()` 均搭配 `ctx.onDispose(() => ctx.eventSource.off(eventName, handler))`，CardApp 卸載時監聽器才會被移除乾淨。 |
 | `ctx.addEventListener(target, event, handler, options?)` | 訂閱 DOM 元素上的事件。`target` 通常是 `ctx.container` 或 `querySelector` 的回傳值；用於容器內的 UI 事件如 click、keydown、scroll。CardApp 卸載時監聽器會自動移除。 |
 | `ctx.setInterval(fn, ms)` | `setInterval` 的封裝，卸載時控制代碼自動清理。 |
 | `ctx.setTimeout(fn, ms)` | `setTimeout` 的封裝，卸載時控制代碼自動清理。 |

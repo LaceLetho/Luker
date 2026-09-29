@@ -25,7 +25,7 @@ For each activated World Info entry, the trace record includes:
 
 ## Usage
 
-In the World Info editor, each entry has a fa-route icon button at its top-right; clicking it shows the most recent scan's activation trace for that entry:
+In the World Info editor, entries have a fa-route icon button at their top-right; clicking it shows the most recent scan's activation trace for that entry:
 
 ![World Info activation trace popup](/images/world-info-trace/wi-trace-popup.png)
 

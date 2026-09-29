@@ -9,10 +9,10 @@ Agenda 用一個 **Planner Agent** 替換 Spec 的靜態 DAG。Planner 維護 to
 - 用 [Function Call Runtime](/zh-TW/improvements/function-call-runtime) 的能力讓 Planner 自己組織調度。
 
 ::: tip Agenda 不是 Spec 的替代
-Spec 的可預期性、prompt 快取友好度、debug 友好度都比 Agenda 強。絕大多數 RP 場景固定 DAG 已經夠用，Agenda 是給確實需要動態調度的場景準備的。
+Spec 的可預期性、prompt 快取友好度、debug 友好度均比 Agenda 強。絕大多數 RP 場景固定 DAG 已經夠用，Agenda 是給確實需要動態調度的場景準備的。
 :::
 
-::: warning 99% 的人不該手撸
+::: warning 多數情況下不該手改
 手撸 Planner prompt 之前先看一眼 [AI 迭代工作台](/zh-TW/features/orchestrator/iteration-studio)——一句話描述需求，AI 給你一份 Planner + Agent 池的方案，逐條審。
 :::
 
@@ -36,11 +36,11 @@ Planner 是 Agenda 的核心，它做幾件事：
 
 ### Agenda Agents
 
-每個 Agenda Agent 類似 Spec 的 Node：有自己的 System Prompt、User Prompt Template、可選的 API / Chat Completion 預設覆寫。區別在於 Agent 不綁死在某個 stage，**何時被呼叫、被呼叫幾次、是否被呼叫，都由 Planner 決定**。
+每個 Agenda Agent 類似 Spec 的 Node：有自己的 System Prompt、User Prompt Template、可選的 API / Chat Completion 預設覆寫。區別在於 Agent 不綁死在某個 stage，**何時被呼叫、被呼叫幾次、是否被呼叫，均由 Planner 決定**。
 
-### 三個運行時上限
+### 運行時上限
 
-Agenda 是動態調度，失控容易，所以有三道閘：
+Agenda 是動態調度，失控容易，所以設有幾道閘：
 
 - **Planner 最大輪數** — Planner 調度的輪數上限
 - **最大並發 Agent 數** — 同時跑的 Agent 數量上限（`Promise.all` 的並發度）
@@ -50,7 +50,7 @@ Agenda 是動態調度，失控容易，所以有三道閘：
 
 ## 預設編排流程
 
-Agenda 把節奏交給 Planner Agent 來定，Planner 每輪從一個 worker 池裡挑人派活。預設 profile 自帶 Planner + 5 個 worker（`distiller`、`lorebook_reader`、`planner`、`critic`、`finalizer`）；每輪 Planner 派出一個或多個 worker、讀回結果、必要時重新規劃，看板搞定後由 `finalizer` 落筆寫 capsule。
+Agenda 把節奏交給 Planner Agent 來定，Planner 從 worker 池裡挑人派活。預設 profile 自帶 Planner 與 worker 池（`distiller`、`lorebook_reader`、`planner`、`critic`、`finalizer`）；Planner 派出 worker、讀回結果、必要時重新規劃，看板搞定後由 `finalizer` 產出 capsule。
 
 ```d2
 direction: down
@@ -87,7 +87,7 @@ loop: "Planner 主導的動態調度" {
   pool -> driver: "結果回收 · 必要時重新規劃"
 }
 
-finalizer: "finalizer\n讀完最終的看板 · 落筆寫編排指引 capsule" {
+finalizer: "finalizer\n讀完最終的看板 · 產出編排指引 capsule" {
   style.fill: "#c8e6c9"
 }
 
@@ -105,7 +105,7 @@ finalizer -> out
 
 | Agent | 作用 | 簡單範例（RP 場景） |
 |---|---|---|
-| `Planner`（迴圈駕駛員，非 worker） | 讀聊天和使用者訊息，維護 todo 看板（`add` / `set_status` / `drop`），每輪從下面的 worker 池裡挑一個或多個派活，讀回結果，決定是繼續規劃還是交給 `finalizer`。 | 第 1 輪：平行派 `distiller` + `lorebook_reader`。第 2 輪：讀完輸出，判斷還需要 `planner` 與 `critic`。第 3 輪：交給 `finalizer`。 |
+| `Planner`（迴圈駕駛員，非 worker） | 讀聊天和使用者訊息，維護 todo 看板（`add` / `set_status` / `drop`），從下面的 worker 池裡挑人派活，讀回結果，決定是繼續規劃還是交給 `finalizer`。 | 平行派 `distiller` + `lorebook_reader`；讀完輸出，判斷還需要 `planner` 與 `critic`；交給 `finalizer`。 |
 | `distiller` | 緊湊、有據可查的場景狀態讀取（使用者意圖、當前張力、即時方向）；寫給 Planner 與下游 agent 看，不直接面向玩家。 | 「林晚在試探使用者對洛陽話題的態度；如果使用者繞開，她會徹底換話題。」 |
 | `lorebook_reader` | 只挑出本回合**真的有影響**的世界書 / world-info 約束，寫成可執行的寫作 / 行為約束，不抄世界書原文。 | 「洛陽被圍 —— 林晚不可能離開。文風：別用現代詞，她會說『不知怎的』而非『somehow』。」 |
 | `planner` | 場景進程分析師 —— 提下一拍該走哪些 beat / 決策點，保留因果、不讓世界圍著使用者轉。 | 節拍：「使用者追問 → 她躲閃 → 換個角度再問 → 她漏出一個洛陽細節 → 回覆停在那」。 |
@@ -127,17 +127,17 @@ finalizer -> out
 
 Agenda 模式的 Planner 調度透過 OpenAI 工具呼叫實現，依賴 Luker 的 [Function Call Runtime](/zh-TW/improvements/function-call-runtime) 框架。這意味著：
 
-- Planner 用的連接設定必須支援 function calling（OpenAI / Claude / Gemini 都支援）
+- Planner 用的連接設定必須支援 function calling（OpenAI / Claude / Gemini 均支援）
 - 工具呼叫失敗時的重試由 Function Call Runtime 處理（詳見對應文件）
 
 ## 看一次 Agenda 跑
 
-[運行面板](/zh-TW/features/orchestrator/#step-4) 會即時顯示每次 Agenda 運行。每一輪 Planner 是一張卡片，該輪派發的每個 worker 是它下面的子卡片，展開就能看到完整推理和輸出。Agenda 模式可以重點關注：
+[運行面板](/zh-TW/features/orchestrator/#step-4) 會即時顯示 Agenda 運行。Planner 輪次是卡片，該輪派發的 worker 是它下面的子卡片，展開就能看到完整推理和輸出。Agenda 模式可以重點關注：
 
-- **每輪 Planner 輸出** —— `todo_ops` 列表（`set_status` / `add` / `set_goal` 等），就地展開。Planner 派錯 agent、漏步、死循環時，對照這些 ops 與 worker 輸出找根因。
-- **worker 派發** —— 該輪 Planner 調起來的每個 worker 都在這一輪的卡片下。展開能看到輸入參數與輸出。
+- **Planner 輸出** —— `todo_ops` 列表（`set_status` / `add` / `set_goal` 等），就地展開。Planner 派錯 agent、漏步、死循環時，對照這些 ops 與 worker 輸出找根因。
+- **worker 派發** —— 該輪 Planner 調起來的每個 worker 均在這一輪的卡片下。展開能看到輸入參數與輸出。
 - **Final Agent 輸出** —— run 末尾的最後一個 worker（預設是 `finalizer`）產出注入主模型的 capsule。設定參考裡能換成其他 agent id。
-- **事件密度** —— Agenda 一次 run 通常會有 20+ 事件（Planner 輪次 + 每次派發都會留下記錄），所以面板比 Spec 看起來更密。
+- **事件密度** —— Agenda 一次 run 的事件記錄較密（Planner 輪次與派發均會留下記錄），所以面板比 Spec 看起來更密。
 
 面板頂部的**匯出**按鈕把整次 run 下載為 JSON（便於回報問題）。
 

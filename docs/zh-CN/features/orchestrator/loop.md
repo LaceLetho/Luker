@@ -2,7 +2,7 @@
 
 Loop 模式让单个 Agent 在同一会话里通过工具调用循环推进，自己决定何时收尾——不画 DAG、不写 Planner，只写一段 system prompt + 勾几个工具就能跑。
 
-**Loop 模式在速度与效果之间取得平衡**：比单 Agent 智能（可以调工具迭代查记忆 / 查世界书 / 翻聊天），比 Spec / Agenda 快（同一会话同一 preset，prompt cache 持续命中，不像 spec 每个 stage 切 preset 都要重建 cache）。
+**Loop 模式在速度与效果之间取得平衡**：比单 Agent 智能（可以调工具迭代查记忆 / 查世界书 / 翻聊天），比 Spec / Agenda 快（同一会话同一 preset，prompt cache 持续命中，不像 spec 每个 stage 切 preset 均要重建 cache）。
 
 适合的场景：你想让一个 agent 像研究员那样工作——读最近聊天、查世界书、翻记忆图、记笔记，最后产出一段精炼的 capsule 注入主对话；过程中需要它自己根据中间发现决定下一步，而不是按固定流程走完所有 stage。
 
@@ -10,13 +10,13 @@ Loop 模式让单个 Agent 在同一会话里通过工具调用循环推进，�
 loop 模式和 spec / agenda 共存。已有的 spec / agenda profile 不受影响。
 :::
 
-::: warning 99% 的人不该手搓 system prompt
+::: warning 多数情况下不该手搓 system prompt
 不会写 system prompt？直接打开 [AI 迭代工作台](/zh-CN/features/orchestrator/iteration-studio)——用自然语言描述你想要的 agent，AI 通过工具调用直接 patch profile。
 :::
 
 ## 是什么 / 为什么
 
-Spec / Single / Agenda 三种模式都是"多 agent 协作生成单条主回复"，stage 间通过 `previousNodeOutputs` 传结构化输出。这套设计在以下场景出现摩擦：
+Spec / Single / Agenda 均以"多 agent 协作生成单条主回复"为模型，stage 间通过 `previousNodeOutputs` 传结构化输出。这套设计在以下场景出现摩擦：
 
 - **配置门槛高**:spec 需要画 DAG，agenda 需要写 Planner 提示词。
 - **stage 切换开销**：每个 stage 重建 system prompt / 切预设，prompt cache 难命中，端到端延迟累加。
@@ -27,7 +27,7 @@ Loop 模式针对这些点做单 agent + 工具循环：同一会话、一套 pr
 
 ## 默认编排流程
 
-Loop 模式只跑一个 Agent。它读一眼手头已有的信息，决定是再去取点上下文，还是直接落笔写 capsule，如此往复直到主动 `finalize`。
+Loop 模式只跑一个 Agent。它读一眼手头已有的信息，决定是再去取点上下文，还是直接产出 capsule，如此往复直到主动 `finalize`。
 
 ```d2
 direction: down
@@ -87,7 +87,7 @@ loop.finalize -> out
 
 关键字段：
 
-- **Loop 系统提示词**:Agent 的角色与任务说明。要明确告诉它「何时该调 `finalize`」——多数翻车都来自 agent 不知道何时收尾。
+- **Loop 系统提示词**:Agent 的角色与任务说明。要明确告诉它「何时该调 `finalize`」——多数翻车均来自 agent 不知道何时收尾。
 - **Loop 最大轮次**（默认 20）：一轮 = 一次 LLM 请求 + 处理它返回的 tool call。
 - **Loop 墙钟预算**（默认 300 秒）：整个 loop 的墙钟上限，无论已跑多少轮，到点 break。
 - **工具开关**：勾掉的命名空间不会出现在 agent 的工具 schema 里。`finalize` 强制启用、不可关闭。
@@ -95,17 +95,17 @@ loop.finalize -> out
 
 ## 内置工具
 
-工具走 OpenAI function-calling 协议，结果以 `role: tool` 消息形式回到 Agent 的下一轮上下文。共 24 个可选工具 + 1 个强制 `finalize`:
+工具走 OpenAI function-calling 协议，结果以 `role: tool` 消息形式回到 Agent 的下一轮上下文。可选工具加上强制的 `finalize`:
 
 | 工具 | 作用 | 简单示例（RP 场景） |
 |---|---|---|
-| `note_open(text)` | 开启一条**剧情作者线索**（伏笔、承诺、章节大纲）。笔记会在之后每次 loop 启动时出现在 agent 的 "## Open Notes" 块，直到被关闭。单条上限 16KB。 | agent 发现自己刚埋了一个设定，调 `note_open('林晚:外祖母在洛阳——下次见面兑现')`；之后几轮 loop 都能看到这条线索。 |
+| `note_open(text)` | 开启一条**剧情作者线索**（伏笔、承诺、章节大纲）。笔记会在之后 loop 启动时出现在 agent 的 "## Open Notes" 块，直到被关闭。单条上限 16KB。 | agent 发现自己刚埋了一个设定，调 `note_open('林晚:外祖母在洛阳——下次见面兑现')`；之后几轮 loop 均能看到这条线索。 |
 | `note_close(id, reason?)` | 按 id 关闭一条已开启的笔记（已兑现、不再需要等）。笔记从 "## Open Notes" 块中消失，但仍归档保留。 | 章节节拍落地后，`note_close('o_a3f2', '林晚见到外祖母,floor 73')`。 |
 | `chat_read_range(start, end)` | 读 chat 楼层范围。负数从末尾倒数，单次最多 50 楼。 | `chat_read_range(-10, -1)` 读最近 10 楼复习上下文。 |
 | `chat_search(pattern, flags?)` | 对所有楼层做正则搜索。返回 grep `-n` 风格的命中行，每行一条结果：`floor_N [role]:lineno: line`。`flags` 默认 `gm`，`g` 缺省时会自动补上。配合 `chat_read_range` 拉回完整楼层内容。 | `chat_search({ pattern: '宴会\|庆典', flags: 'gm' })` 翻出所有提到「宴会」或「庆典」的楼层。 |
 | `lorebook_search(pattern, flags?, book?)` | 在所有启用的世界书条目里做正则搜索。返回 grep `-n` 风格的命中行：`[book] entry_name:lineno: line`。**默认排除本回合已激活的条目**——那些已经被注入主上下文，再返回会浪费 token。传入 `book` 可按世界书名收窄到单本。 | `lorebook_search({ pattern: '李府', book: 'main' })` 在 `main` 世界书里找出所有提到「李府」的设定行。 |
 | `lorebook_get(entry_key)` | 按 key 拉取条目全文。**不去重**——允许 agent 精确引用某条已激活条目以保持术语一致。 | `lorebook_get('落雁城-主城')` 把这一条全文调出来引用。 |
-| `lorebook_force_activate(book_name, uids)` | **写工具，默认关闭。** 把一条或多条本回合未激活的世界书条目强行塞进主模型的 `<world_info>` 通道；主模型分不出强行注入和自然激活的差别。**绕过世界书 token 预算**——塞得太多会悄悄挤掉聊天历史，只塞这一轮真正需要的。也不会触发递归 key 扫描。适合让 agent 按场景动态决定主模型这一轮看到哪些设定（例如「在聊到这个 NPC 时把对应人物档案拉出来」）。Loop / Spec / Agenda 都能用；Director 用不了（时序——Director 主代理跑的时候 WI 已经焊死在 prompt 里）。 | 聊到议会时 `lorebook_force_activate({ book_name: 'main', uids: [42, 87] })` 把长老会档案 + 贸易路线注释顶上去。 |
+| `lorebook_force_activate(book_name, uids)` | **写工具，默认关闭。** 把一条或多条本回合未激活的世界书条目强行塞进主模型的 `<world_info>` 通道；主模型分不出强行注入和自然激活的差别。**绕过世界书 token 预算**——塞得太多会悄悄挤掉聊天历史，只塞这一轮真正需要的。也不会触发递归 key 扫描。适合让 agent 按场景动态决定主模型这一轮看到哪些设定（例如「在聊到这个 NPC 时把对应人物档案拉出来」）。Loop / Spec / Agenda 均能用；Director 用不了（时序——Director 主代理跑的时候 WI 已经焊死在 prompt 里）。 | 聊到议会时 `lorebook_force_activate({ book_name: 'main', uids: [42, 87] })` 把长老会档案 + 贸易路线注释顶上去。 |
 | `memory_list_candidates(seq_window?, types?, exclude_recent_messages?)` | 枚举可见的记忆图候选池——与记忆图自身召回 LLM 看到的同一组。返回 `{ candidates: [{ id, type, level, title, seqTo, semanticDepth }] }`，按时间倒序。**召回流水线的第一步**。 | `memory_list_candidates({ types: ['event'] })` 返回召回 LLM 会考虑的最近事件节点。 |
 | `memory_keyword_search(query, types?, k?)` | 按 token 匹配 title + 字段值，无需 profile。返回 `{ results: [{ id, type, title, seqTo, score, scoreMode: 'keyword' }] }`，按 score 降序。按关键词或短语查时用。 | `memory_keyword_search({ query: 'family secret', k: 8 })` |
 | `memory_vector_search(query, types?, k?)` | 按配置的 embedding profile 做语义相似度搜索。未配置 embedding profile 时直接抛 `NO_EMBEDDING_PROFILE`，不静默 fallback；需要时手动回落到 `memory_keyword_search`。 | `memory_vector_search({ query: 'the moment she chose forgiveness', k: 5 })` |
@@ -129,7 +129,7 @@ loop.finalize -> out
 
 如果你的 agent 需要内置之外的能力，参见[自定义工具](./custom-tools.md)。
 
-## 失控保护（5 层，按触发优先级）
+## 失控保护（按触发优先级）
 
 1. **abort signal**：用户点「停止」 / 上层取消 → 立即中止；trace 记 `cancelled`，**不**注入半成品 capsule。
 2. **wall_clock_budget_ms**：到点立即 break。
@@ -140,9 +140,9 @@ loop.finalize -> out
 
 ## 看一次 loop 跑
 
-[运行面板](/zh-CN/features/orchestrator/#step-4) 会实时显示每次 loop 运行。Agent 每一轮推理是一张卡片，展开就能看 agent 当时怎么想、调了哪些工具。Loop 模式可以重点关注：
+[运行面板](/zh-CN/features/orchestrator/#step-4) 会实时显示 loop 运行过程。Agent 的推理是一张卡片，展开就能看 agent 当时怎么想、调了哪些工具。Loop 模式可以重点关注：
 
-- **每轮思考 + 工具调用** —— 该轮 agent 的思考，跟着是它派发的工具。工具参数就地展开，不用看 raw JSON。
+- **思考 + 工具调用** —— 该轮 agent 的思考，跟着是它派发的工具。工具参数就地展开，不用看 raw JSON。
 - **工具结果反哺下一轮** —— 每个工具的返回也在这张卡片里。对照 system prompt 找 agent 跑岔的位置。
 - **`finalize`** —— agent 调用 `finalize` 工具时 loop 结束。它的 `capsule_text` 参数就是注入主模型的那段文本。
 - **兜底** —— 任一兜底触发（`max_rounds` / 墙钟超时 / 连续不调工具）时，面板会直接显示具体原因，loop 会用 agent 上一次的自然文本作为 capsule 兜底。
@@ -204,7 +204,7 @@ A：先确认记忆图扩展是否启用、当前 chat 是否真的有记忆节�
 A：那些条目已经通过 worldInfo 主流程注入了主模型上下文，loop agent 再把它们返回到自己的循环里只是浪费 token。**用 `lorebook_get` 才能精确引用已激活条目原文**，比如保持术语一致。
 
 **Q:loop 跑到一半我想停下来怎么办？**
-A：点工具栏的 stop 按钮（与 spec / agenda 一致）。loop runtime 在每轮顶部检查 abort signal，立即中止；trace 写 `cancelled`，不会注入半成品 capsule。
+A：点工具栏的 stop 按钮（与 spec / agenda 一致）。loop runtime 在轮次顶部检查 abort signal，立即中止；trace 写 `cancelled`，不会注入半成品 capsule。
 
 **Q：笔记是否跨 chat 共享？**
 A：不会——笔记保存在当前 chat 的持久化状态里。floor-state 的 settle 机制会自动处理分支和删除。
@@ -219,7 +219,7 @@ A：web 工具是把请求转发给 [Search Tools](/zh-CN/features/search-tools)
 
 Loop 模式与 spec / agenda 在性能上有结构性差异：
 
-- **延迟**:loop 一套 preset 跑全程，每轮 LLM 请求复用同一个 prompt cache 前缀，理论上端到端比 spec 快（spec 每个 stage 切 preset，cache 几乎重建）。
+- **延迟**:loop 一套 preset 跑全程，各轮 LLM 请求复用同一个 prompt cache 前缀，理论上端到端比 spec 快（spec 每个 stage 切 preset，cache 几乎重建）。
 - **token 用量**:loop **不一定省**。工具调用结果累加在同一个 messages 数组里，到第六、七轮时上下文已经显著膨胀；spec 模式 stage 间断流，每个 stage 的 prompt 较短。
 - **失败率**:loop 是新模式，可能比成熟的 spec 不稳定，agent 偶尔会跑岔。建议从短任务（`max_rounds=5`）开始试。
 

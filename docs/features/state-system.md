@@ -25,7 +25,7 @@ Each chat has its own state, isolated by namespace. Luker stores chat state in p
 - One file per namespace, alongside the chat file (not a single global state file)
 - One chat can have multiple state files (one per namespace), created lazily on first write
 - Lifecycle is bound to the chat file: when a chat is renamed, bound state files are renamed accordingly; when a chat is deleted, bound state files are deleted as well
-- Supports incremental updates — no need to write the complete data every time
+- Supports incremental updates — no need to rewrite the complete data
 
 ### Stored Content
 
@@ -103,7 +103,7 @@ See [Extension API — Chat & State](/development/extension-api/chat-and-state) 
 
 ## Floor State (chat state with rewind)
 
-Plain chat state is overwrite-only — when a user swipes, deletes a message, or switches chats, plugins must reload the namespace and reconcile their data manually. Floor State is a thin layer on top of chat state that handles this for you: every write is logged at the chat tail (floor index + swipe id) and replayed automatically when the chat structure changes, so plugin state stays consistent with the active swipe path without manual bookkeeping.
+Plain chat state is overwrite-only — when a user swipes, deletes a message, or switches chats, plugins must reload the namespace and reconcile their data manually. Floor State is a thin layer on top of chat state that handles this for you: writes are logged at the chat tail (floor index + swipe id) and replayed automatically when the chat structure changes, so plugin state stays consistent with the active swipe path without manual bookkeeping.
 
 See [Extension API — Floor State](/development/extension-api/chat-and-state#floor-state) for the API surface, examples, and conventions.
 

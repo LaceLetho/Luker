@@ -1,6 +1,6 @@
 # 宏
 
-宏（Macro）是写成 <code v-pre>{{name}}</code> 形式的占位符，在 prompt 组装时被替换为动态内容。它们出现在预设、世界书、角色卡、聊天消息、斜杠命令、正则替换里——任何会被拼装进 prompt 的文本字段都能用宏。请求到达 AI 时，所有的宏都已经被替换成最终字符串。
+宏（Macro）是写成 <code v-pre>{{name}}</code> 形式的占位符，在 prompt 组装时被替换为动态内容。它们出现在预设、世界书、角色卡、聊天消息、斜杠命令、正则替换里——任何会被拼装进 prompt 的文本字段均能用宏。请求到达 AI 时，所有的宏均已被替换成最终字符串。
 
 ## Macros 2.0 / 实验性宏引擎
 
@@ -17,7 +17,7 @@
 | 宏参数内嵌套宏 | ✓ |
 | 范围宏内容保留前导空白 | ✓ |
 | 多遍展开时的稳定替换顺序（从左到右、内层先于外层） | ✓ |
-| 一般 <code v-pre>{{user}}</code>、<code v-pre>{{setvar::name::value}}</code>、<code v-pre>{{time}}</code>…… | 两种都能用 |
+| 一般 <code v-pre>{{user}}</code>、<code v-pre>{{setvar::name::value}}</code>、<code v-pre>{{time}}</code>…… | 两种均能用 |
 
 本页里某个特性看起来不生效，先检查这个开关。
 
@@ -39,7 +39,7 @@
 
 单个 `:` 作为兜底也认（<code v-pre>{{roll: 1d20}}</code>），但因为正文里经常出现单冒号，**推荐用 `::`**。
 
-逗号列表宏（<code v-pre>{{random}}</code>、<code v-pre>{{pick}}</code>）两种写法都行：
+逗号列表宏（<code v-pre>{{random}}</code>、<code v-pre>{{pick}}</code>）两种写法均可：
 
 ```text
 {{random::red::green::blue}}
@@ -78,7 +78,7 @@
 
 ```text
 {{#if .verbose}}
-   这一段的缩进和首尾空白都会原样保留。
+   这一段的缩进和首尾空白均会原样保留。
 {{/if}}
 ```
 
@@ -94,7 +94,7 @@
 
 ### 老式标签
 
-5 个非花括号的老式标签，会在宏解析前被自动重写：
+一些非花括号的老式标签，会在宏解析前被自动重写：
 
 | 老式 | 现代等价 |
 |---|---|
@@ -160,7 +160,7 @@
 
 condition 可以是：
 
-- 字面值——空字符串、`false`、`off`、`0` 视为 falsy；其他都 truthy。
+- 字面值——空字符串、`false`、`off`、`0` 视为 falsy；其余均为 truthy。
 - 已注册的宏名（不带花括号）——<code v-pre>{{if description}}# Description{{/if}}</code> 会先把 `description` 解析出来。
 - 嵌套宏——<code v-pre>{{if {{getvar::showHeader}}}}...{{/if}}</code>。
 - 变量简写——<code v-pre>{{if .ready}}</code>、<code v-pre>{{if $debugFlag}}</code>。
@@ -179,7 +179,7 @@ condition 可以是：
 {{/each}}
 ```
 
-`collection` 接受三种形式：
+`collection` 接受以下形式：
 
 1. 内嵌 JSON 字面量——<code v-pre>{{each::["sword"，"shield"]}}</code> 或 <code v-pre>{{each::{"a":1，"b":2}}}</code>。
 2. 变量名——<code v-pre>{{each::npcs}}</code> 读局部变量 `npcs`（找不到 fallback 到全局），并把字符串当 JSON 解析。
@@ -248,7 +248,7 @@ body 里：
 
 全局对应的有 `setglobalvar` / `addglobalvar` / `incglobalvar` / `decglobalvar` / `deleteglobalvar`。
 
-`addvar` 是重载的：两侧都是数值字符串时做数值加；现有值是 JSON 数组时 push；否则按字符串拼接。
+`addvar` 是重载的：两侧均为数值字符串时做数值加；现有值是 JSON 数组时 push；否则按字符串拼接。
 
 ::: tip 用 <code v-pre>{{noop}}</code> 锚住空白
 拼接、范围宏 body、`+= "  text"` 等场景下，前导/尾部空白经常被引擎的自动整理或参数 trim 吃掉。在要保留的空白前后插一个 <code v-pre>{{noop}}</code>（解析为空字符串）就能锚住它。例如 <code v-pre>{{addvar::story::{{noop}}  这是新的一段。}}</code>。
@@ -265,7 +265,7 @@ body 里：
 {{getvar::list.0}}            → list 的第一个元素
 ```
 
-**写入也支持点号路径。** <code v-pre>{{setvar}}</code>、<code v-pre>{{deletevar}}</code>、<code v-pre>{{pushvar}}</code>、<code v-pre>{{popvar}}</code> 都接受点号路径名，因此可以在多轮叙事中维护同一个结构化变量，不必每次重写整盘。
+**写入也支持点号路径。** <code v-pre>{{setvar}}</code>、<code v-pre>{{deletevar}}</code>、<code v-pre>{{pushvar}}</code>、<code v-pre>{{popvar}}</code> 均接受点号路径名，因此可以在多轮叙事中维护同一个结构化变量，不必重写整盘。
 
 ```text
 {{setvar::roster.alice.hp::50}}              <!-- 引入 Alice，初始 50 HP -->
@@ -281,7 +281,7 @@ body 里：
 
 对非 JSON 值用点号路径时，会 fallback 到字面键查找——名字真的就是 `a.b` 的变量也能读到。
 
-这套和 <code v-pre>{{each}}</code> 配合很自然：一个 NPC 名册、一份背包字典、一本任务日志都可以塞进单一变量，每轮 prompt 组装时再渲染到 prompt 或世界书条目里：
+这套和 <code v-pre>{{each}}</code> 配合很自然：一个 NPC 名册、一份背包字典、一本任务日志均可以塞进单一变量，prompt 组装时再渲染到 prompt 或世界书条目里：
 
 ```text
 {{each::npcs}}
@@ -336,7 +336,7 @@ Luker 用**逐楼层变量提取**解决这个问题。一条消息（AI 回复�
 
 当你删消息、切 swipe、重新生成、编辑时，Luker 会**重播剩余的 op log**，让变量状态跟可见的时间线保持一致。
 
-这就是「**逐楼层变量**」面板背后的机制——每条带 op 的消息按钮栏会出现一个烧瓶图标，点开可以查看 / 编辑 / 删除 / 添加 op。结果就是 AI 能直接在自己回复里拥有和修改状态，而这个状态能扛住用户惯常的所有结构性操作。
+这就是「**逐楼层变量**」面板背后的机制——带 op 的消息按钮栏会出现一个烧瓶图标，点开可以查看 / 编辑 / 删除 / 添加 op。结果就是 AI 能直接在自己回复里拥有和修改状态，而这个状态能扛住用户惯常的所有结构性操作。
 
 完整的特性页面（重播语义、swipe 生命周期、op 编辑器、推荐的创作范式）见 [逐楼层变量](/zh-CN/features/variable-op-log)。
 
@@ -429,8 +429,8 @@ Luker 用**逐楼层变量提取**解决这个问题。一条消息（AI 回复�
 
 | 宏 | 返回 |
 |---|---|
-| <code v-pre>{{roll::1d20}}</code> | 用 droll 语法掷骰（`1d6`、`3d6+4`……）。只有数字 `N` 时等价 `1dN`。每次渲染都重掷。 |
-| <code v-pre>{{random::red::green::blue}}</code> | 随机一项。每次渲染都重掷。 |
+| <code v-pre>{{roll::1d20}}</code> | 用 droll 语法掷骰（`1d6`、`3d6+4`……）。只有数字 `N` 时等价 `1dN`。每次渲染均重掷。 |
+| <code v-pre>{{random::red::green::blue}}</code> | 随机一项。每次渲染均重掷。 |
 | <code v-pre>{{pick::red::green::blue}}</code> | 随机一项，但**对同一 chat 同一位置稳定**。Seed = chat hash + content hash + 位置 + reroll seed。用 `/reroll-pick` 重置。 |
 
 ### 环境与 API
@@ -518,7 +518,7 @@ Luker 用**逐楼层变量提取**解决这个问题。一条消息（AI 回复�
 ```text
 {{#if .verbose}}
     这 4 空格缩进
-    以及首尾的换行都会原样保留。
+    以及首尾的换行均会原样保留。
 {{/if}}
 ```
 
@@ -537,7 +537,7 @@ Luker 用**逐楼层变量提取**解决这个问题。一条消息（AI 回复�
 
 这些 token 解析器能识别，但运行时没有任何 hook 消费它们。<code v-pre>{{if !.dead}}</code> 里的 `!` 是另一回事——那是 <code v-pre>{{if}}</code> 内部的条件取反，不是这里的标志位。
 
-标志位之间、标志位和宏名之间都允许空白，多个可以组合：<code v-pre>{{ #each ::list}} … {{/each}}</code>。
+标志位之间、标志位和宏名之间均允许空白，多个可以组合：<code v-pre>{{ #each ::list}} … {{/each}}</code>。
 
 ### `|` — 管道符（普通字符）
 
@@ -584,7 +584,7 @@ STscript 里的 `|` 是命令管道符，那是命令解析器的特性，不是
 - **逐楼层提取**（见 [逐楼层变量](#per-message-variables)）发生在**消息保存时**，不是 prompt 组装时。
 - **未知宏**保留原始 <code v-pre>{{...}}</code>（嵌套参数仍然会展开）。不抛错也不告警。
 - **参数数量 / 类型不符**：预设 `strictArgs: true` 时记一条 runtime warning 并保留原始宏文本；`strictArgs: false` 时记 warning 但 handler 仍然跑。
-- **结果规范化**——每个 handler 的返回都会被规范化：`null` / `undefined` → `''`，`Date` → ISO 字符串，数组 / 对象 → `JSON.stringify(...)`，其他 → `String(...)`。这就是 <code v-pre>{{loop_value}}</code> 对一个对象会输出 JSON 的原因。
+- **结果规范化**——每个 handler 的返回均会被规范化：`null` / `undefined` → `''`，`Date` → ISO 字符串，数组 / 对象 → `JSON.stringify(...)`，其他 → `String(...)`。这就是 <code v-pre>{{loop_value}}</code> 对一个对象会输出 JSON 的原因。
 - **后处理清扫**——残留的 <code v-pre>{{trim}}</code> 标记和零散的 `else` 哨兵字符会在后处理里被清掉。
 
 ## 自定义与插件宏
@@ -680,7 +680,7 @@ ctx.macros.register('greet', {
 {{/if}}{{/each}}
 ```
 
-AI 用 <code v-pre>{{setvar::quests::…}}</code> 在回复里维护 `quests` 结构；上面那段写在世界书里，每轮 prompt 时按当前状态铺开。
+AI 用 <code v-pre>{{setvar::quests::…}}</code> 在回复里维护 `quests` 结构；上面那段写在世界书里，prompt 组装时按当前状态铺开。
 
 ### 根据 flag 切换的作者笔记
 

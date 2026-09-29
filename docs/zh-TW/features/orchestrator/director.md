@@ -1,17 +1,17 @@
 # Director 模式
 
-Director 是編排器中唯一的**接管模式** —— 這一回合的最終訊息正文不再由主 LLM 編寫，而是由編排器內部的一支 Agent 團隊直接產出並提交。其它四種模式（spec / single / agenda / loop）的產物是緊湊的「作業說明」（capsule），需由主 LLM 消費後才能形成回覆；Director 跳過這一步，由 Agent 直接寫出正文。
+Director 是編排器中唯一的**接管模式** —— 這一回合的最終訊息正文不再由主 LLM 編寫，而是由編排器內部的 agent 團隊直接產出並提交。其它模式（spec / single / agenda / loop）的產物是緊湊的「作業說明」（capsule），需由主 LLM 消費後才能形成回覆；Director 跳過這一步，由 agent 直接產出正文。
 
 ## 它和其它編排模式的核心差別
 
 | 維度 | spec / agenda / loop | director |
 |---|---|---|
-| 誰寫正文 | 主 LLM（讀 capsule 後落筆） | 編排器內的主代理（直接寫） |
+| 誰創作正文 | 主 LLM（讀 capsule 後創作） | 編排器內的主代理（直接創作） |
 | Agent 的產出 | 緊湊的 capsule 文本 | 完整可傳送的訊息正文 |
 | 主 LLM 在本回合 | 出最終回覆 | **不被呼叫** |
-| 適合的場景 | 讓主 LLM 在已有 prompt cache 上持續產出 | 讓一支多視角的寫作團隊**直接交付成稿** |
+| 適合的場景 | 讓主 LLM 在已有 prompt cache 上持續產出 | 讓多視角的寫作團隊**直接交付成稿** |
 
-從使用者視角看，Director 呈現的是「AI 內部一整支團隊在協作，你只看到他們交付的最終 RP 回覆」的體驗：草稿、評審、修訂、定稿的全過程都在思考摺疊中展開，主聊天窗口裡只顯示成型的敘事段落。
+從使用者視角看，Director 呈現的是「AI 內部團隊在協作，你只看到他們交付的最終 RP 回覆」的體驗：草稿、評審、修訂、定稿的全過程均在思考摺疊中展開，主聊天窗口裡只顯示成型的敘事段落。
 
 ## 適合的場景
 
@@ -26,15 +26,15 @@ Director 是編排器中唯一的**接管模式** —— 這一回合的最終�
 
 ## 跑起來是什麼樣
 
-下面這一組截圖來自一次真實的 Director 回合。主代理排程了預設 profile 自帶的三個子代理（`chat_scout` / `voice_critic` / `continuity_critic`），完整跑完了「偵察 → 起草 → 評審 → 修訂 → 定稿」流程。
+下面這一組截圖來自一次真實的 Director 回合。主代理排程了預設 profile 自帶的子代理（`chat_scout` / `voice_critic` / `continuity_critic`），完整跑完了「偵察 → 起草 → 評審 → 修訂 → 定稿」流程。
 
-### 第一步：派遣前置偵察
+### 派遣前置偵察
 
-主代理打開回合後，先派遣 `chat_scout` 掃描近期聊天，返回 5 條 `Item / Source / Why` 形式的關鍵狀態摘要。這些摘要出現在思考摺疊中 `chat_scout` 自己的命名區段（錨點 `### [<handleId>: chat_scout]`），主代理後續起草時能直接讀到。
+主代理打開回合後，先派遣 `chat_scout` 掃描近期聊天，返回 `Item / Source / Why` 形式的關鍵狀態摘要。這些摘要出現在思考摺疊中 `chat_scout` 自己的命名區段（錨點 `### [<handleId>: chat_scout]`），主代理後續起草時能直接讀到。
 
-![Director 派遣 chat_scout，5 段偵察輸出](/images/orchestrator/director-takeover/director-real-scout-dispatch.png)
+![Director 派遣 chat_scout，偵察輸出](/images/orchestrator/director-takeover/director-real-scout-dispatch.png)
 
-### 第二步：起草後雙 critic 並行評審
+### 起草後 critic 並行評審
 
 主代理用偵察結果起草一段中文敘事寫入正文（`write_message`），然後**並行**派遣兩個後置評審子代理：
 
@@ -45,9 +45,9 @@ Director 是編排器中唯一的**接管模式** —— 這一回合的最終�
 
 ![voice_critic + continuity_critic 並行評審](/images/orchestrator/director-takeover/director-real-critic-loop.png)
 
-### 第三步：迭代修訂與收尾
+### 迭代修訂與收尾
 
-主代理讀取兩位 critic 的反饋，對認可的批評透過 `apply_message_patches` 給正文打補丁，對判斷不成立的直接忽略——可以再起一輪迭代（再派遣一個 critic、再回讀一遍草稿）。當主代理判斷「可以收尾」時呼叫 `finalize`，handle 進入終態、訊息儲存到聊天、UI 解鎖。摺疊下方是最終發出的中文正文。
+主代理讀取 critic 的反饋，對認可的批評透過 `apply_message_patches` 給正文打補丁，對判斷不成立的直接忽略——可以再起一輪迭代（再派遣一個 critic、再回讀一遍草稿）。當主代理判斷「可以收尾」時呼叫 `finalize`，handle 進入終態、訊息儲存到聊天、UI 解鎖。摺疊下方是最終發出的中文正文。
 
 ![finalize 之後：摺疊下方是最終正文](/images/orchestrator/director-takeover/director-real-final-body.png)
 
@@ -55,19 +55,19 @@ Director 是編排器中唯一的**接管模式** —— 這一回合的最終�
 
 ## 預設 Skill
 
-預設 director profile 出廠時配套 **24 個出廠 Skill**，agent 按需讀取。Skill 是相容 Anthropic 的緊湊知識包 —— 每一份包含一條寫作規則、一份評審方法或一份工作流契約，過去這些都內聯在系統提示詞裡。把它們移出 prompt、放入 `skill_read` 可存取的檔案，帶來三個效果：prompt 短而可編輯；同一條規則可被多個 agent 共用而不必拷貝；卡作者或預設作者可以自行分發變體。
+預設 director profile 出廠時配套**出廠 Skill**，agent 按需讀取。Skill 是相容 Anthropic 的緊湊知識包 —— 每一份包含一條寫作規則、一份評審方法或一份工作流契約，過去這些均內聯在系統提示詞裡。把它們移出 prompt、放入 `skill_read` 可存取的檔案，讓 prompt 保持短小可編輯；同一條規則可被多個 agent 共用而不必拷貝；卡作者或預設作者可以自行分發變體。
 
-24 個出廠 Skill 分三類：
+出廠 Skill 分為以下類別：
 
-| 家族 | 數量 | 誰能看到 | 例子 |
-|---|---|---|---|
-| 共享（模式級） | 5 | 每個預設子代理 | `director-anti-cliche-zh`、`director-character-voice-zh`、`director-no-meta-zh`、`director-output-discipline-zh`、`director-zh-style-baseline` |
-| 主代理 | 2 | 僅主代理 | `director-turn-workflow-zh`、`director-dispatch-protocol-zh` |
-| 每子代理一份方法 | 17 | 對應那個子代理 | `voice-critic-method-zh`（→ `voice_critic`）、`event-summary-rules-zh`（→ `memory_curator`）、`chat-scout-method-zh`（→ `chat_scout`）…… |
+| 家族 | 誰能看到 | 例子 |
+|---|---|---|
+| 共享（模式級） | 每個預設子代理 | `director-anti-cliche-zh`、`director-character-voice-zh`、`director-no-meta-zh`、`director-output-discipline-zh`、`director-zh-style-baseline` |
+| 主代理 | 僅主代理 | `director-turn-workflow-zh`、`director-dispatch-protocol-zh` |
+| 子代理專屬方法 | 對應那個子代理 | `voice-critic-method-zh`（→ `voice_critic`）、`event-summary-rules-zh`（→ `memory_curator`）、`chat-scout-method-zh`（→ `chat_scout`）…… |
 
-模式級的幾條是每個預設 agent 共享的通用寫作規則。兩條主代理 Skill 包含 7 步回合工作流和派遣協議。每條子代理專屬方法 Skill 包含該子代理的專屬契約 —— 例如 `event-summary-rules-zh` 是 `memory_curator` 完整的 V10 事件摘要寫作紀律。
+模式級的幾條是每個預設 agent 共享的通用寫作規則。主代理 Skill 包含回合工作流和派遣協議。每條子代理專屬方法 Skill 包含該子代理的專屬契約 —— 例如 `event-summary-rules-zh` 是 `memory_curator` 完整的 V10 事件摘要寫作紀律。
 
-預設 profile 相應預填了 `skills.visible`：模式級 visible 覆蓋那 5 條共享 Skill，主代理用 `["+", "director-turn-workflow-zh", "director-dispatch-protocol-zh"]`（繼承模式 + 追加兩條），每個子代理用 `["+", "<對應方法 Skill>"]`。因此預設配置下每個 agent 都能獲得正確的 Skill 組合，無需手動繫結。
+預設 profile 相應預填了 `skills.visible`：模式級 visible 覆蓋共享 Skill，主代理用 `["+", "director-turn-workflow-zh", "director-dispatch-protocol-zh"]`（繼承模式 + 追加主代理 Skill），每個子代理用 `["+", "<對應方法 Skill>"]`。因此預設配置下每個 agent 均能獲得正確的 Skill 組合，無需手動繫結。
 
 伺服器首次啟動時會用 `default/skills/global/` 填充 `data/<user>/skills/global/`。此後，編排器面板的 **管理 Skills** 按鈕（以及 `import-bundled` API）是唯一的覆蓋入口 —— 後續啟動不會發生隱式自動更新。
 
@@ -77,8 +77,8 @@ Skill 如何掛到 agent 的完整圖景，見 [Skills 概覽](/zh-TW/features/s
 
 在擴充套件抽屜的「多智慧體編排」面板中，將**執行模式**設為 **Director（多代理）**。切換到 Director 後，spec / agenda / loop 的設定卡片會自動收起，Director 自己的設定卡片出現。
 
-::: tip 99% 的使用者不應手動編寫主代理系統提示詞
-預設主代理系統提示詞與預設的十二個子代理 id **強耦合**——它已經按「先派偵察、起草、再派評審、迭代修訂、最後落盤」的紀律調校完成。如需修改，推薦使用 [AI 迭代工作台](/zh-TW/features/orchestrator/iteration-studio)，用自然語言描述需求，讓它透過工具呼叫 patch 你的 profile。
+::: tip 多數使用者不應手動編寫主代理系統提示詞
+預設主代理系統提示詞與預設的子代理 id **強耦合**——它已經按「先派偵察、起草、再派評審、迭代修訂、最後落盤」的紀律調校完成。如需修改，推薦使用 [AI 迭代工作台](/zh-TW/features/orchestrator/iteration-studio)，用自然語言描述需求，讓它透過工具呼叫 patch 你的 profile。
 :::
 
 ## 工作流梗概
@@ -86,7 +86,7 @@ Skill 如何掛到 agent 的完整圖景，見 [Skills 概覽](/zh-TW/features/s
 ```d2
 direction: down
 
-start: "新一回合開始\n(本回合主 LLM 不參與 ——\n編排器自己寫正文)" {
+start: "新一回合開始\n(本回合主 LLM 不參與 ——\n編排器自行創作正文)" {
   shape: oval
   style.fill: "#e8f5e9"
 }
@@ -102,7 +102,7 @@ loop: "主代理坐在寫作台前" {
     shape: diamond
   }
 
-  consult: "找位顧問(預設 profile 自帶 12 個子代理)" {
+  consult: "找位顧問(預設 profile 自帶子代理)" {
     style.fill: "#fff3e0"
     pre: "起草前偵察\nintent_scout · chat_scout · memory_scout ·\nlorebook_scout · notes_pickup_scout ·\nepistemic_scout · canon_scout(按需)" {
       style.fill: "#fffde7"
@@ -122,7 +122,7 @@ loop: "主代理坐在寫作台前" {
     style.fill: "#fffde7"
   }
 
-  write: "動筆寫或改正文\n續寫 · 定點打補丁 ·\n回讀自己的草稿" {
+  write: "動筆起草或改正文\n續寫 · 定點打補丁 ·\n回讀自己的草稿" {
     style.fill: "#fffde7"
   }
 
@@ -154,17 +154,17 @@ loop.finalize -> out
 2. **主代理能用的工具組**:
    - **迴圈工具**（在 profile 裡勾選啟用）—— 跟 loop 模式同源：`chat_*` / `lorebook_*` / `memory_*` / `note_*`（開啟/關閉） / `search_*`，用來收集上下文。
    - **協作工具** —— `dispatch_subagent(subagentId, task)` 按 id 啟動 profile 預定義的子代理；`dispatch_inline_subagent(systemPrompt, task, ...)` 啟動一次性 ad-hoc 子代理；`await_subagents(handles)` 阻塞等子代理完工；`cancel_subagent(handle)` 中止正在執行的子代理。
-   - **訊息產出工具** —— `write_message(text, mode?)` 寫正文（`mode='replace'` 覆寫、`mode='append'` 追加）;`apply_message_patches(patches)` 做定點的 context-replace 補丁；`get_draft()` 回讀當前草稿；`draft_search({ pattern, flags? })` 對當前草稿做正規表達式掃描，回傳 grep `-n` 風格的命中行（`lineno: line`）——做術語 / 用詞的系統化排查時比人工閱讀 `get_draft` 輸出更可靠，所有子代理（特別是各類 critic）都可呼叫；`finalize()` 提交併收尾。
+       - **訊息產出工具** —— `write_message(text, mode?)` 寫入正文（`mode='replace'` 覆寫、`mode='append'` 追加）;`apply_message_patches(patches)` 做定點的 context-replace 補丁；`get_draft()` 回讀當前草稿；`draft_search({ pattern, flags? })` 對當前草稿做正規表達式掃描，回傳 grep `-n` 風格的命中行（`lineno: line`）——做術語 / 用詞的系統化排查時比人工閱讀 `get_draft` 輸出更可靠，所有子代理（特別是各類 critic）均可呼叫；`finalize()` 提交併收尾。
    - **[自訂工具](./custom-tools.md)** —— 其他 Luker 擴充註冊的工具、從 SillyTavern function tool 橋接進來的工具、在 director profile 中手寫的工具。子代理看到的是同一組自訂工具面（在子代理粒度有覆寫時按覆寫過濾）。
 
-3. **子代理是「一次性顧問」**：派遣時拿到當前聊天快照 + 主代理寫的任務簡報 + 自己的系統提示詞 + 啟用的迴圈工具，外加 `get_draft()` 與 `draft_search()` 讓子代理可檢視主代理目前寫到哪裡。子代理彼此看不到對方的存在，看不到主代理的推理，**不能再向下派遣**，也**不能提交收尾**——它們只產出文本，主代理決定怎麼用。直接改草稿的工具（`write_message` / `apply_message_patches`）由 `tools.message.<verb>` 開關控制，主代理和子代理走同一套開關：預設 profile 裡主代理有顯式覆寫把兩個開關打開、子代理繼承 profile 預設（兩個都關）。想讓某個子代理與主代理並排編輯草稿，可在它的 Tools 覆寫面板中勾選 **message** 那一組（這種情況並不常見——絕大多數子代理更適合當純顧問）；想剝奪主代理寫正文的權限、讓它做純編排（正文由子代理產出），可在主代理的 Tools 覆寫面板中取消勾選 **message** 組裡的兩個開關。
+3. **子代理是「一次性顧問」**：派遣時拿到當前聊天快照 + 主代理寫的任務簡報 + 自己的系統提示詞 + 啟用的迴圈工具，外加 `get_draft()` 與 `draft_search()` 讓子代理可檢視主代理目前寫到哪裡。子代理彼此看不到對方的存在，看不到主代理的推理，**不能再向下派遣**，也**不能提交收尾**——它們只產出文本，主代理決定怎麼用。直接改草稿的工具（`write_message` / `apply_message_patches`）由 `tools.message.<verb>` 開關控制，主代理和子代理走同一套開關：預設 profile 裡主代理有顯式覆寫把開關打開、子代理繼承 profile 預設（均關）。想讓某個子代理與主代理並排編輯草稿，可在它的 Tools 覆寫面板中勾選 **message** 那一組（這種情況並不常見——絕大多數子代理更適合當純顧問）；想讓主代理只做純編排（正文由子代理產出），可在主代理的 Tools 覆寫面板中取消勾選 **message** 組裡的開關。
 
-4. **預設 profile 自帶 12 個針對 RP 調優的子代理**:
+4. **預設 profile 自帶針對 RP 調優的子代理**:
 
    | 子代理 | 作用 | 簡單範例（RP 場景） |
    |---|---|---|
    | `intent_scout` | 起草前跨源偵察 —— 把使用者最近的輸入（顯式訴求、括號 / OOC 旁白、關鍵的隱式信號）與世界書裡的「作者向指令」類條目（風格規則、節奏、角色寫法、創作約束、輸出規範）交叉，呈現使用者本回合的需求以及世界書對寫作的要求。 | 「使用者旁白：第 72 樓 `(寫慢些)`。世界書 `pov-rules`：『始終第二人稱敘述，不破第四面牆』。林晚專用條目：『動怒時以碎句開頭，然後陷入沉默。』」 |
-   | `chat_scout` | 起草前單源偵察 —— 掃描近期聊天，挑出主代理起草所依賴的關鍵狀態。 | 返回 5 段 `Item / Source / Why`，例如「林晚的焦慮 / 第 42 樓 / 會把對話引回家族話題」。 |
+   | `chat_scout` | 起草前單源偵察 —— 掃描近期聊天，挑出主代理起草所依賴的關鍵狀態。 | 返回若干段 `Item / Source / Why`，例如「林晚的焦慮 / 第 42 樓 / 會把對話引回家族話題」。 |
    | `memory_scout` | 起草前的單源 scout，透過記憶圖唯讀 API 執行一次 LLM 級召回。列舉可見候選池，用 `memory_find_by_name` / `memory_keyword_search`（或設定了 embedding profile 時 `memory_vector_search`）定位命名實體或主題命中，必要時透過 `memory_expand_seeds` 深入 rollup，然後回傳帶信號等級的 ≤6 條引用列表（信號來自 API 結構訊號：edge density、exposure、alwaysInject）。不讀 chat 或 lorebook（那是其他 scout 的職責）。不修改記憶圖。 | 「`evt_42`（第 3 章外祖母線索）是 hub —— 其子節點中包含草稿要回收的告白節拍。降權：`msg_18`（一次性提及，無後續）。」 |
    | `lorebook_scout` | 起草前單源偵察 —— 拉啟動之外的世界書條目。 | 「『洛陽主城』條目尚未進上下文；相關性：林晚的外祖母在那。」 |
    | `notes_pickup_scout` | 起草前 scout —— 掃描 OPEN notes 區塊（agent 自己在更早回合開啟的伏筆、承諾、章節大綱），挑出本回合觸發條件成熟的 id。不分析、不起草——只挑選。 | 「`o_a3f2`（外祖母在洛陽）成熟——林晚剛提到這座城。`o_b8c1`（神殿誓言）還沒到時機。」 |
@@ -173,10 +173,10 @@ loop.finalize -> out
    | `plot_brainstormer` | 中段頭腦風暴 —— 每個角度產出一份結構草圖。可按不同角度並行派遣多份，以獲得真正不同的選項。 | 角度 A「正面衝突」 / 角度 B「沉默本身成為節拍」 / 角度 C「她藉轉向洛陽話題躲避」。 |
    | `voice_critic` | 起草後評審 —— 人性 & 口吻。揪出「資料人」式描寫（冷觀察動詞 / 資料詞彙 / 彙報式對白等動情時刻應該燙的地方卻寫得冷）和冷設定誤讀（冷設定角色被寫成真的冷，而不是「冷皮包熱瓤」）。口吻語域錯配是次要維度。 | 「草稿裡林晚『以臨床抽離的姿態觀察對象的微表情漂移』—— 這是傳感器筆法，不是活人筆法。換成她真的有的某個感覺，即使表面仍然剋制。」 |
    | `continuity_critic` | 起草後評審 —— 僅檢查硬衝突。預設信任草稿；只有當聊天 / 記憶 / 世界書明確陳述了相反事實時才會標記。例外：角色認知邊界違規（角色知道了沒人告訴過他的事）始終要標記。 | 「草稿裡林晚認出對方掛墜上的家紋，但聊天裡這個掛墜對她而言只被描述成『一枚銀盤』。認知邊界：她沒被告知這是家紋，更沒被告知是誰的。」 |
-   | `memory_curator` | 負責變更的後置子代理，更新記憶圖，把本輪中會延續過場景的事實記錄下來。多輪「觀察—行動」流程：查 schema，建立前用 `memory_find_by_name` 檢查已有實體，用 `memory_node_edit` 打補丁欄位，用 `memory_link_upsert` / `memory_link_delete` 管理關係邊，Phase B 檢查 `memory_compaction_candidates` 並呼叫 `memory_compact_nodes` 壓縮事件層級。**每次派遣都必須產出一個 event 節點**（時間線連續性）;character_sheet / location_state 預設跳過，只在變化通過 24 小時持續性測試時才寫入。 | 「建立 `evt_42`（Day 5 立誓節點）。編輯 `n_eileen` 加 `goal: '還債'`。新增 `n_eileen → debt_owed_to → n_protag` 邊。把 `evt_18,19,20` 壓縮成 `rollup_l1_06`。」 | <!-- banned-words-allow -->
+    | `memory_curator` | 負責變更的後置子代理，更新記憶圖，把本輪中會延續過場景的事實記錄下來。多輪「觀察—行動」流程：查 schema，建立前用 `memory_find_by_name` 檢查已有實體，用 `memory_node_edit` 打補丁欄位，用 `memory_link_upsert` / `memory_link_delete` 管理關係邊，壓縮環節檢查 `memory_compaction_candidates` 並呼叫 `memory_compact_nodes` 壓縮事件層級。**每次派遣均必須產出一個 event 節點**（時間線連續性）;character_sheet / location_state 預設跳過，只在變化通過 24 小時持續性測試時才寫入。 | 「建立 `evt_42`（Day 5 立誓節點）。編輯 `n_eileen` 加 `goal: '還債'`。新增 `n_eileen → debt_owed_to → n_protag` 邊。把 `evt_18,19,20` 壓縮成 `rollup_l1_06`。」 |
    | `notes_curator` | 起草後清理 —— 本回合 notes 子系統**唯一**的寫入點。關閉草稿中已兌現的便箋；只有在草稿確實埋下了真正的劇情承諾時才開新條。**預設動作：什麼也不做**。污染便箋比少關一條更糟。 | 「關閉 `o_a3f2`——本稿外祖母見面已發生。不新增；brainstormer 提到未來去洛陽的伏筆，但本稿沒真正埋下，不開。」 |
 
-   預設主代理系統提示詞與這 12 個 id **強耦合**，按 id 指名調度，並為每個子代理準備了任務簡報模板。修改子代理時，主代理提示詞也要同步修改。
+   預設主代理系統提示詞與這些 id **強耦合**，按 id 指名調度，並為每個子代理準備了任務簡報模板。修改子代理時，主代理提示詞也要同步修改。
 
    > **便箋反污染原則**:`notes_curator` 預設**什麼也不做**。便箋是劇情作者的線索倉庫，不是回合日記——被污染的便箋列表會消耗 agent 的注意力。關閉是安全的，開啟是昂貴的。這條原則已寫入預設子代理的提示詞和主代理的系統提示詞；如果你自己編寫 director profile，請保留它。
 
@@ -230,15 +230,15 @@ loop.finalize -> out
 | 提示詞項 | 為什麼留 |
 |---|---|
 | **聊天歷史** | 主代理 prompt 實際通過這個槽位傳遞給 LLM。關閉後主代理將得不到任何輸入。 |
-| **文風指令** | 主代理 `write_message` 起草、給 `voice_critic` 寫任務簡報時都會讀。 |
+| **文風指令** | 主代理 `write_message` 起草、給 `voice_critic` 寫任務簡報時均會讀。 |
 | **越獄 / 解除拘束指令** | 一旦主代理中途被審查策略卡住，「偵察 → 起草 → 評審」整條鏈就無法到達 finalize。 |
-| **反八股指令** | 與文風指令同源，主代理起草與 critic 評審都會讀。 |
+| **反八股指令** | 與文風指令同源，主代理起草與 critic 評審均會讀。 |
 
 ## 進階：把 Director 用作單 Agent 迭代寫手
 
 Director 預設是「主代理 + 多子代理」的工作流，但有一種進階用法是將其**退化為單 Agent 多輪迭代創作**——沒有 critic，只有一個主代理自行起草、自行修改、自行定稿。
 
-**適合的場景**：已經明確想要的風格，不需要 critic 視角，只想讓一個強模型透過工具呼叫迴圈（讀上下文、讀世界書、起草、回讀、修改）直接產出成稿。本質上是把 director 的「主代理」單獨取出，作為 loop 模式的 agent 使用，同時保留 director 直接寫正文（不出 capsule）的接管特性。
+**適合的場景**：已經明確想要的風格，不需要 critic 視角，只想讓一個強模型透過工具呼叫迴圈（讀上下文、讀世界書、起草、回讀、修改）直接產出成稿。本質上是把 director 的「主代理」單獨取出，作為 loop 模式的 agent 使用，同時保留 director 直接創作正文（不出 capsule）的接管特性。
 
 **使用 [AI 迭代工作台](/zh-TW/features/orchestrator/iteration-studio) 修改。** 向它描述類似「把當前 profile 改成單 Agent 迭代寫手：移除所有子代理，主代理 prompt 簡化為 draft → 回讀 → 修訂 → finalize，保留 `chat_*` / `memory_*` / `lorebook_*` 工具」的需求。工作台認識這種變體，會透過工具呼叫 patch 你的 profile——審閱 diff、批准並儲存。這是推薦路徑；以下手動步驟僅面向希望自行配置的使用者。
 
@@ -255,13 +255,13 @@ Director 預設是「主代理 + 多子代理」的工作流，但有一種進�
 
 ## 限制與約束
 
-- 適用於 `normal` / `regenerate` / `swipe` / `continue` 四種生成型別。`quiet` 與 `impersonate` 不觸發 Director。
+- 適用於 `normal` / `regenerate` / `swipe` / `continue` 生成型別。`quiet` 與 `impersonate` 不觸發 Director。
 - 要求當前啟用的連線配置屬於 OpenAI 家族（Anthropic / OpenAI / Gemini / OpenRouter 等）——底層流式 API 暫不支援 kobold / textgen。
 - Director 啟用的回合裡，capsule 注入路徑自動停用（兩者概念上互斥：正文本身就是產出）。
 - **子代理深度為 1**：不能再向下派遣子代理。它們共享主代理啟用的迴圈工具——profile 裡 chat / lorebook / memory / note（開啟/關閉） / search 哪幾個開了，子代理就能調哪幾個。子代理的自然終止條件是「某一輪沒有呼叫任何工具」：那一輪的文本就是它返回給主代理的答案。
-- Director 遵循編排器現有的 **使用流式傳輸** 開關：開啟時主代理與子代理都走流式 API；關閉時使用普通非流式呼叫。
-- **訊息氣泡在主代理工作過程中即時更新**。主代理每次呼叫 `write_message` / `apply_message_patches` 時，氣泡的正文都會被重繪——訊息會隨每次工具呼叫逐步擴展、被打補丁、被改寫。粒度是「每次工具呼叫」，不是「每個 token」。
-- **子代理的輸出即時進入思考摺疊**。每個派遣出去的子代理在摺疊裡有一段命名區（錨點 `### [<handleId>: <subagentId>]`）。開啟流式傳輸時，每個子代理的 token 抵達即落入它自己的區段——同一回合並行派出的多個子代理會以「多個區段同時各自生長」的形式呈現，字元級互不錯位（各區段定位依靠 JavaScript 單執行緒事件迴圈，保證每個 producer 的位元組都連續）。關閉流式時，區段一次性收到子代理的終態全文。區段標題在子代理工作期間帶 `(running)` 字尾，完成後清除（失敗時替換為 `(error: ...)`）。
+- Director 遵循編排器現有的 **使用流式傳輸** 開關：開啟時主代理與子代理均走流式 API；關閉時使用普通非流式呼叫。
+- **訊息氣泡在主代理工作過程中即時更新**。主代理每次呼叫 `write_message` / `apply_message_patches` 時，氣泡的正文均會被重繪——訊息會隨每次工具呼叫逐步擴展、被打補丁、被改寫。粒度是「每次工具呼叫」，不是「每個 token」。
+- **子代理的輸出即時進入思考摺疊**。每個派遣出去的子代理在摺疊裡有一段命名區（錨點 `### [<handleId>: <subagentId>]`）。開啟流式傳輸時，每個子代理的 token 抵達即落入它自己的區段——同一回合並行派出的多個子代理會以「多個區段同時各自生長」的形式呈現，字元級互不錯位（各區段定位依靠 JavaScript 單執行緒事件迴圈，保證每個 producer 的位元組均連續）。關閉流式時，區段一次性收到子代理的終態全文。區段標題在子代理工作期間帶 `(running)` 字尾，完成後清除（失敗時替換為 `(error: ...)`）。
 - 主代理在工具呼叫之間的解釋也以 `### [main-N]` 段落形式進入思考摺疊，讓使用者能順著讀完跨輪的推理。
 
 ## 角色卡繫結

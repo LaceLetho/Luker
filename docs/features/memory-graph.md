@@ -4,19 +4,19 @@ Memory Graph solves one of the most common pain points in long-running roleplay:
 
 LLM context windows are limited. After a few hundred turns, important early information — relationships, key events, world rules — gets truncated and lost. The character "forgets" what happened. Memory Graph automatically extracts key information from your conversation into structured knowledge nodes, and recalls them back into the prompt when they become relevant — so a character can remember the same things you remember, even 500 turns later.
 
-It's not just a simple keyword search or vector retrieval. Memory Graph uses graph structures and multi-layer algorithms to keep recall both *semantically relevant* and *comprehensively covered* — so it doesn't just pull "the most similar five things" while losing the rest.
+It's not just a simple keyword search or vector retrieval. Memory Graph uses graph structures and multi-layer algorithms to keep recall both *semantically relevant* and *comprehensively covered* — so it doesn't just pull "the most similar few things" while losing the rest.
 
 ## How It Works
 
-Memory Graph runs three things in the background: **automatic extraction**, **smart recall**, and **hierarchical compression**.
+Memory Graph runs the following in the background: **automatic extraction**, **smart recall**, and **hierarchical compression**.
 
 ### Automatic extraction
 
-After each AI reply, Memory Graph examines what was said and extracts anything worth remembering. Extraction produces structured knowledge nodes and can run through two channels:
+After an AI reply, Memory Graph examines what was said and extracts anything worth remembering. Extraction produces structured knowledge nodes and can run through two channels:
 
-**Built-in extraction** — When the **Auto extraction** toggle in the Memory panel is on, Memory Graph runs its own LLM call after each AI reply to fill the schema's structured fields. This is the default and works without any other plugin.
+**Built-in extraction** — When the **Auto extraction** toggle in the Memory panel is on, Memory Graph runs its own LLM call after an AI reply to fill the schema's structured fields. This is the default and works without any other plugin.
 
-**Orchestrator-driven extraction** — When the orchestrator plugin is installed and director mode is active with the default profile, the main agent dispatches a `memory_curator` sub-agent after drafting each reply. `memory_curator` runs a multi-round observe-act loop, using the memory graph's read tools to verify before writing. This tends to give higher quality on stable-fact types because the agent can check whether a character already exists before creating a duplicate.
+**Orchestrator-driven extraction** — When the orchestrator plugin is installed and director mode is active with the default profile, the main agent dispatches a `memory_curator` sub-agent after drafting a reply. `memory_curator` runs a multi-round observe-act loop, using the memory graph's read tools to verify before writing. This tends to give higher quality on stable-fact types because the agent can check whether a character already exists before creating a duplicate.
 
 Both channels can be enabled at the same time; they don't coordinate, so that trades extra LLM cost for resilience. Most users pick one.
 
@@ -25,7 +25,7 @@ To use orchestrator-driven extraction exclusively:
 1. Open the Memory panel and uncheck **Auto extraction**.
 2. In the orchestrator profile editor, ensure `memory_curator` is enabled and dispatched by the main agent (default in fresh installs).
 
-Nodes come in two tiers. The **default schema** ships with three types listed below — but the schema is fully customizable. You can add new node types (a `magic_system` for fantasy, a `faction` for politics, an `inventory_item` for survival, whatever your card needs) and remove any of the defaults. The fields shown here are also defaults; each type's fields can be edited from the Schema Editor (covered below).
+Nodes come in two tiers. The **default schema** ships with the types listed below — but the schema is fully customizable. You can add new node types (a `magic_system` for fantasy, a `faction` for politics, an `inventory_item` for survival, whatever your card needs) and remove any of the defaults. The fields shown here are also defaults; each type's fields can be edited from the Schema Editor (covered below).
 
 **Semantic-layer nodes** (persistent structured knowledge, merged and updated):
 
@@ -34,7 +34,7 @@ Nodes come in two tiers. The **default schema** ships with three types listed be
 | `character_sheet` | A character's name, identity, traits, goals, inventory | "Eileen is a healer who acknowledged a debt to the protagonist" |
 | `location_state` | A place's name, controller, danger level, resources | "Dark Forest is controlled by elves, high danger" |
 
-**Event-layer nodes** (plot records, new each extraction, never merged):
+**Event-layer nodes** (plot records, created on extraction, never merged):
 
 | Type | Description | Example |
 |---|---|---|
@@ -43,7 +43,7 @@ Nodes come in two tiers. The **default schema** ships with three types listed be
 ::: info Event nodes are different
 Event nodes are fundamentally not the same as the others:
 
-- **A new node is created on every extraction.** Titles auto-increment. Events are independent points on a timeline; they don't merge.
+- **A new node is created on extraction.** Titles auto-increment. Events are independent points on a timeline; they don't merge.
 - **The highest-tier timeline is always injected.** Event nodes are treated as core storyline context — top-level summaries are persistent in the prompt, ensuring the AI keeps a sense of the plot.
 - **Compressed lower-tier events are hidden.** When events accumulate too much, old events are compressed upward into higher-tier summaries. The lower-tier events stay in the graph and can be re-discovered through recall when the conversation calls them back, but they aren't injected by default.
 
@@ -215,7 +215,7 @@ It can:
 - create nodes (built-in or custom types), and add, edit, or remove links
 - read the chat and world books to double-check facts before touching them
 
-Each round stages its changes as one card, with every record shown separately. **Approve** applies a change, **Reject** discards it, **Rollback** undoes an applied change. Sessions belong to the chat: close the popup and come back later — after a reload, pending cards are still waiting for review. **Auto-apply edits** writes without asking; leave it off until you trust the results.
+Changes are staged as one card, with records shown separately. **Approve** applies a change, **Reject** discards it, **Rollback** undoes an applied change. Sessions belong to the chat: close the popup and come back later — after a reload, pending cards are still waiting for review. **Auto-apply edits** writes without asking; leave it off until you trust the results.
 
 ![Applied graph change](/images/memory-graph/memory-ai-revise-applied.png)
 
@@ -337,7 +337,7 @@ When you swipe or regenerate on the same floor, Memory Graph reuses the previous
 
 ### RAG recall pipeline
 
-In RAG Recall mode, Memory Graph runs a three-stage linear pipeline:
+In RAG Recall mode, Memory Graph runs a linear pipeline:
 
 1. **Optional query rewrite** — if "Enable query rewrite" is on, one LLM call rewrites the last few dialogue turns into a single concise sentence optimised for vector search (the model is told to use entity names and concrete verbs that look like what would appear verbatim in a stored event summary).
 2. **Vector retrieval** — fetch the top-K nearest neighbours from the embedded memory store, keyed by either the raw query or the rewritten sentence.

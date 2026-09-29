@@ -20,7 +20,12 @@
 
 ---
 
-Luker is a next-generation roleplay chat platform. Chat with characters who remember what happened, whose scenes are planned by a director-led ensemble of agents before every reply, whose cards you edit by talking to an AI, and who can search the web mid-conversation.
+Luker is a next-generation roleplay chat platform.
+
+- Early story details are quoted accurately when a reply calls for them
+- Multiple agents explore the context and draft the message body
+- Edit character cards by talking to the AI, with diffs approved item by item
+- Look up fan material and source lore on the web mid-roleplay
 
 ## What is Luker
 
@@ -32,15 +37,15 @@ Luker is built on [SillyTavern](https://github.com/SillyTavern/SillyTavern) and 
 
 ### Memory Graph — your characters actually remember
 
-A knowledge-graph long-term memory. Every scene distills into typed nodes (characters, locations, events, plotlines) with links between them. Before each reply, a recall pass walks the graph and injects the most relevant memories — so when the user asks about "the third route to the ruined shrine" thirty turns later, the character brings up the exact conversation from earlier.
+A knowledge-graph long-term memory. Chat content distills into typed nodes (characters, locations, events, plotlines) with links between them. Before a reply, a recall pass walks the graph and injects the most relevant memories — so when the protagonist returns to a place they visited earlier, an early character who has long been off-stage is recalled.
 
 ![Memory Graph demo](https://raw.githubusercontent.com/funnycups/Luker/release/docs/public/images/branding/memory-graph-demo.gif)
 
 → [Memory Graph documentation](https://luker.cups.moe/features/memory-graph)
 
-### Multi-Agent Orchestrator — a director-led ensemble plans every reply
+### Multi-Agent Orchestrator — multiple agents explore the context and draft the message body
 
-Before the writer LLM ever speaks, a configurable ensemble of agents runs first: a distiller condenses recent context, a planner sketches the next scene, a critic reviews. The final reply arrives with a runtime trace you can inspect. Choose one of five execution modes — Spec (a fixed pipeline), Single Agent, Agenda (the flow dispatches agents dynamically), Loop (a single agent iterates on tool calls until the task is complete), or Director (a main agent plus a sub-agent team writes the message body directly).
+A configurable team of agents runs first and hands off to the writer LLM: distiller condenses recent context, planner sketches the next scene, critic reviews. The final reply arrives with a runtime trace you can inspect. Choose from the execution modes — Spec (a fixed pipeline), Single Agent, Agenda (the flow dispatches agents dynamically), Loop (a single agent iterates on tool calls until the task is complete), or Director (a main agent and a sub-agent team explore the context and draft the message body).
 
 ![Orchestrator demo](https://raw.githubusercontent.com/funnycups/Luker/release/docs/public/images/branding/orchestrator-demo.gif)
 
@@ -48,7 +53,7 @@ Before the writer LLM ever speaks, a configurable ensemble of agents runs first:
 
 ### Skills — reusable knowledge packs, loaded on demand
 
-Reusable knowledge packs an agent reads on demand: writing rules, voice conventions, anti-cliché checklists. The format is compatible with Anthropic's Claude Skills, so a skill written for Claude Code can be moved into Luker and back without modification. The orchestrator's default Director profile ships with 24 bundled skills, and skills can be distributed with a character card or a preset.
+Reusable knowledge packs an agent reads on demand: writing rules, voice conventions, anti-cliché checklists. The format is compatible with Anthropic's Claude Skills. The orchestrator's default Director profile ships with bundled skills, and skills can be distributed with a character card or a preset.
 
 <img alt="Skill manager with installed and bundled skills" src="https://raw.githubusercontent.com/funnycups/Luker/release/docs/public/_screenshots/skills/manager-installed-tab.png" width="720">
 
@@ -56,7 +61,7 @@ Reusable knowledge packs an agent reads on demand: writing rules, voice conventi
 
 ### CardApp Studio & AI Card Editor — edit cards by talking to an AI
 
-A full IDE for character cards with a CodeMirror-6 editor, an AI chat panel, and diff-based approval for every batch of changes. Regular cards get the popup editor; cards with an embedded **CardApp** — a card-hosted mini-application — open in the full Studio with file tree, live preview, and history.
+A full IDE for character cards with a CodeMirror-6 editor, an AI chat panel, and diff-based approval of changes, item by item. Regular cards get the popup editor; cards with an embedded **CardApp** — a card-hosted mini-application — open in the full Studio with file tree, live preview, and history.
 
 ![CardApp Studio demo](https://raw.githubusercontent.com/funnycups/Luker/release/docs/public/images/branding/cardapp-studio-demo.gif)
 
@@ -64,7 +69,7 @@ A full IDE for character cards with a CodeMirror-6 editor, an AI chat panel, and
 
 ### Preset Assistant — build a preset from a description
 
-Tell the assistant what you want a chat-completion preset to do. It iterates on the preset with you, one diff at a time, until it matches — reading parameters, editing prompt entries, and comparing against a reference preset. The same workflow covers orchestrator presets.
+Tell the assistant what you want a chat-completion preset to do. It iterates on the preset with you, presenting changes as diffs for review, until it matches — reading parameters, editing prompt entries, and comparing against a reference preset. The same workflow covers orchestrator presets.
 
 <img alt="Preset Assistant" src="https://raw.githubusercontent.com/funnycups/Luker/release/docs/public/images/preset-assistant/cpa-overview.png" width="720">
 
@@ -92,7 +97,7 @@ Pair two Luker instances on the same network. Chats, cards, world info, and sett
 
 ### Chat merge & split
 
-Split a long chat at any turn or merge two chats into one; branch history stays consistent. Useful when a scene got out of hand and you want to fork off the interesting parts without losing the rest.
+Split a long chat at any turn or merge chats; branch history stays consistent. Useful when a scene got out of hand and you want to fork off the interesting parts without losing the rest.
 
 <img alt="Chat merge & split" src="https://raw.githubusercontent.com/funnycups/Luker/release/docs/public/screenshots/chat-merge-split/07-split-dialog-three-segments.png" width="720">
 
@@ -100,7 +105,7 @@ Split a long chat at any turn or merge two chats into one; branch history stays 
 
 ### TTS NPC dialogue attribution
 
-With TTS enabled, every quoted line in a reply can play with its own speaker's voice. A background pass works out who says each quote — NPCs it discovers appear in the voice map automatically, and names you add in advance are recognized from the first playback.
+With TTS enabled, quoted lines in a reply can play with their own speaker's voice. A background pass works out who says which quote — NPCs it discovers appear in the voice map automatically, and names you add in advance are recognized from the first playback.
 
 <img alt="Per-quote play buttons in a chat message" src="https://raw.githubusercontent.com/funnycups/Luker/release/docs/public/screenshots/tts-npc-attribution/03-inline-buttons-zoom.png" width="678">
 

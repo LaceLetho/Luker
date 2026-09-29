@@ -1,6 +1,6 @@
 # 單 Agent 模式
 
-單 Agent 是編排器最輕的執行模式——只有一個節點跑一次 LLM，產出一段 capsule 注入主模型。本質是個只剩一個節點的退化 Spec，但因為沒有多節點協作，擴展抽屜裡直接給你兩個簡化欄位，完全不用走編排編輯器。
+單 Agent 是編排器最輕的執行模式——只有一個節點跑一次 LLM，產出一段 capsule 注入主模型。本質是個只剩一個節點的退化 Spec，但因為沒有多節點協作，擴展抽屜裡直接給你簡化欄位，完全不用走編排編輯器。
 
 ::: tip 這個模式給誰用
 不需要多 agent 協作、不需要工具循環、只想要「一段簡單的引導文字」注入主模型的場景。比如：一段 OOC 提醒、一段世界書摘要、一句風格約束。如果你在想「我要是能讓主模型回覆前先讀一下 XXX 就好了」，這個模式可能正合適。
@@ -8,7 +8,7 @@
 
 ## 切到單 Agent
 
-擴展抽屜裡把執行模式選成 **單 Agent**。Spec / Agenda / Loop 的編輯器入口收起，擴展抽屜裡多兩個簡化欄位——**System Prompt** 和 **User Prompt 模板**。
+擴展抽屜裡把執行模式選成 **單 Agent**。Spec / Agenda / Loop 的編輯器入口收起，擴展抽屜裡多出簡化欄位——**System Prompt** 和 **User Prompt 模板**。
 
 直接在這兩個欄位裡寫 prompt 即可，不需要打開編排編輯器。
 
@@ -26,7 +26,7 @@ User Prompt 模板支援以下佔位符，和 Spec 模式一致：
 
 - **簡單 capsule** — 主對話只需要一段 OOC 提醒、一段 lorebook 摘要、一句約束指令
 - **想用 capsule 注入，但不想付多 agent 延遲** — 只跑一次 LLM，延遲最低
-- **新提示詞除錯** — 先單 agent 跑通基礎 prompt，驗證 capsule 注入位置 / 角色 / 深度都符合預期，再升級到多 agent
+- **新提示詞除錯** — 先單 agent 跑通基礎 prompt，驗證 capsule 注入位置 / 角色 / 深度均符合預期，再升級到多 agent
 - **預算敏感** — 一次 LLM 呼叫比 Spec 預設工作流的 5–10 次便宜得多
 
 ## 不適用場景
@@ -53,7 +53,7 @@ User Prompt 模板支援以下佔位符，和 Spec 模式一致：
 | 維度 | 單 Agent | Spec | Agenda | Loop |
 |---|---|---|---|---|
 | LLM 呼叫次數 | 1 | 5–10 | 視 Planner 調度 | 視 agent 決定（預設 ≤ 20 輪） |
-| 設定成本 | 兩個欄位 | 畫 DAG + 多 prompt | Planner prompt + worker pool | 一段 system prompt + 工具開關 |
+| 設定成本 | 簡化欄位 | 畫 DAG + 多 prompt | Planner prompt + worker pool | 一段 system prompt + 工具開關 |
 | 工具呼叫 | ❌ | ❌ | ✅ Planner | ✅ agent 自由呼叫 |
 | 流程可變 | ❌ | 拓撲固定 | Planner 決定 | agent 自己決定 |
 | 角色卡覆寫 | ✅ | ✅ | ✅ | ✅ |

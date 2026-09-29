@@ -1,16 +1,16 @@
 # 編排器工具 API
 
-註冊可被編排器四種模式（loop、spec、agenda、director）調度的工具。
+註冊可被各編排模式（loop、spec、agenda、director）調度的工具。
 
 ## 什麼時候用這個 API
 
-你的擴充提供了一項能力，讓某個編排 agent 自主呼叫會更順手——查資料庫、呼叫第三方 API、跑 Stable Diffusion 出圖，都行。如果使用者裝了編排器擴充，你註冊的工具會出現在他們的編排編輯器「自訂工具 → 擴充（來自其他外掛）」分組裡，由他們按編排粒度決定開還是關。
+你的擴充提供了一項能力，讓某個編排 agent 自主呼叫會更順手——查資料庫、呼叫第三方 API、跑 Stable Diffusion 出圖，均可。如果使用者裝了編排器擴充，你註冊的工具會出現在他們的編排編輯器「自訂工具 → 擴充（來自其他外掛）」分組裡，由他們按編排粒度決定開還是關。
 
 如果使用者沒裝編排器，你的工具也不會丟——註冊呼叫會靜默 no-op。你的擴充獨立使用時仍然完整可用。
 
 ## API 入口
 
-編排器擴充透過 Luker 的擴充註冊表暴露 API。三種入口指向同一組函式參考——按你的程式碼情境挑一種：
+編排器擴充透過 Luker 的擴充註冊表暴露 API。多個入口指向同一組函式參考——按你的程式碼情境挑一種：
 
 ```js
 import { getExtensionApi } from '/scripts/extensions.js';
@@ -27,7 +27,7 @@ import { registerOrchestrationTool } from
     '/scripts/extensions/orchestrator/register-custom-tool.js';
 ```
 
-任何時候都加一層「編排器是否在場」的保護，讓你的擴充在獨立裝的場景下仍然可用。
+任何時候均加一層「編排器是否在場」的保護，讓你的擴充在獨立裝的場景下仍然可用。
 
 ## registerOrchestrationTool(spec)
 
@@ -59,7 +59,7 @@ import { registerOrchestrationTool } from
 - `ctx.chat`、`ctx.characters`、`ctx.characterId`、`ctx.groups`、`ctx.groupId`、`ctx.name1`、`ctx.name2`
 - `ctx.eventSource`、`ctx.eventTypes` —— 執行時事件總線
 - `ctx.getExtensionApi(name)` —— 其他擴充功能發布的 API
-- `ctx.registerOrchestrationTool`、`ctx.bridgeSillyTavernTool` 等 —— 本文件介紹的整套 API 都掛在 ctx 上
+- `ctx.registerOrchestrationTool`、`ctx.bridgeSillyTavernTool` 等 —— 本文件介紹的整套 API 均掛在 ctx 上
 
 編排執行時掛的（只在編排過程中存在）:
 
@@ -76,7 +76,7 @@ import { registerOrchestrationTool } from
 
 ## 錯誤處理
 
-`exec` 和 `simulate` 都可以 `throw`。普通 `Error` 就夠用；想要 LLM 能從結構化失敗裡恢復，附帶 `{ code, hint }`：
+`exec` 和 `simulate` 均可以 `throw`。普通 `Error` 就夠用；想要 LLM 能從結構化失敗裡恢復，附帶 `{ code, hint }`：
 
 ```js
 throw Object.assign(new Error('Database is read-only.'), {
@@ -103,7 +103,7 @@ throw Object.assign(new Error('Database is read-only.'), {
 
 ## 角色級 override 存取器
 
-除了工具註冊介面，`'orchestrator'` 這個 extension api 還發布了六個存取器加一個寫入 helper，其他擴充用它讀取或寫入角色級編排 override。CardApp 的 `ctx.getOrchestratorOverride` / `setOrchestratorOverride` / `clearOrchestratorOverride`，以及 CardApp Studio 的工具 `character_get_orchestrator` / `character_update_orchestrator` / `character_clear_orchestrator` 都走這同一套介面。
+除了工具註冊介面，`'orchestrator'` 這個 extension api 還發布了存取器與寫入 helper，其他擴充用它讀取或寫入角色級編排 override。CardApp 的 `ctx.getOrchestratorOverride` / `setOrchestratorOverride` / `clearOrchestratorOverride`，以及 CardApp Studio 的工具 `character_get_orchestrator` / `character_update_orchestrator` / `character_clear_orchestrator` 均走這同一套介面。
 
 ```js
 const orch = ctx.getExtensionApi('orchestrator');
@@ -135,11 +135,11 @@ orch.applyCharacterExecutionModeForAvatar(ctx, ctx.extensionSettings?.orchestrat
 
 ## Iter-studio 技能工具目錄
 
-編排器的 iter-studio 彈窗用一組技能管理工具（庫存查詢、創作、策略繫結、遷移 helper），其他 iter-studio 風格的彈窗可以把它們 splice 進自己的工具目錄。Extension api 上有三個屬性暴露這個目錄：
+編排器的 iter-studio 彈窗用一組技能管理工具（庫存查詢、創作、策略繫結、遷移 helper），其他 iter-studio 風格的彈窗可以把它們 splice 進自己的工具目錄。Extension api 上的屬性暴露這個目錄：
 
 | 屬性 | 型別 | 用途 |
 | --- | --- | --- |
-| `SKILL_ITER_STUDIO_TOOL_DEFS` | `readonly array` | OpenAI 形狀的工具定義（編排器 iter-studio 暴露的 17 個 `skill_*` 工具）。按 `function.name` 過濾出彈窗想要的子集。 |
+| `SKILL_ITER_STUDIO_TOOL_DEFS` | `readonly array` | OpenAI 形狀的工具定義（編排器 iter-studio 暴露的 `skill_*` 工具）。按 `function.name` 過濾出彈窗想要的子集。 |
 | `isSkillIterStudioTool(name)` | `(string) => boolean` | 判斷一個工具呼叫名是否屬於技能工具的判定式。 |
 | `runSkillIterStudioTool(call, mutationCtx)` | `async ({name, args}, {getWorkingProfile}) => result` | 單次技能工具呼叫的分發器。純庫存 / 創作 / 遷移 handler 忽略 `mutationCtx`；策略繫結類 handler（`skill_bind_to_agent` / `skill_unbind_from_agent` / `skill_set_mode_defaults` / `skill_replace_in_systemprompt`）則要求 `getWorkingProfile()` 回傳一個可變的編排器工作 profile。 |
 
@@ -166,6 +166,6 @@ export function registerMemoryGraphOrchestrationTools() {
 
 ## 相關頁面
 
-- [自訂工具（使用者文件）](/zh-TW/features/orchestrator/custom-tools) —— 使用者視角下三條通道（擴充 / SillyTavern 橋接 / 手寫）在編排編輯器裡的呈現方式
+- [自訂工具（使用者文件）](/zh-TW/features/orchestrator/custom-tools) —— 使用者視角下多條通道（擴充 / SillyTavern 橋接 / 手寫）在編排編輯器裡的呈現方式
 - [外掛整合](./plugin-integration.md) —— 註冊 `'orchestrator'` 與其他擴充入口的擴充 API 註冊表全貌
 - [記憶圖擴充 API](./memory-graph.md) —— 本 API 的參考消費者

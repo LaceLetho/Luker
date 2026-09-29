@@ -2,7 +2,7 @@
 
 A shared popup shell for **AI-driven iterative editing of an adapter-supplied artifact**. The shell drives the conversation, tool dispatch, drift-aware apply, history list, and approve/reject UI; the plugin (via an adapter) supplies what is being edited, which tools propose changes, and where sessions are stored.
 
-Two reference adapters live in-tree:
+Reference adapters live in-tree:
 
 - `public/scripts/extensions/orchestrator/iteration-adapter.js` — edits orchestrator profiles (spec / agenda / loop)
 - `public/scripts/extensions/memory-graph/schema-adapter.js` — edits memory-graph node-type schema
@@ -110,13 +110,13 @@ Return the op-typed edits (see [edits-lib](./edits-lib.md) for op shapes). Retur
 2. Run the existing mutator against the sandbox.
 3. Emit one coarse `{ op: 'set', path: '', oldValue: live, newValue: sandbox }` edit.
 
-Both reference adapters use this pattern. It is good enough to ship but produces profile-level conflicts (any concurrent change collides with the whole batch). For production-grade conflict resolution, normalize each tool call into per-field ops (`set` / `str_replace` / `list_insert` etc).
+The reference adapters use this pattern. It is good enough to ship but produces profile-level conflicts (any concurrent change collides with the whole batch). For production-grade conflict resolution, normalize each tool call into per-field ops (`set` / `str_replace` / `list_insert` etc).
 
 Adapter-declared control tools (reset-state, mode-switch, etc) route through the runner's `isControlCall` predicate to your `onControlCall` handler rather than the normalize-to-edit path. The shell counts them as tool calls for auto-continue purposes — any control-tool emission still triggers the next round.
 
 ## Runner settings
 
-The runner has three knobs that affect every LLM round-trip — retries, requests-per-minute cap, and streaming transport. Adapters opt in via `getRunnerSettings`:
+The runner has knobs that affect every LLM round-trip — retries, requests-per-minute cap, and streaming transport. Adapters opt in via `getRunnerSettings`:
 
 ```ts
 getRunnerSettings(settings): RunnerSettings | null
@@ -131,7 +131,7 @@ type RunnerSettings = {
 };
 ```
 
-Returning `null` / `undefined` / `{}` keeps both defaults. The shell does not read raw fields from your settings blob — this hook is the only path. That lets each adapter expose its own settings UI (CPA surfaces both; CardApp Studio currently exposes neither) without the shell having to know your storage path. Transport selection (SSE vs one-shot POST) is handled by `generateTask` based on the resolved preset's `stream_openai`; adapters do not need to expose a toggle for it.
+Returning `null` / `undefined` / `{}` keeps the defaults. The shell does not read raw fields from your settings blob — this hook is the only path. That lets each adapter expose its own settings UI (CPA surfaces them; CardApp Studio currently exposes neither) without the shell having to know your storage path. Transport selection (SSE vs one-shot POST) is handled by `generateTask` based on the resolved preset's `stream_openai`; adapters do not need to expose a toggle for it.
 
 ## Session storage
 
@@ -214,7 +214,7 @@ Each handler implements `{ apply, inverse, detectConflict }` — see [edits-lib]
 clearObsoleteSessions?(scope): Promise<void>
 ```
 
-A one-shot hook the shell calls once per adapter on first open after upgrade. Use it to wipe legacy v1 storage keys (the shell tracks a per-adapter wipe flag in localStorage so this only runs once). Both reference adapters implement it to drop their v1 history buckets:
+A one-shot hook the shell calls once per adapter on first open after upgrade. Use it to wipe legacy v1 storage keys (the shell tracks a per-adapter wipe flag in localStorage so this only runs once). The reference adapters implement it to drop their v1 history buckets:
 
 ```js
 clearObsoleteSessions: async () => {
@@ -251,7 +251,7 @@ Read these for working end-to-end examples of the contract:
 
 - `public/scripts/extensions/orchestrator/iteration-adapter.js` — wraps the orchestrator's pre-existing mutator with the sandbox-diff pattern. Layout `split`, per-mode session buckets, runtime world-info resolution, custom control tool names.
 - `public/scripts/extensions/memory-graph/schema-adapter.js` — node-type schema editor built directly on the v2 contract. Layout `split`, global-only sessions, apply-to-global / apply-to-character action buttons in the preview pane.
-- **CEA Character Editor** — `public/scripts/extensions/character-editor-assistant/character-editor-adapter.js`, layout `split`, per-character session scope `char_<avatar>`. Live shape is `{ card, lorebook: { bookName, entries: { [uid]: entry } } }`. Edits character card fields via `mergeCharacterAttributes` and lorebooks via `context.saveWorldInfo`. Registers 3 custom ops (`lorebook_entry_add / update / remove`) keyed by entry uid.
-- **CPA (Completion Preset Assistant)** — `public/scripts/extensions/completion-preset-assistant/cpa-iteration/` (the studio mounts itself as a popup via `openCpaIterationStudio`, separate from the layered `iterationStudio` open / defineAdapter contract). Per-preset session scope `preset_<name>`. The live target is the user's currently-selected OpenAI preset (via `context.presets.get`); `commit()` writes back via `context.presets.save(..., { select: true })`. Tool catalog has 15 editable preset-edit ops + 5 read-only inspection tools + 12 Skills authoring tools (inventory + write + verbatim extract, exposed when session mode is `orchestrator-optimize` and pulled directly from the orchestrator's `skill-iter-studio-tools.js` registry). No preview pane — the per-message edit summary in the chat is the diff.
+- **CEA Character Editor** — `public/scripts/extensions/character-editor-assistant/character-editor-adapter.js`, layout `split`, per-character session scope `char_<avatar>`. Live shape is `{ card, lorebook: { bookName, entries: { [uid]: entry } } }`. Edits character card fields via `mergeCharacterAttributes` and lorebooks via `context.saveWorldInfo`. Registers custom ops (`lorebook_entry_add / update / remove`) keyed by entry uid.
+- **CPA (Completion Preset Assistant)** — `public/scripts/extensions/completion-preset-assistant/cpa-iteration/` (the studio mounts itself as a popup via `openCpaIterationStudio`, separate from the layered `iterationStudio` open / defineAdapter contract). Per-preset session scope `preset_<name>`. The live target is the user's currently-selected OpenAI preset (via `context.presets.get`); `commit()` writes back via `context.presets.save(..., { select: true })`. Tool catalog covers editable preset-edit ops, read-only inspection tools, and Skills authoring tools (inventory + write + verbatim extract, exposed when session mode is `orchestrator-optimize` and pulled directly from the orchestrator's `skill-iter-studio-tools.js` registry). No preview pane — the per-message edit summary in the chat is the diff.
 
 The adapter contract JSDoc lives in `public/scripts/iteration-studio/adapter.js` — that file is the canonical source for required vs optional fields and exact signatures.

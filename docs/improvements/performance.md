@@ -44,7 +44,7 @@ Luker improves the data layer's caching strategy, promptly invalidating expired 
 
 ### Incremental Data Sync
 
-Through the [Incremental Sync](/improvements/incremental-sync) mechanism, Luker only sends the changed portions when saving chat data, rather than transmitting the complete chat history every time. This not only reduces network transfer volume but also lowers the server's disk write pressure.
+Through the [Incremental Sync](/improvements/incremental-sync) mechanism, Luker only sends the changed portions when saving chat data, rather than transmitting the complete chat history. This not only reduces network transfer volume but also lowers the server's disk write pressure.
 
 ::: tip
 These optimizations take effect automatically during daily use. If you migrate from SillyTavern to Luker, you should noticeably feel the improvement in startup and operation speed, especially with larger amounts of data.

@@ -4,9 +4,9 @@ Luker 提供了 WebSocket（WS）代理功能，透過持久的 WebSocket 隧道
 
 ## 什麼是 WS 代理
 
-在傳統模式下，每次 AI 生成請求都是一個獨立的 HTTP 請求。如果網路出現波動，請求可能中斷，導致生成結果遺失。
+在傳統模式下，AI 生成請求各自是獨立的 HTTP 請求。如果網路出現波動，請求可能中斷，導致生成結果遺失。
 
-WS 代理將這些請求透過一條**持久的 WebSocket 連線**進行傳輸。WebSocket 連線一旦建立，就會保持開啟狀態，所有的生成請求和回應都透過這條連線進行雙向通訊，無需反覆建立新連線。
+WS 代理將這些請求透過一條**持久的 WebSocket 連線**進行傳輸。WebSocket 連線一旦建立，就會保持開啟狀態，所有的生成請求和回應均透過這條連線進行雙向通訊，無需反覆建立新連線。
 
 ```d2
 direction: down
@@ -108,7 +108,7 @@ WS_MSG -> DISPATCH.GOOD_MOCK: "派發請求"
 
 瀏覽器原生 `WebSocket` 建構器**不允許 JS 設定任何 HTTP header**，只能依賴底層環境自動從 Basic Auth 快取裡附帶——但 iOS Safari、WKWebView 套殼 app、frpc / cloudflared 之類的反向代理**在 WebSocket 升級時常常會剝掉 `Authorization` 標頭**，即便同源 HTTP 請求是有的。結果就是 WS upgrade 看似成功，後續派發卻因為缺 `Authorization` 在 basicAuth 中介軟體 401。
 
-`Sec-WebSocket-Protocol` 是 WS 協議自身的欄位，JS 可以從 `new WebSocket(url, protocols)` 第二參數塞進去，反代和 WebView 都不會動它。所以：**ticket 走 HTTP（在那裡 Authorization 是可靠的）發放，鑑權訊號透過子協議進入 WS 通道**。繞開了「WebSocket 不能加 header」這個限制。
+`Sec-WebSocket-Protocol` 是 WS 協議自身的欄位，JS 可以從 `new WebSocket(url, protocols)` 第二參數塞進去，反代和 WebView 均不會動它。所以：**ticket 走 HTTP（在那裡 Authorization 是可靠的）發放，鑑權訊號透過子協議進入 WS 通道**。繞開了「WebSocket 不能加 header」這個限制。
 
 ### 工作原理
 
@@ -118,7 +118,7 @@ WS_MSG -> DISPATCH.GOOD_MOCK: "派發請求"
 4. **echo 子協議**:`wss.handleUpgrade` 內部呼叫 `handleProtocols`，把同一個 `luker-ws-ticket.<ticket>` 字串選回去，自動寫到 101 回應標頭，握手完成。
 5. **派發請求**：從 WS 訊息提取 URL/方法/標頭/主體，構造 mock `IncomingMessage`（Readable socket，`req.push()` 注入 body）。
 6. **派發標記**：在 mock 請求上掛 `WS_PROXY_AUTH_BYPASS`（模組私有 Symbol，無法透過 header / query / body 偽造）。
-7. **`app.handle(req, res)`**：進入 Express 中介軟體鏈——cookieSession 解析 cookie、CSRF 校驗 token、setUserData 注入 `request.user`、requireLogin 校驗登入狀態都正常運行；basicAuth 中介軟體讀到 Symbol 後直接放行。
+7. **`app.handle(req, res)`**：進入 Express 中介軟體鏈——cookieSession 解析 cookie、CSRF 校驗 token、setUserData 注入 `request.user`、requireLogin 校驗登入狀態均正常運行；basicAuth 中介軟體讀到 Symbol 後直接放行。
 8. **回應回流**:mock `ServerResponse` 把 status/headers/chunk 經 WS 隧道回傳給用戶端。
 
 ### 安全邊界
@@ -128,12 +128,12 @@ WS_MSG -> DISPATCH.GOOD_MOCK: "派發請求"
 | 匿名 | basicAuth 攔 | `/api/ws-ticket` 被 basicAuth 攔，拿不到 ticket |
 | 偷 cookie 單獨 | basicAuth 攔（無 Auth 標頭） | `/api/ws-ticket` 被 basicAuth 攔，拿不到 ticket |
 | 偷 basicAuth 單獨 | requireLogin 攔（無 session） | `/api/ws-ticket` 被 requireLogin 攔，拿不到 ticket |
-| 兩者都偷 | 全套通過 | 全套通過（無新增攻擊面） |
+| 兩者均偷 | 全套通過 | 全套通過（無新增攻擊面） |
 | ticket 中間人竊聽 | N/A | 30s TTL + 單次使用，HTTPS 路徑下基本不可行 |
 | ticket 重放 | N/A | 單次使用，伺服器端在 consume 時立即刪除 |
 
-- **ticket 不綁用戶身份**，只授權「通道接入」。派發請求的用戶身份完全由 cookie session 決定（`setUserDataMiddleware` + `requireLoginMiddleware` 在派發鏈路上每次都跑）。即便 ticket 被偷，攻擊者還是要用自己的 cookie 才能派發，得不到任何越權能力。
-- **Symbol 不可偽造**:`WS_PROXY_AUTH_BYPASS` 是模組內部的 Symbol；任何 header、query、body 欄位都無法在 `request` 物件上設定同名 Symbol 屬性。
+- **ticket 不綁用戶身份**，只授權「通道接入」。派發請求的用戶身份完全由 cookie session 決定（`setUserDataMiddleware` + `requireLoginMiddleware` 在派發鏈路上均會跑）。即便 ticket 被偷，攻擊者還是要用自己的 cookie 才能派發，得不到任何越權能力。
+- **Symbol 不可偽造**:`WS_PROXY_AUTH_BYPASS` 是模組內部的 Symbol；任何 header、query、body 欄位均無法在 `request` 物件上設定同名 Symbol 屬性。
 - **應用層中介軟體照常生效**:cookieSession、CSRF、setUserData、requireLogin 在派發時全部運行，未登入或缺少 CSRF token 的請求依然會被拒絕。
 
 ### 連線健壯性
@@ -141,7 +141,7 @@ WS_MSG -> DISPATCH.GOOD_MOCK: "派發請求"
 - **心跳保活**：用戶端和伺服器端定期交換心跳訊息，防止中間網路裝置因空閒逾時斷開連線
 - **串流偏移恢復**：生成過程中如果連線短暫中斷，重連後可以從斷點繼續接收內容
 - **作業清理**：使用 `lastActivity` 時間戳檢測過期作業，而非 `createdAt`，確保活躍中的長生成不會被誤清理
-- **重連重新發 ticket**：每次斷線重連時用戶端會先 `POST /api/ws-ticket` 拿新 ticket，舊 ticket 已經被消費掉，無法重用。
+- **重連重新發 ticket**：斷線重連時用戶端會先 `POST /api/ws-ticket` 拿新 ticket，舊 ticket 已經被消費掉，無法重用。
 
 
 ## 使用場景

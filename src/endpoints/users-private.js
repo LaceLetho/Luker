@@ -1266,7 +1266,7 @@ router.post('/restore-backup/uploads/:uploadId/finalize', async (request, respon
             dataRoot: globalThis.DATA_ROOT,
             uploadId: session.uploadId,
             meta: session.meta,
-            onProgress: stream ? (event) => stream.onProgress({ phase: 'assemble', ...event }) : null, // banned-words-allow
+            onProgress: stream ? (event) => stream.onProgress({ phase: 'assemble', ...event }) : null,
         });
         if (stream) {
             stream.sendResult({ size: result.size });

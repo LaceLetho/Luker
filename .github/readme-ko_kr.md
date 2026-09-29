@@ -20,7 +20,12 @@
 
 ---
 
-Luker는 차세대 롤플레이 채팅 플랫폼입니다. 일어난 일을 기억하는 캐릭터와 대화하고, 모든 답변 전에 Director가 이끄는 에이전트 팀이 장면을 설계하며, AI와 대화하며 카드를 편집하고, 대화 도중에 웹 검색까지 할 수 있습니다.
+Luker는 차세대 롤플레이 채팅 플랫폼입니다.
+
+- 초반 스토리의 세부 사항을 필요한 순간에 정확히 인용합니다
+- 여러 에이전트가 컨텍스트를 탐색하고 메시지 본문을 작성합니다
+- AI와 대화하며 캐릭터 카드를 편집하고, 변경 사항은 diff로 하나씩 승인합니다
+- 롤플레이 도중 웹에서 2차 창작 자료와 원작 설정을 검색합니다
 
 ## Luker란 무엇인가
 
@@ -32,15 +37,15 @@ Luker는 [SillyTavern](https://github.com/SillyTavern/SillyTavern)을 기반으�
 
 ### Memory Graph — 캐릭터가 진짜로 기억하는 법
 
-지식 그래프 기반의 장기 기억입니다. 모든 장면은 유형이 지정된 노드(캐릭터, 장소, 사건, 스토리라인)로 정제되고, 노드끼리 서로 연결됩니다. 답변을 내보내기 전마다 리콜 단계가 그래프를 순회하며 가장 관련성 높은 기억을 컨텍스트에 주입합니다. 그래서 서른 턴 뒤에 사용자가 "폐허가 된 신전으로 가는 세 번째 길"을 물어도, 캐릭터는 예전에 나눈 그 대화를 정확히 꺼내옵니다.
+지식 그래프 기반의 장기 기억입니다. 채팅 내용은 유형이 지정된 노드(캐릭터, 장소, 사건, 스토리라인)로 정제되고, 노드끼리 서로 연결됩니다. 답변 전에 리콜 단계가 그래프를 순회하며 가장 관련성 높은 기억을 컨텍스트에 주입합니다. 주인공이 이전에 방문했던 장소로 돌아가면, 오랫동안 등장하지 않았던 초반 캐릭터가 다시 떠오릅니다.
 
 ![Memory Graph 데모](https://raw.githubusercontent.com/funnycups/Luker/release/docs/public/images/branding/memory-graph-demo.gif)
 
 → [Memory Graph 문서](https://luker.cups.moe/features/memory-graph)
 
-### Multi-Agent Orchestrator — Director가 이끄는 에이전트 팀이 모든 답변을 설계
+### Multi-Agent Orchestrator — 여러 에이전트가 컨텍스트를 탐색하고 메시지 본문을 작성
 
-답변 작성 LLM이 입을 열기 전에, 설정 가능한 에이전트 팀이 먼저 실행됩니다. 디스틸러가 최근 컨텍스트를 압축하고, 플래너가 다음 장면을 스케치하며, 크리틱이 검토합니다. 최종 답변은 직접 확인할 수 있는 런타임 트레이스와 함께 도착합니다. 다섯 가지 실행 모드 중에서 고르세요 — Spec(고정 파이프라인), Single Agent, Agenda(흐름이 진행되면서 에이전트를 배치), Loop(단일 에이전트가 작업이 완료될 때까지 도구 호출을 반복), Director(메인 에이전트와 서브 에이전트 팀이 메시지 본문을 직접 작성).
+설정 가능한 여러 에이전트가 먼저 실행되고, 답변 작성 LLM이 이어서 작업합니다. distiller가 최근 컨텍스트를 압축하고, planner가 다음 장면을 스케치하며, critic가 검토합니다. 최종 답변은 직접 확인할 수 있는 런타임 트레이스와 함께 도착합니다. 실행 모드 중에서 고르세요 — Spec(고정 파이프라인), Single Agent, Agenda(흐름이 진행되면서 에이전트를 배치), Loop(단일 에이전트가 작업이 완료될 때까지 도구 호출을 반복), Director(메인 에이전트와 서브 에이전트 팀이 컨텍스트를 탐색하고 메시지 본문을 작성).
 
 ![Orchestrator 데모](https://raw.githubusercontent.com/funnycups/Luker/release/docs/public/images/branding/orchestrator-demo.gif)
 
@@ -48,7 +53,7 @@ Luker는 [SillyTavern](https://github.com/SillyTavern/SillyTavern)을 기반으�
 
 ### Skills — 필요할 때 불러오는 재사용 가능한 지식 팩
 
-에이전트가 필요할 때 읽는 재사용 가능한 지식 팩입니다. 글쓰기 규칙, 말투 규칙, 클리셰 방지 체크리스트 같은 것들이 담깁니다. 형식은 Anthropic Claude Skills와 호환되므로, Claude Code용으로 작성한 스킬을 수정 없이 Luker로 옮기고 다시 되돌릴 수 있습니다. Orchestrator의 기본 Director profile에는 24개의 번들 스킬이 들어 있으며, 스킬은 캐릭터 카드나 프리셋과 함께 배포할 수 있습니다.
+에이전트가 필요할 때 읽는 재사용 가능한 지식 팩입니다. 글쓰기 규칙, 말투 규칙, 클리셰 방지 체크리스트 같은 것들이 담깁니다. 형식은 Anthropic Claude Skills와 호환됩니다. Orchestrator의 기본 Director profile에는 번들 스킬이 들어 있으며, 스킬은 캐릭터 카드나 프리셋과 함께 배포할 수 있습니다.
 
 <img alt="설치된 스킬과 번들 스킬을 보여주는 스킬 관리자" src="https://raw.githubusercontent.com/funnycups/Luker/release/docs/public/_screenshots/skills/manager-installed-tab.png" width="720">
 
@@ -56,7 +61,7 @@ Luker는 [SillyTavern](https://github.com/SillyTavern/SillyTavern)을 기반으�
 
 ### CardApp Studio & AI Card Editor — AI와 대화하며 카드 편집
 
-CodeMirror-6 에디터, AI 채팅 패널, 그리고 모든 변경 묶음을 diff로 승인하는 절차를 갖춘 캐릭터 카드용 통합 IDE입니다. 일반 카드는 팝업 에디터로 열리고, **CardApp**(카드에 내장된 미니 애플리케이션)이 들어 있는 카드는 파일 트리, 라이브 프리뷰, 히스토리를 갖춘 완전한 Studio에서 열립니다.
+CodeMirror-6 에디터, AI 채팅 패널, 그리고 변경 사항을 diff로 하나씩 승인하는 절차를 갖춘 캐릭터 카드용 통합 IDE입니다. 일반 카드는 팝업 에디터로 열리고, **CardApp**(카드에 내장된 미니 애플리케이션)이 들어 있는 카드는 파일 트리, 라이브 프리뷰, 히스토리를 갖춘 완전한 Studio에서 열립니다.
 
 ![CardApp Studio 데모](https://raw.githubusercontent.com/funnycups/Luker/release/docs/public/images/branding/cardapp-studio-demo.gif)
 
@@ -64,7 +69,7 @@ CodeMirror-6 에디터, AI 채팅 패널, 그리고 모든 변경 묶음을 diff
 
 ### Preset Assistant — 설명을 바탕으로 프리셋 작성
 
-채팅 완성 프리셋이 어떤 일을 하길 원하는지 어시스턴트에게 알려 주세요. 어시스턴트는 매번 diff 하나씩, 원하는 모습이 될 때까지 여러분과 함께 프리셋을 다듬어 갑니다 — 파라미터를 읽고, 프롬프트 항목을 편집하고, 참조 프리셋과 비교하면서요. 같은 워크플로가 Orchestrator 프리셋에도 적용됩니다.
+채팅 완성 프리셋이 어떤 일을 하길 원하는지 어시스턴트에게 알려 주세요. 어시스턴트는 변경 사항을 diff로 보여 주며 원하는 모습이 될 때까지 여러분과 함께 프리셋을 다듬어 갑니다 — 파라미터를 읽고, 프롬프트 항목을 편집하고, 참조 프리셋과 비교하면서요. 같은 워크플로가 Orchestrator 프리셋에도 적용됩니다.
 
 <img alt="Preset Assistant" src="https://raw.githubusercontent.com/funnycups/Luker/release/docs/public/images/preset-assistant/cpa-overview.png" width="720">
 
@@ -92,7 +97,7 @@ Luker 백엔드는 Android 앱 *안에서* 실행됩니다. APK를 설치하고 
 
 ### 채팅 병합과 분할
 
-긴 채팅을 원하는 턴에서 분할하거나 두 채팅을 하나로 병합할 수 있으며, 분기 히스토리도 일관되게 유지됩니다. 장면이 통제를 벗어나서, 나머지는 그대로 둔 채 재미있는 부분만 따로 분기해 내고 싶을 때 유용합니다.
+긴 채팅을 원하는 턴에서 분할하거나 채팅을 병합할 수 있으며, 분기 히스토리도 일관되게 유지됩니다. 장면이 통제를 벗어나서, 나머지는 그대로 둔 채 재미있는 부분만 따로 분기해 내고 싶을 때 유용합니다.
 
 <img alt="채팅 병합과 분할" src="https://raw.githubusercontent.com/funnycups/Luker/release/docs/public/screenshots/chat-merge-split/07-split-dialog-three-segments.png" width="720">
 
@@ -100,9 +105,9 @@ Luker 백엔드는 Android 앱 *안에서* 실행됩니다. APK를 설치하고 
 
 ### TTS NPC 대사 화자 배정
 
-TTS를 켜면 답변 속 따옴표로 묶인 대사마다 그 화자의 목소리로 재생할 수 있습니다. 백그라운드에서 각 대사를 누가 말했는지 판별합니다 — 찾아낸 NPC는 음성 맵에 자동으로 추가되고, 미리 등록해 둔 이름은 첫 재생부터 인식됩니다.
+TTS를 켜면 답변 속 따옴표로 묶인 대사를 그 화자의 목소리로 재생할 수 있습니다. 백그라운드에서 대사의 화자를 판별합니다 — 찾아낸 NPC는 음성 맵에 자동으로 추가되고, 미리 등록해 둔 이름은 첫 재생부터 인식됩니다.
 
-<img alt="채팅 메시지의 대사별 재생 버튼" src="https://raw.githubusercontent.com/funnycups/Luker/release/docs/public/screenshots/tts-npc-attribution/03-inline-buttons-zoom.png" width="678">
+<img alt="채팅 메시지의 대사 재생 버튼" src="https://raw.githubusercontent.com/funnycups/Luker/release/docs/public/screenshots/tts-npc-attribution/03-inline-buttons-zoom.png" width="678">
 
 → [TTS NPC 대사 화자 배정](https://luker.cups.moe/features/tts-npc-attribution)
 

@@ -2,7 +2,6 @@
 
 Combine several chats into one in the order you pick, with per-source range
 trimming. Or cut one chat into multiple new chats at the points you choose.
-Source chats are always preserved.
 
 ## Merging chats
 
@@ -16,8 +15,8 @@ Source chats are always preserved.
 
    ![Merge dialog with two sources](/screenshots/chat-merge-split/02-merge-dialog-two-sources.png)
 
-3. **Drag the ⋮⋮ handle** on the left of each row to reorder. With three or
-   more sources you can move any row to any position.
+3. **Drag the ⋮⋮ handle** on the left of each row to reorder. Any row can
+   move to any position.
 
    ![Merge dialog with three sources](/screenshots/chat-merge-split/04-merge-dialog-three-sources.png)
 

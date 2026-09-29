@@ -24,7 +24,7 @@ The AI inside the popup can perform the following operations via tool calls:
 
 ## Diff Approval
 
-After each AI modification, the system shows the before/after diff per field in the pending area, waiting for your approval:
+After an AI modification, the system shows the before/after diff per field in the pending area, waiting for your approval:
 
 ![Pending diffs grouped per field](/images/card-editor-popup/cea-popup-diff-approval.png)
 
@@ -50,9 +50,9 @@ Expanding "Conversation history" at the bottom of the popup reveals all editing 
 
 ## World Info Sync
 
-When you import a new character card via replace or update, if the new card carries an embedded world book (or the cards bind to different world books), the editor assistant pops up a sync dialog with three options:
+When you import a new character card via replace or update, if the new card carries an embedded world book (or the cards bind to different world books), the editor assistant pops up a sync dialog with the following options:
 
-![World Info sync popup: three options](/images/card-editor-popup/cea-lorebook-sync.png)
+![World Info sync popup](/images/card-editor-popup/cea-lorebook-sync.png)
 
 - **Import new book** — Save the new card's embedded world book as a standalone file and bind it to this character. Use when you want the new card's shipped lore verbatim.
 - **Keep old book** — Re-bind the previously bound book and ignore the new card's embedded book. Use when you only wanted to refresh the character fields.

@@ -197,7 +197,7 @@ storage:
     poolSize: 10
 ```
 
-Luker can persist user data through one of four backends. The `mode` key chooses which one; the matching sub-block is only consulted when its mode is selected.
+Luker can persist user data through one of several backends. The `mode` key chooses which one; the matching sub-block is only consulted when its mode is selected.
 
 - `fs` (default): one file per chat / preset / world / etc. under `<dataRoot>/<handle>/`. Recommended for single-user installs and the easiest backend to inspect by hand.
 - `sqlite`: one self-contained `luker-storage.sqlite` file per user under `<dataRoot>/<handle>/`. Suits installs that want a single transactional file without operating a separate database service.

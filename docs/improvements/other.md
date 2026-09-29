@@ -65,7 +65,7 @@ See [Android App](/guide/android) for details.
 
 Luker introduces a frontend log manager for frontend debugging and troubleshooting:
 
-- Intercepts six levels of `console.trace/debug/log/info/warn/error`, writing to an in-memory buffer (up to 3,000 entries)
+- Intercepts `console.trace/debug/log/info/warn/error`, writing to an in-memory buffer (up to 3,000 entries)
 - Intercepts `fetch` requests, recording API call request/response summaries (method, path, status, duration, etc.)
 - Captures `window.error` and `unhandledrejection` global errors
 - Performs intelligent summarization of request bodies, extracting key information rather than recording full content

@@ -4,7 +4,7 @@ Prompt Groups is an organizational feature added by Luker on top of SillyTavern'
 
 ![Prompt groups in the manager](/images/presets/prompt-groups.png)
 
-The screenshot above shows three groups (Character Setup / Chat History / Tail Jailbreak in Chinese) expanded — each header carries a member count and a bulk-enable switch, while ungrouped entries (Main Prompt, World Info before) stay at the top level.
+The screenshot above shows groups (Character Setup / Chat History / Tail Jailbreak in Chinese) expanded — each header carries a member count and a bulk-enable switch, while ungrouped entries (Main Prompt, World Info before) stay at the top level.
 
 ## Data Model
 

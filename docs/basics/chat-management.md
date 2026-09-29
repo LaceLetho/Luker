@@ -90,11 +90,11 @@ Luker has made significant improvements to how chat data is saved.
 
 ### The Problem
 
-In SillyTavern, every message send, message edit, or even just swiping through responses transfers the **entire chat file** between frontend and backend. For long conversations, this means transferring large amounts of data with every operation — wasteful in bandwidth and error-prone.
+In SillyTavern, a message send, message edit, or even just swiping through responses transfers the **entire chat file** between frontend and backend. For long conversations, this means transferring large amounts of data — wasteful in bandwidth and error-prone.
 
 ### Luker's Improvement
 
-Luker uses **incremental patch endpoints** to save chat data. Each operation only transfers the changed portion (following the RFC 6902 standard), not the entire chat file. For example:
+Luker uses **incremental patch endpoints** to save chat data. An operation only transfers the changed portion (following the RFC 6902 standard), not the entire chat file. For example:
 
 - Sending a new message: Only the new message content is transferred
 - Editing a message: Only the modified portion is transferred

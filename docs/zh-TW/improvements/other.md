@@ -66,7 +66,7 @@ Luker 針對行動裝置和 Android WebView 進行了大量適配修復，涵蓋
 
 Luker 新增了前端日誌管理器，用於前端除錯和問題排查：
 
-- 攔截 `console.trace/debug/log/info/warn/error` 六個級別，寫入記憶體緩衝區（最多 3000 條）
+- 攔截 `console.trace/debug/log/info/warn/error`，寫入記憶體緩衝區（最多 3000 條）
 - 攔截 `fetch` 請求，記錄 API 呼叫的請求/回應摘要（method、path、status、duration 等）
 - 捕獲 `window.error` 和 `unhandledrejection` 全域錯誤
 - 對請求 body 進行智慧摘要，提取關鍵資訊而非記錄完整內容

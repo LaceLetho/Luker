@@ -212,7 +212,7 @@ export async function uploadFileInChunks(file, {
 
 /**
  * Ask the server to assemble the uploaded chunks. Consumes the NDJSON
- * progress stream ({type:'progress',phase:'assemble'}) when present. banned-words-allow
+ * progress stream ({type:'progress',phase:'assemble'}) when present.
  */
 export async function finalizeRestoreUpload(uploadId, { headers = {}, onProgress = null, signal = null } = {}) {
     const response = await fetch(`${RESTORE_UPLOAD_BASE_URL}/${uploadId}/finalize`, {

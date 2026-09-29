@@ -2,7 +2,7 @@
 
 This page covers how skills attach to an orchestrator profile and how each agent sees the correct set at dispatch time.
 
-At a high level, an orchestrator profile carries a `skills` policy at two levels — **mode-level** (defaults) and **per-agent override** — and the runtime resolves both against the physical inventory before each dispatch. Agents see only their resolved visible set; the rest is filtered out.
+At a high level, an orchestrator profile carries a `skills` policy at **mode level** (defaults) and **per-agent override**, and the runtime resolves both against the physical inventory before dispatch. Agents see only their resolved visible set; the rest is filtered out.
 
 ## The policy shape
 
@@ -39,9 +39,9 @@ In the orchestrator profile JSON, two `skills` blocks live side by side with exi
 }
 ```
 
-Both `visible` and `deny` are lists of **skill names only** — no scope prefixes. The resolver walks the three physical scopes and matches by name (later-wins precedence: character > preset > global).
+Both `visible` and `deny` are lists of **skill names only** — no scope prefixes. The resolver walks the physical scopes and matches by name (later-wins precedence: character > preset > global).
 
-## The three resolution rules
+## Resolution rules
 
 When dispatching an agent, the runtime computes its effective `visible` and `deny` from the mode + agent blocks:
 
@@ -108,7 +108,7 @@ Wildcards combine with `"+"` and `deny` as expected.
 
 ## What the agent actually sees
 
-Once the policy resolves, the runtime hands the agent two things at dispatch:
+Once the policy resolves, the runtime hands the agent the following at dispatch:
 
 ### 1. Auto-injected catalog
 
@@ -129,7 +129,7 @@ This is the catalog only — name + description. The agent learns what's availab
 
 The roughly 18 entries of the default director profile total about 150–300 tokens — inexpensive.
 
-### 2. Three function tools
+### 2. Function tools
 
 Gated to the visible set, these are the only way the agent can access skill content:
 
@@ -192,7 +192,7 @@ Reading the policy:
 - **The main agent additionally gets** the turn workflow + dispatch protocol — its specific responsibilities.
 - **Each sub-agent additionally gets its method skill** — `voice_critic` reads `voice-critic-method-zh`, `memory_curator` reads `event-summary-rules-zh`, etc.
 
-No single agent's `skills.visible` repeats the mode-level entries. The `"+"` prefix keeps each per-agent override short — it lists what's specific to that agent, not the whole stack.
+No single agent's `skills.visible` repeats the mode-level entries. The `"+"` prefix keeps per-agent overrides short — it lists what's specific to that agent, not the whole stack.
 
 ## Per-mode behavior
 
@@ -222,7 +222,7 @@ For spec mode's review nodes, the catalog injection is deliberately skipped — 
 This soft-fail behavior is deliberate. It means:
 
 - Importing a card whose bundled skills you skipped does not break anything — the references remain dangling.
-- Deleting a skill doesn't require you to clean up every profile that referenced it.
+- Deleting a skill doesn't require you to clean up profiles that referenced it.
 - Renaming a skill is a 1-step operation — references go stale, but dispatch keeps working until you choose to fix them.
 
 ## Editing the policy
@@ -247,7 +247,7 @@ This means a `director.mainAgent.skills` block doesn't follow you when you switc
 
 ## Related
 
-- [Skills overview](/features/skills/) — what a skill is, three scopes
+- [Skills overview](/features/skills/) — what a skill is, the scopes
 - [Authoring skills](/features/skills/authoring) — write your own
 - [Skill management](/features/skills/management) — install / move / delete
 - [Director mode](/features/orchestrator/director) — the canonical multi-agent profile that ships with full skill integration

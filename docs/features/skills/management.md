@@ -8,15 +8,15 @@ Open the Extensions drawer → **Multi-Agent Orchestration** section → click *
 
 ## Subpanel overview
 
-The skill manager has three tabs along the top:
+The skill manager has tabs along the top:
 
 - **Installed** — what you have under `data/<user>/skills/<scope>/`. Filter by scope (Global / Preset / Character) or show **All**.
-- **Browse bundled** — the 24 skills shipped under `default/skills/global/`, with each row showing whether your local copy matches, differs, or is missing.
+- **Browse bundled** — the skills shipped under `default/skills/global/`, with each row showing whether your local copy matches, differs, or is missing.
 - **Import** — entry points for installing from a file, from a URL, or by extracting from a character card / preset.
 
 ![Skill manager subpanel, Installed tab](/_screenshots/skills/manager-installed-tab.png)
 
-## Tab 1 — Installed
+## Installed tab
 
 Each row shows:
 
@@ -40,9 +40,9 @@ Row actions (right side):
 
 Toggle **Multi-select** at the top to get a checkbox per row. With ≥1 row checked, the toolbar gains a **Pack selected into preset…** action — see [Embed export](#embed-export-into-presets-and-cards) below.
 
-## Tab 2 — Browse bundled
+## Browse bundled tab
 
-The bundled tab compares your local copy of each shipped skill against what ships in `default/skills/global/`. Each row shows one of three states:
+The bundled tab compares your local copy of each shipped skill against what ships in `default/skills/global/`. Each row shows one of the following states:
 
 | Badge | Meaning |
 |---|---|
@@ -52,15 +52,15 @@ The bundled tab compares your local copy of each shipped skill against what ship
 
 ![Browse bundled, mixed states](/_screenshots/skills/manager-bundled-tab.png)
 
-The **Import all bundled** button at the top of the tab is the convenience equivalent of clicking **Install** on every "not installed" or "differs" row — it **overwrites** all 24 bundled skills with the shipped versions.
+The **Import all bundled** button at the top of the tab is the convenience equivalent of clicking **Install** on every "not installed" or "differs" row — it **overwrites** all bundled skills with the shipped versions.
 
 ::: warning Overwrite is destructive
 Import all bundled doesn't merge — it overwrites. If you've edited `event-summary-rules-zh` locally, importing the bundled version replaces your edits. The button label spells out how many same-named skills will be overwritten before you click.
 :::
 
-## Tab 3 — Import
+## Import tab
 
-Four entry points:
+Entry points:
 
 ### Import from file
 
@@ -140,13 +140,13 @@ Typical migrations:
 
 When you rename or delete a skill that an orchestrator profile references, the profile's `skills.visible` list keeps the old name. The runtime can't find it, so the agent quietly doesn't see it (no error, no blocked dispatch).
 
-In the orchestrator config editor, stale references are greyed out and show the tooltip **"skill not installed."** Two clicks fix it — either rename in the profile, or re-add the skill.
+In the orchestrator config editor, stale references are greyed out and show the tooltip **"skill not installed."** A couple of clicks fix it — either rename in the profile, or re-add the skill.
 
 This soft-fail discipline is deliberate. It means a missing skill never blocks an agent dispatch, and adding/removing skills doesn't require simultaneous profile edits.
 
 ## Related
 
-- [Skills overview](/features/skills/) — what a skill is, the three scopes
+- [Skills overview](/features/skills/) — what a skill is, the scopes
 - [Authoring skills](/features/skills/authoring) — write your own
 - [Orchestrator integration](/features/skills/orchestrator-integration) — wire skills to a profile
 - [Skills extension API](/development/extension-api/skills) — programmatic management from extensions

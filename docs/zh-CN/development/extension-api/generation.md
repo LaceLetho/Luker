@@ -4,10 +4,10 @@
 
 ## 发送 LLM 请求
 
-推荐使用 `context.generateTask` —— 一次调用同时处理 profile 解析、世界书激活、prompt 组装、分发与响应归一化。Luker 内置的 search-tools、completion-preset-assistant、character-editor-assistant、记忆图、orchestrator 都通过它发起 LLM 请求。第三方插件也应该用这个 API，而不是自己拼装 `sendOpenAIRequest` + `buildPresetAwarePromptMessages` + `connectionProfiles.resolve`。
+推荐使用 `context.generateTask` —— 一次调用同时处理 profile 解析、世界书激活、prompt 组装、分发与响应归一化。Luker 内置的 search-tools、completion-preset-assistant、character-editor-assistant、记忆图、orchestrator 均通过它发起 LLM 请求。第三方插件也应该用这个 API，而不是自己拼装 `sendOpenAIRequest` + `buildPresetAwarePromptMessages` + `connectionProfiles.resolve`。
 
 ::: info 为什么要统一成一个 API
-手动拼装意味着每个插件都得自己重做 profile 解析、世界书激活、家族分发（openai vs kobold/novel/textgen）、响应解析。`generateTask` 把这些都收敛到一处，无论底层 API 家族是哪种，都返回归一化的结果结构。
+手动拼装意味着每个插件均得自行实现 profile 解析、世界书激活、家族分发（openai vs kobold/novel/textgen）、响应解析。`generateTask` 把这些均收敛到一处，无论底层 API 家族是哪种，均返回归一化的结果结构。
 :::
 
 ### 快速开始
@@ -75,7 +75,7 @@ context.generateTask({
 
 `substituteMacros` 默认为 `true`，`generateTask` 会在拼装前对每条 task 消息的字符串 `content` 跑一遍 `substituteParams`。这样插件请求里也能解析跟主聊天路径一致的 <span v-pre>`{{...}}`</span> 宏 —— 包括 Luker 内置宏（<span v-pre>`{{user}}`</span>、<span v-pre>`{{char}}`</span>、<span v-pre>`{{persona}}`</span>、<span v-pre>`{{datetime}}`</span>、<span v-pre>`{{random:a,b}}`</span> 等）和经由同一引擎注册的扩展宏（例如 MagVarUpdate 的 <span v-pre>`{{getvar::}}`</span> 系列）。
 
-带副作用的宏（<span v-pre>`{{setvar::}}`</span>、<span v-pre>`{{addvar::}}`</span>、<span v-pre>`{{incvar::}}`</span>、<span v-pre>`{{decvar::}}`</span>、<span v-pre>`{{deletevar::}}`</span>）会通过 `skipSideEffects: true` 直接剥除，否则插件每次请求都会重新触发这些写入并污染 `chat_metadata.variables`。
+带副作用的宏（<span v-pre>`{{setvar::}}`</span>、<span v-pre>`{{addvar::}}`</span>、<span v-pre>`{{incvar::}}`</span>、<span v-pre>`{{decvar::}}`</span>、<span v-pre>`{{deletevar::}}`</span>）会通过 `skipSideEffects: true` 直接剥除，否则插件每次请求均会重新触发这些写入并污染 `chat_metadata.variables`。
 
 #### 何时应该关闭
 
@@ -173,7 +173,7 @@ console.log(result.jsonData);  // { name: 'Alice', age: 32, occupation: 'softwar
 
 ### 错误处理
 
-所有失败都抛 `GenerateTaskError`，在 `context.GenerateTaskError` 暴露：
+所有失败均抛 `GenerateTaskError`，在 `context.GenerateTaskError` 暴露：
 
 ```js
 try {
@@ -243,13 +243,13 @@ return {
 - 命名的 `llmPresetName`（留空时回退到当前选中的 chat completion 预设）`stream_openai: true` → SSE 传输。慢速上游用得到，避免 HTTP 连接超时；服务端逐帧累积后拼成完整终态，调用方仍然只看到 `Promise<terminal>`。
 - `stream_openai: false` → 一次性 POST。整个响应在一个 body 里返回。
 
-两种走法返回形态完全一致。**调用方不需要设传输开关**，用户在预设里的选择就是真相来源。非 OpenAI 族（kobold / koboldhorde / novel / textgenerationwebui）始终走一次性 POST。
+无论走哪种方式，返回形态完全一致。**调用方不需要设传输开关**，用户在预设里的选择就是真相来源。非 OpenAI 族（kobold / koboldhorde / novel / textgenerationwebui）始终走一次性 POST。
 
 如果你需要**实时渲染 token**，那是另一回事——和传输无关，要走下一节的 `generateTaskStream`。
 
 ### 流式响应
 
-`generateTask` 不管走哪种传输都返回终态结果。如果交互式场景需要在模型生成过程中实时渲染 token，请使用 `context.generateTaskStream`——它返回一对 split-stream：一个用于消费 delta 增量的 `AsyncIterable`，以及一个 `Promise` 拿到与 `generateTask` 相同形态的终态结果。它始终走 OpenAI 族的流式 sender，不再读预设的 `stream_openai` 字段，因为"消费 chunk"本身就是调用方明确表达的诉求。
+`generateTask` 不管走哪种传输均返回终态结果。如果交互式场景需要在模型生成过程中实时渲染 token，请使用 `context.generateTaskStream`——它返回一对 split-stream：一个用于消费 delta 增量的 `AsyncIterable`，以及一个 `Promise` 拿到与 `generateTask` 相同形态的终态结果。它始终走 OpenAI 族的流式 sender，不再读预设的 `stream_openai` 字段，因为"消费 chunk"本身就是调用方明确表达的诉求。
 
 ```js
 const { stream, result } = context.generateTaskStream({
@@ -455,7 +455,7 @@ context.unregisterFunctionTool('my_plugin_tool');
 
 ### 连接配置 （Connection Profile） 解析
 
-Connection profile 是 Luker 连接管理器管理的一组**连接配置**（API 类型、模型、密钥、代理等），与 chat completion preset 是**两个独立的东西**——前者描述「连到哪」，后者描述「按什么参数生成」，可自由组合。
+Connection profile 是 Luker 连接管理器管理的一组**连接配置**（API 类型、模型、密钥、代理等），与 chat completion preset **相互独立**——前者描述「连到哪」，后者描述「按什么参数生成」，可自由组合。
 
 当插件需要让用户从 connection profile 中挑一个发请求时（例如自带「使用哪个 API 配置」的下拉框），用 `context.connectionProfiles.list()` 填充 UI:
 
@@ -469,7 +469,7 @@ context.connectionProfiles.list(): ConnectionProfile[]
 
 ### sendOpenAIRequest
 
-底层 LLM dispatcher。`generateTask` 内部对 OpenAI 家族的请求会调用它，前提是 envelope 组装、世界书激活、profile 解析都已经在外层完成。
+底层 LLM dispatcher。`generateTask` 内部对 OpenAI 家族的请求会调用它，前提是 envelope 组装、世界书激活、profile 解析已经在外层完成。
 
 ```js
 import { sendOpenAIRequest } from '../../../openai.js';
@@ -616,7 +616,7 @@ context.streamingProcessor: StreamingProcessor | null
 
 ## Service 类
 
-三个「类即命名空间」的辅助类，暴露请求生命周期，绕开 `Generate`。当你需要直接控制 chat-completion 或 text-completion 后端时使用（例如自定义重试逻辑、自定义 token 计费）。
+「类即命名空间」的辅助类，暴露请求生命周期，绕开 `Generate`。当你需要直接控制 chat-completion 或 text-completion 后端时使用（例如自定义重试逻辑、自定义 token 计费）。
 
 ### ChatCompletionService
 

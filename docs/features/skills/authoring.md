@@ -2,11 +2,11 @@
 
 A skill is a directory with one required file (`SKILL.md`) and optional sub-folders. Authoring a skill means picking a name, writing frontmatter, and writing a body the agent can read. That's it.
 
-This page covers the conventions Luker (and Anthropic) expect, the choices you face along the way, and walks through two of the bundled skills as worked examples.
+This page covers the conventions Luker (and Anthropic) expect, the choices you face along the way, and walks through bundled skills as worked examples.
 
-## Two ways to write a skill
+## Ways to write a skill
 
-You don't have to type a SKILL.md by hand. Most users start one of two ways:
+You don't have to type a SKILL.md by hand. Most users start one of these ways:
 
 | Route | Where | Good for |
 |---|---|---|
@@ -63,11 +63,11 @@ Body starts here.
 | `metadata.version` | no | semver-ish string | Anthropic-standard. Bump when you change semantics. |
 | `metadata.tags` | no | array of strings | Searchable hint. |
 
-## Writing the body
+## Authoring the body
 
 The body is the contract. When an agent calls `skill_read({ name })`, the body is what it sees (plus the frontmatter as a small JSON-ish header). Treat the body as a directive document, not a reference encyclopedia.
 
-A pattern that works well — borrowed from the bundled skills — has four sections:
+A pattern that works well — borrowed from the bundled skills — has these sections:
 
 1. **What this skill is for** — one paragraph the agent reads to confirm it picked the right skill.
 2. **Core rules / method** — the actual contract. Numbered lists, tables, checklists. Be specific and concrete; the agent will follow the wording.
@@ -76,7 +76,7 @@ A pattern that works well — borrowed from the bundled skills — has four sect
 
 ### Tone — write for the agent
 
-Skills are read by an LLM, not by a human ops manual reader. Two implications:
+Skills are read by an LLM, not by a human ops manual reader. Implications:
 
 - **Be directive, not descriptive.** "Avoid X" beats "X is generally considered undesirable." The bundled skills are written in this voice.
 - **Avoid meta-justification.** A skill body that opens with "This is a great skill that will help you because…" is wasted tokens. The agent already decided to read it; tell it what to do.
@@ -114,7 +114,7 @@ In `SKILL.md`, point the agent at the sub-files explicitly:
 - `references/cliche-deep-list.md` — extended list of banned phrasings beyond the
   top-20 in this file. Read when the draft repeatedly trips a pattern that's not
   named here.
-- `examples/before-after.md` — six paired examples of "data-person prose" vs
+- `examples/before-after.md` — paired examples of "data-person prose" vs
   rewritten human prose. Read once at the start of the session for calibration.
 ```
 
@@ -136,7 +136,7 @@ metadata:
 
 The body follows a "rule families" structure: each major cliché family (data-person prose, contract vocabulary, sublimation clichés, AI-coined labels) gets its own heading with concrete bilingual examples. There are no sub-files — the entire contract is small enough to live in `SKILL.md`.
 
-This skill is mode-level visible: every default director sub-agent (main agent, voice critic, continuity critic, plot brainstormer, …) sees it. It anchors the writing standard for the whole team.
+This skill is mode-level visible: every default director sub-agent (main agent, voice critic, continuity critic, plot brainstormer, …) sees it. It anchors the team's writing standard.
 
 ## Worked example 2: `event-summary-rules-zh`
 
@@ -182,7 +182,7 @@ If validation fails, the install or write rolls back atomically (writes go throu
 
 ## Related
 
-- [Skills overview](/features/skills/) — what a skill is, the three scopes
+- [Skills overview](/features/skills/) — what a skill is, the scopes
 - [Skill management](/features/skills/management) — install, import, export, scope migration
 - [Orchestrator integration](/features/skills/orchestrator-integration) — wire skills to a profile
 - [Skills extension API](/development/extension-api/skills) — programmatic `context.skills.*`

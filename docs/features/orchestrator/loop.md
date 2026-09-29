@@ -10,7 +10,7 @@ When it shines: you want one agent to do research-style work — read recent cha
 Loop coexists with spec / agenda. Existing spec / agenda profiles are unaffected.
 :::
 
-::: warning 99% of the time, don't hand-write the system prompt
+::: warning Most of the time, don't hand-write the system prompt
 Don't want to hand-write the agent's system prompt? Open the [AI Iteration Studio](/features/orchestrator/iteration-studio) — describe the agent in plain language, the AI patches the profile via tool calls.
 :::
 
@@ -27,7 +27,7 @@ Loop mode addresses these with a single agent + tool loop: same conversation, on
 
 ## Default orchestration flow
 
-Loop runs a single agent. The agent reads what it already has, decides whether to fetch more context or write the capsule, and repeats until it calls `finalize`.
+Loop runs a single agent. The agent reads what it already has, decides whether to fetch more context or produce the capsule, and repeats until it calls `finalize`.
 
 ```d2
 direction: down
@@ -95,7 +95,7 @@ Key fields:
 
 ## Built-in tools
 
-Tools follow the OpenAI function-calling protocol; results come back as `role: tool` messages in the agent's next round. Twenty-four optional tools plus the always-on `finalize`:
+Tools follow the OpenAI function-calling protocol; results come back as `role: tool` messages in the agent's next round. Optional tools plus the always-on `finalize`:
 
 | Tool | Purpose | Concrete RP example |
 |---|---|---|
@@ -129,7 +129,7 @@ Once a tool call returns, its result lands in the conversation as a light-yellow
 
 For agents that need capabilities beyond these builtins, see [Custom tools](./custom-tools.md).
 
-## Five-layer runaway protection (in priority order)
+## Runaway protection (in priority order)
 
 1. **Abort signal** — user clicks Stop / upper-layer cancel → loop aborts immediately; trace records `cancelled` and **no** half-baked capsule is injected.
 2. **`wall_clock_budget_ms`** — break the moment the wall clock expires.
@@ -142,7 +142,7 @@ When any safeguard fires, the loop falls back to the agent's last natural-langua
 
 The [Run Panel](/features/orchestrator/#step-4) shows every loop run live. Each round of agent reasoning is a card; expand it to see what the agent thought and which tools it called. Loop-specific things to look for:
 
-- **Per-round reasoning + tool calls** — the agent's thinking for the round, followed by the tools it dispatched. Tool arguments are expanded inline, no need to crack open raw JSON.
+- **Reasoning + tool calls** — the agent's thinking for the round, followed by the tools it dispatched. Tool arguments are expanded inline, no need to crack open raw JSON.
 - **Tool results feeding the next round** — every tool's return shows up in the same card; cross-reference against the system prompt to find where the agent went off-track.
 - **`finalize`** — the loop ends when the agent calls the `finalize` tool. Its `capsule_text` argument is the exact string injected into the main model.
 - **Safeguards** — when any safeguard fires (`max_rounds` / wall-clock / no-tool-call streak), the panel surfaces the reason, and the loop falls back to the agent's last natural-language reply as the capsule.

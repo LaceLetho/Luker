@@ -13,7 +13,7 @@
 这张卡身上同时挂着：
 
 - **记忆图 schema 派生** — `suspect` / `clue` / `forensic_site` / `witness` 四类领域节点（不是默认 schema）。**这层是给 LLM 长期记忆用的**：AI 每聊一段就把对应实体抽出来归档，跨回合 recall 时图谱有现成切片可喂回 prompt。
-- **orchestrator loop 编排** — 每次 AI 回复都跑 `draft → critique → revise` 三阶段，critique 阶段强制审视"是否遗漏线索 / 嫌疑人陈述是否抵触 / 时代约束是否被违反"
+- **orchestrator loop 编排** — 每次 AI 回复均跑 `draft → critique → revise` 三阶段，critique 阶段强制审视"是否遗漏线索 / 嫌疑人陈述是否抵触 / 时代约束是否被违反"
 - **卡专用世界书** — 「维多利亚案宗·伦敦档案」，含维多利亚伦敦背景 + 侦探办案规矩 + **状态注入条目**（含 <code v-pre>{{getvar::case_*}}</code> 占位 + 教 AI 用 <code v-pre>{{setvar}}</code> 改写变量的指令），**不动你的全局世界书**
 - **「当前案宗」CardApp 面板** — 读 chat 变量呈现案件状态：案件名 / 当前阶段 / 嫌疑人 / 线索 / 取证地点。**变量由 AI 在 reply 中通过 setvar 推进**；CardApp 读 `ctx.getVariable` + `JSON.parse` 渲染。聊一句 → AI emit setvar → 面板下一帧就更新。
 
@@ -27,7 +27,7 @@
 
 ## 1. 建一张空白卡 → 进 Studio
 
-打开右侧角色管理面板，点「新建角色」，起名「**维多利亚案宗**」 — 描述 / 第一条消息 / 世界书绑定全部留白，这些都让 Studio 来填。
+打开右侧角色管理面板，点「新建角色」，起名「**维多利亚案宗**」 — 描述 / 第一条消息 / 世界书绑定全部留白，这些均让 Studio 来填。
 
 接下来打开「扩展」面板 → 拉到「角色卡编辑助手」一节展开 → 点 **「&lt;/&gt; CardApp Studio」**：
 
@@ -76,12 +76,12 @@
 
 一轮里它做完了：
 
-- **`character_update_memory_graph_schema`** — 把四类派生节点 schema 写进卡（只动这张卡，不污染全局）
-- **`character_update_orchestrator`** — 把 draft / critique / revise 的三阶段 loop 配置写进卡（同样 character-scoped）
+- **`character_update_memory_graph_schema`** — 把派生节点 schema 写进卡（只动这张卡，不污染全局）
+- **`character_update_orchestrator`** — 把 draft / critique / revise 的 loop 配置写进卡（同样 character-scoped）
 - **`worldinfo_create_chat_book`** + **`worldinfo_replace_entries`** — 创建卡专用世界书 + 一次性写入维多利亚伦敦背景 / 侦探办案规矩 / **状态注入条目**（含 <code v-pre>{{getvar::case_*}}</code> 占位 + 教 AI 用 <code v-pre>{{setvar}}</code> 改写变量的指令）/ 苏格兰场文化 / 白教堂区背景等条目
 - **`character_update_fields`** — 写 description / personality / first_mes / scenario / 把 `world` 字段绑定到刚建的世界书
 
-每个工具调用都会**弹出审批 + 完整 diff**让你看清楚改了什么 — 一般可以放心点"批准"全过。
+每个工具调用均会**弹出审批 + 完整 diff**让你看清楚改了什么 — 一般可以放心点"批准"全过。
 
 ::: tip 状态注入条目是变量驱动 UI 的核心枢纽
 "状态注入"那条世界书条目里同时含 <code v-pre>{{getvar::case_*}}</code>（让 AI 在每次 prompt 装配时看见当前案件状态）和**教学用的 <code v-pre>{{setvar}}</code> 宏**（指引 AI 在它的 reply 里发 setvar 来推进案件）。详见[逐楼层变量](/zh-CN/features/variable-op-log)。
@@ -153,7 +153,7 @@ Studio 就把 CardApp 写出来了。它读的是 chat 变量（`case_name` / `c
    - 觉得 loop 想换 agenda 模式："换 agenda，让规划阶段决定优先查哪条线" — 它也会改
 
 3. **同意后明确告诉它"不要再来确认"**
-   - 不然每个工具调用都来一遍可能很慢
+   - 不然每个工具调用均来一遍可能很慢
    - "按你这方案走，工具调用我都批准，直接落地"
 
 4. **不会的就让它解释**

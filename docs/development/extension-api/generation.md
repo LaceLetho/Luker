@@ -455,7 +455,7 @@ These primitives back `generateTask`. Use them directly only when `generateTask`
 
 ### Connection Profile Resolution
 
-A connection profile is a bundle of **connection configuration** (API kind, model, secret, proxy, etc.) managed by Luker's Connection Manager. It's a **separate concept** from chat completion presets — profiles describe "where to connect", presets describe "how to generate". The two compose freely.
+A connection profile is a bundle of **connection configuration** (API kind, model, secret, proxy, etc.) managed by Luker's Connection Manager. It's a **separate concept** from chat completion presets — profiles describe "where to connect", presets describe "how to generate". They compose freely.
 
 When a plugin needs to let the user pick a connection profile (e.g., a "which API config to use" dropdown), use `context.connectionProfiles.list()` to populate the UI:
 
@@ -616,7 +616,7 @@ Live handle to the in-progress streaming generation. `null` when no stream is ac
 
 ## Service Classes
 
-Three class-as-namespace helpers expose request lifecycles without going through `Generate`. Use them when you need direct control over a chat-completion or text-completion backend (e.g., custom retry logic, custom token accounting).
+Class-as-namespace helpers expose request lifecycles without going through `Generate`. Use them when you need direct control over a chat-completion or text-completion backend (e.g., custom retry logic, custom token accounting).
 
 ### ChatCompletionService
 

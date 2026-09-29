@@ -197,9 +197,9 @@ storage:
     poolSize: 10
 ```
 
-Luker 支持四种用户数据持久化后端，由 `mode` 选择；只有匹配的子块会被读取。
+Luker 支持多种用户数据持久化后端，由 `mode` 选择；只有匹配的子块会被读取。
 
-- `fs`（默认）：每条聊天/预设/世界书等都是 `<dataRoot>/<handle>/` 下的一个文件。最适合单用户安装，也是最方便手动查看的后端。
+- `fs`（默认）：每条聊天/预设/世界书等均为 `<dataRoot>/<handle>/` 下的一个文件。最适合单用户安装，也是最方便手动查看的后端。
 - `sqlite`：每个用户一个独立的 `luker-storage.sqlite` 文件，位于 `<dataRoot>/<handle>/`。适合希望使用单文件事务存储、又不想运行独立数据库服务的安装。
 - `mysql`：所有用户共享一个 MySQL 8.0+ 数据库，以 `handle` 列区分。适合已经在跑 MySQL 的多用户部署。
 - `postgres`：所有用户共享一个 PostgreSQL 14+ 数据库，结构与 MySQL 相同，使用 PostgreSQL。

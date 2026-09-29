@@ -6,7 +6,7 @@ Spec is the orchestrator's default mode and the baseline that other modes are co
 When you toggle the orchestrator on, Spec is the default — and it ships with a working multi-stage workflow (distiller, planner, constraint, review, synthesizer…). This page is about **modifying the default workflow, building a new one, and understanding why the default is shaped the way it is**.
 :::
 
-::: warning 99% of the time, don't hand-edit
+::: warning Most of the time, don't hand-edit
 Before you hand-edit stages and nodes, take a look at the [AI Iteration Studio](/features/orchestrator/iteration-studio) — describe what you want in one sentence, the AI returns a proposal, you approve change-by-change. Hand-editing is reserved for the corner cases the Studio can't reach.
 :::
 
@@ -18,7 +18,7 @@ A few terms become useful once you start customizing:
 - **Node** — an execution unit inside a stage. **One node = one LLM call + one prompt template**.
 - **DAG** — directed acyclic graph. In plain English: "a flowchart with order, no loops."
 
-Each stage has one of two execution modes:
+Each stage has an execution mode:
 
 - **Serial** — nodes run one after another within the stage.
 - **Parallel** — nodes run concurrently with `Promise.all`.
@@ -27,7 +27,7 @@ Each node is either a **worker** (does work) or a **review** node (validates the
 
 ## Default orchestration flow
 
-Spec is a fixed pipeline. The default ships with five stages and seven workers — `distiller` reads the scene, then `lorebook_reader` + `anti_data_guard` lock in constraints in parallel, then `planner` + `recall_relevance` plan the next beat in parallel, then `critic` reviews (and can send the previous stage back for another pass), and finally `synthesizer` writes the capsule.
+Spec is a fixed pipeline. The default ships with a set of stages and workers — `distiller` reads the scene, then `lorebook_reader` + `anti_data_guard` lock in constraints in parallel, then `planner` + `recall_relevance` plan the next beat in parallel, then `critic` reviews (and can send the previous stage back for another pass), and finally `synthesizer` produces the capsule.
 
 ```d2
 direction: right
@@ -129,7 +129,7 @@ User prompt templates support these placeholders:
 
 ### Review nodes
 
-A review node checks the previous worker stage's outputs and uses two dedicated tool calls:
+A review node checks the previous worker stage's outputs and uses dedicated tool calls:
 
 | Tool | Purpose |
 |---|---|
@@ -159,7 +159,7 @@ Constraints:
 
 ## Watching a Spec run
 
-The [Run Panel](/features/orchestrator/#step-4) shows every Spec run live. Each stage is a card you can expand to see the worker's reasoning, the streamed output, and any tool calls. Spec-specific things to look for:
+The [Run Panel](/features/orchestrator/#step-4) shows Spec runs live. Stages are cards you can expand to see the worker's reasoning, the streamed output, and any tool calls. Spec-specific things to look for:
 
 - **Node execution count** — how many times any worker ran across the whole DAG.
 - **REVIEW rerun count** — reruns driven by review nodes (default capped at 2; bumpable to 0 to disable or up to 20 in the configuration reference). If a stage triggers a rerun, you'll see the same worker render twice in the panel.
@@ -188,7 +188,7 @@ Each node can use a different API and Chat Completion preset, so you can route d
 ## Related
 
 - [Orchestrator overview](/features/orchestrator/) — common configuration / triggers / character card binding
-- [AI Iteration Studio](/features/orchestrator/iteration-studio) — let AI customize Spec for you (recommended for 99% of cases)
+- [AI Iteration Studio](/features/orchestrator/iteration-studio) — let AI customize Spec for you (recommended)
 - [Single Agent mode](/features/orchestrator/single) — degenerate Spec, single node
 - [Agenda mode](/features/orchestrator/agenda) — Planner-driven dynamic dispatch
 - [Loop mode](/features/orchestrator/loop) — single-agent tool loop

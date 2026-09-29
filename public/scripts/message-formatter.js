@@ -112,7 +112,7 @@ export { instance as MessageFormatter };
  * DOM.
  *
  * Extensions should obtain the singleton via `getContext().messageFormatter`
- * and call {@link MessageFormatter#addHook} once during their init phase. // banned-words-allow
+ * and call {@link MessageFormatter#addHook} once during their init phase.
  *
  * @example
  * // In your extension's init function:
@@ -170,7 +170,7 @@ class MessageFormatter {
     /**
      * Registers a hook function to run at a specific pipeline stage.
      *
-     * Should be called once during the extension's init/setup phase. // banned-words-allow
+     * Should be called once during the extension's init/setup phase.
      * Hooks are applied in ascending `order` within each stage.
      *
      * @param {MessageFormattingHook} fn - The hook function.

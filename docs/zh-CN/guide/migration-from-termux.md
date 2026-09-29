@@ -2,7 +2,7 @@
 
 如果你之前在 Termux 里跑原版 SillyTavern，想换用 Luker 的 Android APK，这篇指南说明如何把原有数据搬到 APK 中。Luker 与 SillyTavern 数据格式完全兼容，APK 在首次启动时会弹出导入向导，正常情况下不需要碰 `Android/data` 私有目录。
 
-迁移完成后，你的角色卡、聊天记录、世界书、预设、用户人设、扩展设置都会照常加载。
+迁移完成后，你的角色卡、聊天记录、世界书、预设、用户人设、扩展设置均会照常加载。
 
 ::: tip 适用场景
 本指南面向「Termux 上的 SillyTavern → Luker APK」。PC / Linux / Docker 上的 SillyTavern 迁到 Luker 服务端、或者 Termux 之间互迁，请参考 [从 SillyTavern 迁移](/zh-CN/guide/migration)。
@@ -54,14 +54,14 @@ cp ~/SillyTavern/config.yaml ~/storage/shared/Download/sillytavern-config.yaml
 ```
 
 ::: tip ZIP 内部前缀宽容
-Luker 的导入逻辑会自动识别 ZIP 里 `characters/`、`chats/`、`worlds/` 这类子目录，不管它前面套着 `data/default-user/...`、`default-user/...`、还是直接 `characters/...`，都能正确落到对应位置。
+Luker 的导入逻辑会自动识别 ZIP 里 `characters/`、`chats/`、`worlds/` 这类子目录，不管它前面套着 `data/default-user/...`、`default-user/...`、还是直接 `characters/...`，均能正确落到对应位置。
 :::
 
 ### 2. 安装 Luker APK 并触发首次启动向导
 
 从 [GitHub Releases](https://github.com/funnycups/Luker/releases/latest) 下载安装最新 APK。
 
-**首次打开** Luker 会弹出标题为 **「欢迎来到 Luker！」** 的引导窗口。窗口顶部可以选界面语言（Language，默认英文，建议先切到「简体中文」，下面的按钮就会变中文），中间是一块 **「从 SillyTavern 迁移」**，列出三个并排按钮：
+**首次打开** Luker 会弹出标题为 **「欢迎来到 Luker！」** 的引导窗口。窗口顶部可以选界面语言（Language，默认英文，建议先切到「简体中文」，下面的按钮就会变中文），中间是一块 **「从 SillyTavern 迁移」**，列出并排按钮：
 
 | 按钮 | 用途 | 选什么文件 |
 | --- | --- | --- |
@@ -69,11 +69,11 @@ Luker 的导入逻辑会自动识别 ZIP 里 `characters/`、`chats/`、`worlds/
 | **「导入 config.yaml」** | 把原 SillyTavern 的服务端配置带过来 | `sillytavern-config.yaml`（可选） |
 | **「导入全局扩展 ZIP」** | 全局第三方扩展 | `sillytavern-extensions.zip`（可选） |
 
-按需点对应按钮、在系统文件选择器里挑文件，等每个导入提示完成即可。三个按钮顺序无所谓，互相独立。
+按需点对应按钮、在系统文件选择器里挑文件，等每个导入提示完成即可。按钮顺序无所谓，互相独立。
 
 ### 3. 完成引导后进入 Luker
 
-引导窗口要求填一个用户名（用作默认人设名），完成后 Luker 会进入主界面。这时角色卡列表、聊天记录、世界书、预设、API 密钥都应已经在位。
+引导窗口要求填一个用户名（用作默认人设名），完成后 Luker 会进入主界面。这时角色卡列表、聊天记录、世界书、预设、API 密钥均应已经在位。
 
 ## 错过了首次启动向导怎么办
 
@@ -81,14 +81,14 @@ Luker 的导入逻辑会自动识别 ZIP 里 `characters/`、`chats/`、`worlds/
 
 1. 打开「用户设置」→ 点「账户」
 2. 在用户卡片上找 **「备份与恢复」** 按钮
-3. 在面板里点 **「全选」**，把所有数据类别都包含进来（也可以只勾你想恢复的类别）
+3. 在面板里点 **「全选」**，把所有数据类别均包含进来（也可以只勾你想恢复的类别）
 4. 点 **「选择 ZIP」**，选中迁移 ZIP 文件
 5. 选恢复模式 —— **「增量更新」**（按文件路径覆盖，不删别的）或 **「覆盖更新」**（先清掉所选类别再恢复）
 6. 点 **「恢复备份」**
 
 「备份与恢复」面板里也包含同样的「局域网迁移」、「下载备份 ZIP」等功能，详见下文。
 
-## 局域网迁移（双方都已是 Luker 时）
+## 局域网迁移（双方均已是 Luker 时）
 
 如果你的源端已经是 Luker（另一台 Luker APK、或者 Termux 里跑的服务端 Luker），目标端也是 Luker APK，可以走更轻松的局域网迁移，完全不用打 ZIP：
 
@@ -157,7 +157,7 @@ Luker APK 自己在 `luker-data/` 下维护一个 `_runtime-persist/` 目录，�
 
 ### 5. 重启 Luker，验证数据
 
-重新打开 Luker APK。等待加载完成后角色卡列表、聊天记录、世界书、预设、API 连接都应自动恢复。
+重新打开 Luker APK。等待加载完成后角色卡列表、聊天记录、世界书、预设、API 连接均应自动恢复。
 
 ### 文件管理器无法访问 Android/data？
 
@@ -209,7 +209,7 @@ ZIP 内部完全找不到 `characters/`、`chats/`、`worlds/` 这类子目录�
 
 **第三方扩展未加载**
 
-确认扩展放在 `luker-data/extensions/third-party/<extension-name>/` 这一层。每个扩展都是一个目录，里面包含 `manifest.json`。
+确认扩展放在 `luker-data/extensions/third-party/<extension-name>/` 这一层。每个扩展均是一个目录，里面包含 `manifest.json`。
 
 ## 与 SillyTavern 双向兼容
 

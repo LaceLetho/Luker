@@ -53,7 +53,7 @@ The right panel combines three sections:
 
 ## Supported Operations
 
-The AI in Studio has a richer toolset than the popup. Tools fall into seven groups:
+The AI in Studio has a richer toolset than the popup. Tools fall into the following groups:
 
 **CardApp file operations:**
 - List all files

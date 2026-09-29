@@ -29,7 +29,7 @@
 
 ## API
 
-三层接口暴露同一套表面：
+各层接口暴露同一套表面：
 
 ```js
 // Layer 1 — ESM
@@ -48,7 +48,7 @@ SillyTavern.getContext().edits.showConflictResolution(...);
 
 `showConflictResolution` 同时也从 `/scripts/lib/edits/conflict-ui.js`
 re-export 出来以保持向后兼容，但新代码应从 `index.js` 导入（或走
-`lukerContext` / `getContext()` 这两层），以便与 API 的其余部分保持一致。
+`lukerContext` / `getContext()`），以便与 API 的其余部分保持一致。
 
 ### `applyEdits(edits, live)`
 

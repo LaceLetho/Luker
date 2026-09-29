@@ -4,12 +4,12 @@ Preset Decoupling separates "generation parameters" from "connection configurati
 
 ## Problem Background
 
-In SillyTavern, Chat Completion presets (i.e., presets for OpenAI / Claude and other APIs) contain two fundamentally different types of configuration:
+In SillyTavern, Chat Completion presets (i.e., presets for OpenAI / Claude and other APIs) contain fundamentally different types of configuration:
 
 - **Generation parameters** — Prompt templates (System Prompt, Jailbreak, etc.), sampling parameters (Temperature, Top-P, etc.), context length, etc.
 - **Connection fields** — API address, API Key, model name, Chat Completion Source, etc.
 
-These two types of configuration are bundled in the same preset object. When users switch presets, connection fields change along with them — meaning switching a prompt template might change your API address from Claude to OpenAI, or overwrite your carefully configured custom API endpoint.
+These types of configuration are bundled in the same preset object. When users switch presets, connection fields change along with them — meaning switching a prompt template might change your API address from Claude to OpenAI, or overwrite your carefully configured custom API endpoint.
 
 This coupling causes significant frustration in practice:
 
@@ -73,7 +73,7 @@ Connection fields are only applied when explicitly switching connection configur
 
 ## Affected Modules
 
-Preset decoupling involves coordination across three core modules:
+Preset decoupling involves coordination across core modules:
 
 ### Preset Loading
 
@@ -97,7 +97,7 @@ Preset decoupling involves coordination across three core modules:
 
 Preset decoupling is a prerequisite for [Card-Bound Presets](/improvements/card-bound-presets). Precisely because connection fields are isolated, Character Cards can safely carry recommended presets — when loading a Character Card preset, connection fields are automatically skipped, ensuring the user's API connection is not overwritten.
 
-Without preset decoupling, card-bound presets would be impossible: every time a Character Card is opened, it could replace the user's API address and keys, which is clearly unacceptable.
+Without preset decoupling, card-bound presets would be impossible: opening a Character Card could replace the user's API address and keys, which is clearly unacceptable.
 
 ::: info Preset File Compatibility
 Preset decoupling does not change the storage format of preset files. Connection fields are still saved in the preset JSON; they are simply selectively skipped during loading. This means existing preset files require no migration and can be fully loaded when needed (e.g., through the Connection Manager).

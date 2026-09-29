@@ -172,7 +172,7 @@ writeExtensionFieldBulk(
 ): Promise<{ updated: string[], skipped: string[], failed: string[] }>
 ```
 
-跨多个角色的单次批量写入，每张卡都套用与 `writeExtensionField` 相同的替换语义。`avatars: null` 或 `[]` 表示作用于所有角色。当 `value` 是 `unset` 哨兵且未提供 `filterPath` 时，自动将 `filterPath` 默认设为 `data.extensions.<key>`，从而跳过没有该字段的卡片。
+跨多个角色的单次批量写入，每张卡均套用与 `writeExtensionField` 相同的替换语义。`avatars: null` 或 `[]` 表示作用于所有角色。当 `value` 是 `unset` 哨兵且未提供 `filterPath` 时，自动将 `filterPath` 默认设为 `data.extensions.<key>`，从而跳过没有该字段的卡片。
 
 ### createCharacterData
 
@@ -234,7 +234,7 @@ HTTP 失败时抛错。扩展数据**不会**走这条路径——它有自己�
 persistCharacterDataDebounced(charId: number | string): void
 ```
 
-在标准 save-edit 超时上调度一次防抖的 `persistCharacterData(charId)` 调用（按 character 各自调度 — 同时写两张不同的卡不会被合并成单次错误目标的保存）。窗口内的后续调用会被合并。
+在标准 save-edit 超时上调度一次防抖的 `persistCharacterData(charId)` 调用（按 character 各自调度 — 同时写不同的卡不会被合并成单次错误目标的保存）。窗口内的后续调用会被合并。
 
 ### `character_fields_updated` event
 
@@ -340,7 +340,7 @@ const state = await ctx.getCharacterState(character.avatar, 'my-plugin');
 
 ### 读取
 
-任意路径都能读——Proxy 会回退到有数据的那一个：
+任意路径均能读——Proxy 会回退到有数据的那一个：
 
 ```js
 const character = ctx.characters[ctx.characterId];
@@ -396,10 +396,10 @@ character.fav === true;             // true——自动镜像
 
 ### writeExtensionField 绕过 Proxy
 
-`writeExtensionField` 直接写底层 `characters` 的活引用，因此即使目标是旧版字段也不会触发弃用 toast。任何持久化的扩展数据都应优先用它。
+`writeExtensionField` 直接写底层 `characters` 的活引用，因此即使目标是旧版字段也不会触发弃用 toast。任何持久化的扩展数据均应优先用它。
 
 ### 实战要点
 
-- 读取任何字段，根级或嵌套——都没问题。
+- 读取任何字段，根级或嵌套——均没问题。
 - 写**表单层**字段——用 `updateCharacterData`（或者，当你直接 mutate `data.*` 时，紧跟一个 `persistCharacterData`）。
 - 写**扩展数据**——用 `writeExtensionField` / `writeExtensionFieldBulk`。替换语义：调用方完整控制 `data.extensions.<key>` 的值；兄弟子键不会被保留。

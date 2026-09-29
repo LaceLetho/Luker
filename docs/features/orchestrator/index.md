@@ -2,12 +2,12 @@
 
 A carefully prepared scene — a tense standoff, a delicate political negotiation, a slow-burn romance — can still be spoiled by the reply: it skips your last beat, forgets a rule you established two scenes ago, breaks character to summarize, or rushes to a resolution you did not want. This is not because the model is weak; it is because a single pass can only focus on one thing at a time, while you are asking it to handle several at once: stay in character, recall context, respect world rules, plan the next beat, *and* write good prose.
 
-The Orchestrator solves this by dispatching a small team before the main reply. One agent extracts the important state from the recent chat. Another determines which world rules currently apply. A third drafts a plan for what the turn should accomplish. A fourth reviews the team's work. A final agent packages the team's findings into a single short briefing. By the time the main model writes its reply, it has received that briefing (and only that briefing), so its budget can go to the prose rather than to bookkeeping.
+The Orchestrator solves this by running a team of agents before the main reply: extracting the important state from the recent chat, determining which world rules currently apply, planning what the turn should accomplish, reviewing the plan, and packaging the result into a short briefing. By the time the main model writes its reply, it has received that briefing (and only that briefing), so its budget can go to the prose rather than to bookkeeping.
 
 **The orchestrator ships with a working default Spec workflow, so no design work is required to begin. Enable it and it runs.** When a different shape is needed later, every execution mode has its own dedicated editor.
 
 ::: info When does it run?
-The Orchestrator triggers on five generation types: `normal`, `continue`, `regenerate`, `swipe`, and `impersonate`. It runs **after** World Info parsing and **before** the main reply. The Run Panel is kept in memory only — it's cleared when you switch chats.
+The Orchestrator triggers on the `normal`, `continue`, `regenerate`, `swipe`, and `impersonate` generation types. It runs **after** World Info parsing and **before** the main reply. The Run Panel is kept in memory only — it's cleared when you switch chats.
 :::
 
 ## 5-Minute Walkthrough (using the default workflow)
@@ -17,7 +17,7 @@ No mode selection or workflow authoring is required first — the default Spec i
 ### Step 0 — Prerequisites {#step-0}
 
 - Your main chat already replies normally with a Chat Completion API.
-- The current chat has at least 3 turns of dialogue (so there's something for the workflow to plan against).
+- The current chat has several turns of dialogue (so there's something for the workflow to plan against).
 
 ### Step 1 — Enable Orchestrator {#step-1}
 
@@ -30,16 +30,16 @@ Open the Extensions drawer (top bar) and find the **Multi-Agent Orchestration** 
 Scroll within the same panel to **LLM Node API Preset** and **AI Generation API Preset**. These tell the orchestrator agents which API and which Chat Completion preset to use.
 
 ::: tip Save money here
-The orchestrator can call the LLM 5–10 times per turn (one call per node). If the main chat uses an expensive model such as Claude Opus, point the orchestrator at a cheaper one — Haiku or Gemini Flash — to cut 70%+ of the cost. If higher quality is needed, route different nodes to different models (each node has its own API/preset override).
+The orchestrator calls the LLM once per node. If the main chat uses an expensive model such as Claude Opus, point the orchestrator at a cheaper one — Haiku or Gemini Flash — to cut the cost substantially. If higher quality is needed, route different nodes to different models (each node has its own API/preset override).
 :::
 
 ### Step 3 — Just send a message {#step-3}
 
-Send a message in the chat — no other settings are needed. Before the main model replies, the default Spec workflow runs in the background. The first run is slower than usual (5–10 agents run in sequence); subsequent runs are faster.
+Send a message in the chat — no other settings are needed. Before the main model replies, the default Spec workflow runs in the background. The first run is slower than usual (the agents run in sequence); subsequent runs are faster.
 
 ### Step 4 — See what it did for you {#step-4}
 
-As soon as a run starts, the **Run Panel** slides in beside the chat (or rises from the bottom on narrow screens). It updates in real time: each round is a collapsible card; expand one to see what the model thought, which tools it called, and what they returned.
+As soon as a run starts, the **Run Panel** slides in beside the chat (or rises from the bottom on narrow screens). It updates in real time: rounds are collapsible cards; expand one to see what the model thought, which tools it called, and what they returned.
 
 ![The Run Panel as a director run begins](/_screenshots/run-panel/01-panel-initial.png)
 
@@ -64,14 +64,14 @@ The panel is kept in memory only. Switching chats or refreshing clears it; the c
 
 This is what "the AI thinks before replying" means in practice. If the reply is poor, open the panel and locate exactly where the problem entered.
 
-The orchestrator is now active. From here, three directions depending on what is needed:
+The orchestrator is now active. From here, pick a direction depending on what is needed:
 
 - The default Spec is not sufficient and needs customization (manual or AI-assisted) → [Spec mode](/features/orchestrator/spec)
 - The flow must adapt to the situation and cannot be pre-written as a DAG → [Agenda mode](/features/orchestrator/agenda)
 - A single agent should call tools (memory, lorebook, …) until it declares completion → [Loop mode](/features/orchestrator/loop)
 
 ::: tip Whichever mode you pick, customization starts here
-**[AI Iteration Studio](/features/orchestrator/iteration-studio)** is the orchestrator's primary customization tool — describe the goal in one sentence, the AI returns a proposal, and each change is approved individually. Spec, Agenda, Loop and Director all share it, and **in 99% of cases it is preferable to manual editing**.
+**[AI Iteration Studio](/features/orchestrator/iteration-studio)** is the orchestrator's primary customization tool — describe the goal in one sentence, the AI returns a proposal, and each change is approved individually. Spec, Agenda, Loop and Director all share it, and **it is usually preferable to manual editing**.
 :::
 
 ## Pick your execution mode
@@ -82,7 +82,7 @@ The orchestrator is now active. From here, three directions depending on what is
 | **Single Agent** | A Spec with exactly one node | Low cost, high speed. No multi-agent coordination needed | Catalog injected on the single node | [Single Agent mode](/features/orchestrator/single) |
 | **Agenda** | A Planner agent dispatches other agents via tool calls | Flow needs to decide who runs based on what's happening, like an agent loop | Catalog injected on planner + each dispatched worker | [Agenda mode](/features/orchestrator/agenda) |
 | **Loop** | One agent calls tools in a single conversation until `finalize` | Balances speed and quality; exploratory research, dynamic decisions | Catalog injected on the loop agent | [Loop mode](/features/orchestrator/loop) |
-| **Director** | A main agent + sub-agent team writes the message body directly | Takeover mode for high-quality long-form RP; ships with 24 bundled skills pre-bound | Catalog injected on main agent + each sub-agent dispatch | [Director mode](/features/orchestrator/director) |
+| **Director** | A main agent + sub-agent team explores the context and drafts the message body | Takeover mode for high-quality long-form RP; ships with bundled skills pre-bound | Catalog injected on the main agent and sub-agent dispatches | [Director mode](/features/orchestrator/director) |
 
 Switch modes from the **Execution mode** dropdown in the extension drawer. Spec and Agenda can convert into each other from the editor (best-effort); Loop has a different structure, for which no analogous conversion exists.
 
@@ -91,7 +91,7 @@ After switching to any mode, the [**AI Iteration Studio**](/features/orchestrato
 :::
 
 ::: info Skills column
-All five modes use the same skills policy shape (`skills.visible` / `skills.deny` at the mode level, optional `+`-inheritance overrides per agent). For the full model, see [Orchestrator integration](/features/skills/orchestrator-integration). Director is the only mode with pre-bound default skills in its bundled profile; other modes start with `visible: ["*"]` (every installed skill is visible).
+All modes use the same skills policy shape (`skills.visible` / `skills.deny` at the mode level, optional `+`-inheritance overrides per agent). For the full model, see [Orchestrator integration](/features/skills/orchestrator-integration). Director is the only mode with pre-bound default skills in its bundled profile; other modes start with `visible: ["*"]` (every installed skill is visible).
 :::
 
 ## Common configuration
@@ -123,7 +123,7 @@ Orchestration configurations can be bound to a character card. When bound:
 - "Clear presets from this card" reverts to the global configuration.
 - You can layer personal tweaks on top of a card-bound configuration.
 
-Card presets work in all four modes.
+Card presets work in every mode.
 
 ### Import / Export
 
@@ -180,7 +180,7 @@ Mode-specific parameters (per-node, review, planner, loop tool toggles…) are d
 <details>
 <summary>For other extensions and scripts</summary>
 
-The Orchestrator dispatches a frontend event after each run, so other code can consume orchestration results without scraping the UI.
+The Orchestrator dispatches a frontend event after a run, so other code can consume orchestration results without scraping the UI.
 
 - **Event:** `luker.orchestrator.result`
 - **Channel:** `getContext().eventSource`
@@ -225,7 +225,7 @@ context.eventSource.on('luker.orchestrator.result', (evt) => {
 - [Single Agent mode](/features/orchestrator/single) — degenerate Spec, single node
 - [Agenda mode](/features/orchestrator/agenda) — Planner-driven dynamic dispatch
 - [Loop mode](/features/orchestrator/loop) — single-agent tool loop
-- [Director mode](/features/orchestrator/director) — multi-agent takeover; ships with 24 bundled skills
+- [Director mode](/features/orchestrator/director) — multi-agent takeover; ships with bundled skills
 - [Skills overview](/features/skills/) — the knowledge-pack substrate shared across all modes
 - [Notes — author-side plot threads](/features/orchestrator/notes) — agent-as-author thread tracker, scoped to the current chat
 - [Function Call Runtime](/improvements/function-call-runtime) — Agenda and Loop both rely on it

@@ -8,15 +8,15 @@
 
 ## 子面板概览
 
-Skill 管理顶部有三个 tab：
+Skill 管理顶部有 tab：
 
 - **已安装** —— 你 `data/<user>/skills/<scope>/` 下有什么。按作用域过滤（全局 / 预设 / 角色卡）或选**全部**。
-- **浏览出厂** —— `default/skills/global/` 自带的 24 个 Skill，每行显示你本地副本是匹配、有差异，还是没装。
+- **浏览出厂** —— `default/skills/global/` 自带的 Skill，每行显示你本地副本是匹配、有差异，还是没装。
 - **导入** —— 从文件、URL，或角色卡 / 预设里抽出 Skill 的入口。
 
 ![Skill 管理子面板，已安装 tab](/_screenshots/skills/manager-installed-tab.png)
 
-## Tab 1 —— 已安装
+## 已安装 tab
 
 每行显示：
 
@@ -40,9 +40,9 @@ Skill 管理顶部有三个 tab：
 
 顶栏切到**多选**模式后，每行多一个复选框。勾选至少一项后，工具栏会出现一个**把所选打包进预设……**动作 —— 见下文 [嵌入导出](#嵌入导出-到预设和角色卡)。
 
-## Tab 2 —— 浏览出厂
+## 浏览出厂 tab
 
-「浏览出厂」tab 把你本地每个出厂 Skill 的副本和 `default/skills/global/` 里的版本对比。每行显示三种状态之一：
+「浏览出厂」tab 把你本地每个出厂 Skill 的副本和 `default/skills/global/` 里的版本对比。每行显示以下状态之一：
 
 | 标记 | 含义 |
 |---|---|
@@ -52,15 +52,15 @@ Skill 管理顶部有三个 tab：
 
 ![浏览出厂，混合状态](/_screenshots/skills/manager-bundled-tab.png)
 
-tab 顶部的**全量导入出厂**按钮，是对每个「未安装」或「有差异」行点**安装**的便捷等价 —— 它会用出厂版本**覆盖**全部 24 个出厂 Skill。
+tab 顶部的**全量导入出厂**按钮，是对每个「未安装」或「有差异」行点**安装**的便捷等价 —— 它会用出厂版本**覆盖**所有出厂 Skill。
 
 ::: warning 覆盖是破坏性的
 全量导入出厂不会合并 —— 它直接覆盖。如果你本地改过 `event-summary-rules-zh`，导入出厂版本会冲掉你的修改。按钮标签会在点击前明确告诉你即将覆盖多少个同名 Skill。
 :::
 
-## Tab 3 —— 导入
+## 导入 tab
 
-四个入口：
+入口：
 
 ### 从文件导入
 
@@ -108,7 +108,7 @@ URL 导入器有意做窄 —— 它只抓一份 Markdown 文件。再复杂（�
 
 ## 嵌入导出 —— 到预设和角色卡
 
-Skill 在跟它所依赖的产物（角色卡、预设）一起分发时最有用。某张角色卡需要某条口吻规则，某个预设是为特定子代理调出来的 —— 两者都能把 Skill 内联打包。
+Skill 在跟它所依赖的产物（角色卡、预设）一起分发时最有用。某张角色卡需要某条口吻规则，某个预设是为特定子代理调出来的 —— 两者均能把 Skill 内联打包。
 
 ### 打包进预设
 
@@ -128,25 +128,25 @@ Skill 在跟它所依赖的产物（角色卡、预设）一起分发时最有�
 
 通过行内动作**迁移到……**，你随时可以把 Skill 从 `global` → `preset` → `character`（或反向）移动。迁移是一次原子文件系统重命名 —— 没有拷贝，没有中间状态。
 
-之所以安全，是因为编排器 profile 只按**名字**引用 Skill，永远不带作用域前缀。名为 `voice-rules` 的 Skill 不管当前在哪个作用域，都按后者优先（character > preset > global）解析。迁移不破坏任何引用；它只改变 Skill 何时可见。
+之所以安全，是因为编排器 profile 只按**名字**引用 Skill，永远不带作用域前缀。名为 `voice-rules` 的 Skill 不管当前在哪个作用域，均按后者优先（character > preset > global）解析。迁移不破坏任何引用；它只改变 Skill 何时可见。
 
 典型迁移：
 
 - **`global` → `character`** —— 你写了一条写作规则、用在多张卡上，后来发现某张卡需要一份专门变体。把它迁到那张卡的作用域，让更通用的版本留在 `global`。两者共存；卡片加载时按卡的版本胜出。
-- **`preset` → `global`** —— 你打包在某个预设里的 Skill 后来发现到处都有用。把它提升到全局。
+- **`preset` → `global`** —— 你打包在某个预设里的 Skill 后来发现到处均有用。把它提升到全局。
 - **`character` → `global`** —— 某个角色卡专属 Skill 最终泛化了。提升它。
 
 ## 失效引用
 
 当你改名或删除某个被编排器 profile 引用的 Skill，profile 的 `skills.visible` 列表仍然保留旧名。运行时找不到它，于是 agent 静默看不到（没有错误、没有阻断派遣）。
 
-在编排器配置编辑器里，失效引用变灰，并带 tooltip **「该 Skill 未安装」**。两次点击就能修：要么在 profile 里改名，要么重新加上这个 Skill。
+在编排器配置编辑器里，失效引用变灰，并带 tooltip **「该 Skill 未安装」**。点几下就能修：要么在 profile 里改名，要么重新加上这个 Skill。
 
 这种「软失败」纪律是有意的。它意味着：缺失的 Skill 永远不会阻断 agent 派遣；增加 / 删除 Skill 不需要同步编辑 profile。
 
 ## 相关
 
-- [Skills 概览](/zh-CN/features/skills/) —— 什么是 Skill、三种作用域
+- [Skills 概览](/zh-CN/features/skills/) —— 什么是 Skill、作用域
 - [创作 Skill](/zh-CN/features/skills/authoring) —— 写自己的
 - [编排器集成](/zh-CN/features/skills/orchestrator-integration) —— 把 Skill 挂到 profile 上
 - [Skill 扩展 API](/zh-CN/development/extension-api/skills) —— 从扩展编程式管理

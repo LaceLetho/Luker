@@ -76,7 +76,7 @@ AI 担任环境和叙事者(第三人称视角描写主角看到 / 感受到什�
 - 改写 `first_mes`（主角穿越的开场白，带 setvar 初始化变量）
 - 把 `world` 字段绑定到新建的世界书
 
-每个工具调用都会**弹出审批**让你看 diff — 一般可以放心点「批准」一并通过。
+每个工具调用均会**弹出审批**让你看 diff — 一般可以放心点「批准」一并通过。
 
 ![AI 工作过程：工具调用 + diff 审批](/images/walkthrough/isekai/step-04-first-round-work.png)
 
@@ -94,9 +94,9 @@ AI 全部完成后，Studio 中间预览区会自动重载，你能看到一张�
 
 ## 3. 不满意就追问 AI
 
-跑过一轮你可能发现配色想换一种、按钮顺序想调一下、AI 描述的氛围跟你想的不一样、某个 NPC 的设定想再丰满一点 — 这些都直接在左栏追问就行，Studio AI 会顺着上下文继续改：
+跑过一轮你可能发现配色想换一种、按钮顺序想调一下、AI 描述的氛围跟你想的不一样、某个 NPC 的设定想再丰满一点 — 这些均直接在左栏追问就行，Studio AI 会顺着上下文继续改：
 
-::: tip 都可以大大方方追问
+::: tip 均可大大方方追问
 - "底部按钮顺序换成 寄出 / 改写 / 旧册 / 新章 / 合卷"
 - "状态栏的字号能不能调大一点"
 - "NPC 那条 keyed entry 加点暗示玩家可以送什么礼物"
@@ -156,8 +156,8 @@ AI 全部完成后，Studio 中间预览区会自动重载，你能看到一张�
    - 不要回头自己改文件，也不要重写整个 prompt
 
 4. **看 diff 再批准**
-   - 每个工具调用都会弹出审批，真出问题时就能拦住
-   - 但一般信任默认 — Studio 系统提示词已经把 [Required UX](/zh-CN/features/cardapp#必备-ux)、[op-log 用法](/zh-CN/features/variable-op-log)、[世界书绑定](/zh-CN/development/card-developers#cardapp-内容存放约定)、宏 escape 这些都内置了
+   - 每个工具调用均会弹出审批，真出问题时就能拦住
+   - 但一般信任默认 — Studio 系统提示词已经把 [Required UX](/zh-CN/features/cardapp#必备-ux)、[op-log 用法](/zh-CN/features/variable-op-log)、[世界书绑定](/zh-CN/development/card-developers#cardapp-内容存放约定)、宏 escape 这些均内置了
 
 5. **不会的就让它解释**
    - "为什么这里要用 <code v-pre>\{{...}}</code> 而不是 <code v-pre>{{...}}</code>?"

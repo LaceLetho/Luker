@@ -75,7 +75,7 @@ plugins/
 
 ### CommonJS 與 ESM
 
-兩種模組格式都支援：
+兩種模組格式均支援：
 
 **CommonJS**（使用 `module.exports`）：
 

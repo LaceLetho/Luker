@@ -1,6 +1,6 @@
 # 巨集
 
-巨集（Macro）是寫成 <code v-pre>{{name}}</code> 形式的占位符，在 prompt 組裝時被替換為動態內容。它們出現在預設、世界書、角色卡、聊天訊息、斜線指令、正則替換裡——任何會被拼裝進 prompt 的文字欄位都能用巨集。請求到達 AI 時，所有的巨集都已經被替換成最終字串。
+巨集（Macro）是寫成 <code v-pre>{{name}}</code> 形式的占位符，在 prompt 組裝時被替換為動態內容。它們出現在預設、世界書、角色卡、聊天訊息、斜線指令、正則替換裡——任何會被拼裝進 prompt 的文字欄位均能用巨集。請求到達 AI 時，所有的巨集均已被替換成最終字串。
 
 ## Macros 2.0 / 實驗性巨集引擎
 
@@ -17,7 +17,7 @@
 | 巨集參數內巢狀巨集 | ✓ |
 | 範圍巨集內容保留前導空白 | ✓ |
 | 多遍展開時的穩定替換順序（從左到右、內層先於外層） | ✓ |
-| 一般 <code v-pre>{{user}}</code>、<code v-pre>{{setvar::name::value}}</code>、<code v-pre>{{time}}</code>…… | 兩種都能用 |
+| 一般 <code v-pre>{{user}}</code>、<code v-pre>{{setvar::name::value}}</code>、<code v-pre>{{time}}</code>…… | 兩種均能用 |
 
 本頁裡某個特性看起來不生效，先檢查這個開關。
 
@@ -39,7 +39,7 @@
 
 單個 `:` 作為兜底也認（<code v-pre>{{roll: 1d20}}</code>），但因為正文裡經常出現單冒號，**推薦用 `::`**。
 
-逗號列表巨集（<code v-pre>{{random}}</code>、<code v-pre>{{pick}}</code>）兩種寫法都行：
+逗號列表巨集（<code v-pre>{{random}}</code>、<code v-pre>{{pick}}</code>）兩種寫法均可：
 
 ```text
 {{random::red::green::blue}}
@@ -78,7 +78,7 @@
 
 ```text
 {{#if .verbose}}
-   這一段的縮排和首尾空白都會原樣保留。
+   這一段的縮排和首尾空白均會原樣保留。
 {{/if}}
 ```
 
@@ -94,7 +94,7 @@
 
 ### 老式標籤
 
-5 個非花括號的老式標籤，會在巨集解析前被自動重寫：
+一些非花括號的老式標籤，會在巨集解析前被自動重寫：
 
 | 老式 | 現代等價 |
 |---|---|
@@ -160,7 +160,7 @@
 
 condition 可以是：
 
-- 字面值——空字串、`false`、`off`、`0` 視為 falsy；其他都 truthy。
+- 字面值——空字串、`false`、`off`、`0` 視為 falsy；其餘均為 truthy。
 - 已註冊的巨集名（不帶花括號）——<code v-pre>{{if description}}# Description{{/if}}</code> 會先把 `description` 解析出來。
 - 巢狀巨集——<code v-pre>{{if {{getvar::showHeader}}}}...{{/if}}</code>。
 - 變數簡寫——<code v-pre>{{if .ready}}</code>、<code v-pre>{{if $debugFlag}}</code>。
@@ -179,7 +179,7 @@ condition 可以是：
 {{/each}}
 ```
 
-`collection` 接受三種形式：
+`collection` 接受以下形式：
 
 1. 內嵌 JSON 字面量——<code v-pre>{{each::["sword"，"shield"]}}</code> 或 <code v-pre>{{each::{"a":1，"b":2}}}</code>。
 2. 變數名——<code v-pre>{{each::npcs}}</code> 讀區域變數 `npcs`（找不到 fallback 到全域），並把字串當 JSON 解析。
@@ -248,7 +248,7 @@ body 裡：
 
 全域對應的有 `setglobalvar` / `addglobalvar` / `incglobalvar` / `decglobalvar` / `deleteglobalvar`。
 
-`addvar` 是重載的：兩側都是數值字串時做數值加；現有值是 JSON 陣列時 push；否則按字串拼接。
+`addvar` 是重載的：兩側均為數值字串時做數值加；現有值是 JSON 陣列時 push；否則按字串拼接。
 
 ::: tip 用 <code v-pre>{{noop}}</code> 錨住空白
 拼接、範圍巨集 body、`+= "  text"` 等場景下，前導/尾端空白經常被引擎的自動整理或參數 trim 吃掉。在要保留的空白前後插一個 <code v-pre>{{noop}}</code>（解析為空字串）就能錨住它。例如 <code v-pre>{{addvar::story::{{noop}}  這是新的一段。}}</code>。
@@ -265,7 +265,7 @@ body 裡：
 {{getvar::list.0}}            → list 的第一個元素
 ```
 
-**寫入也支援點號路徑。** <code v-pre>{{setvar}}</code>、<code v-pre>{{deletevar}}</code>、<code v-pre>{{pushvar}}</code>、<code v-pre>{{popvar}}</code> 都接受點號路徑名，因此可以在多輪敘事中維護同一個結構化變數，不必每次重寫整盤。
+**寫入也支援點號路徑。** <code v-pre>{{setvar}}</code>、<code v-pre>{{deletevar}}</code>、<code v-pre>{{pushvar}}</code>、<code v-pre>{{popvar}}</code> 均接受點號路徑名，因此可以在多輪敘事中維護同一個結構化變數，不必重寫整盤。
 
 ```text
 {{setvar::roster.alice.hp::50}}              <!-- 引入 Alice，初始 50 HP -->
@@ -281,7 +281,7 @@ body 裡：
 
 對非 JSON 值用點號路徑時，會 fallback 到字面鍵查找——名字真的就是 `a.b` 的變數也能讀到。
 
-這套和 <code v-pre>{{each}}</code> 配合很自然：一個 NPC 名冊、一份背包字典、一本任務日誌都可以塞進單一變數，每輪 prompt 組裝時再繪製到 prompt 或世界書條目裡：
+這套和 <code v-pre>{{each}}</code> 配合很自然：一個 NPC 名冊、一份背包字典、一本任務日誌均可以塞進單一變數，prompt 組裝時再繪製到 prompt 或世界書條目裡：
 
 ```text
 {{each::npcs}}
@@ -336,7 +336,7 @@ Luker 用**逐樓層變數提取**解決這個問題。一條訊息（AI 回覆�
 
 當你刪訊息、切 swipe、重新生成、編輯時，Luker 會**重播剩餘的 op log**，讓變數狀態跟可見的時間線保持一致。
 
-這就是「**逐樓層變數**」面板背後的機制——每條帶 op 的訊息按鈕欄會出現一個燒瓶圖示，點開可以查看 / 編輯 / 刪除 / 新增 op。結果就是 AI 能直接在自己回覆裡擁有和修改狀態，而這個狀態能扛住使用者慣常的所有結構性操作。
+這就是「**逐樓層變數**」面板背後的機制——帶 op 的訊息按鈕欄會出現一個燒瓶圖示，點開可以查看 / 編輯 / 刪除 / 新增 op。結果就是 AI 能直接在自己回覆裡擁有和修改狀態，而這個狀態能扛住使用者慣常的所有結構性操作。
 
 完整的特性頁面（重播語義、swipe 生命週期、op 編輯器、推薦的創作範式）見 [逐樓層變數](/zh-TW/features/variable-op-log)。
 
@@ -429,8 +429,8 @@ Luker 用**逐樓層變數提取**解決這個問題。一條訊息（AI 回覆�
 
 | 巨集 | 回傳 |
 |---|---|
-| <code v-pre>{{roll::1d20}}</code> | 用 droll 語法擲骰（`1d6`、`3d6+4`……）。只有數字 `N` 時等價 `1dN`。每次繪製都重擲。 |
-| <code v-pre>{{random::red::green::blue}}</code> | 隨機一項。每次繪製都重擲。 |
+| <code v-pre>{{roll::1d20}}</code> | 用 droll 語法擲骰（`1d6`、`3d6+4`……）。只有數字 `N` 時等價 `1dN`。每次繪製均重擲。 |
+| <code v-pre>{{random::red::green::blue}}</code> | 隨機一項。每次繪製均重擲。 |
 | <code v-pre>{{pick::red::green::blue}}</code> | 隨機一項，但**對同一 chat 同一位置穩定**。Seed = chat hash + content hash + 位置 + reroll seed。用 `/reroll-pick` 重置。 |
 
 ### 環境與 API
@@ -518,7 +518,7 @@ Luker 用**逐樓層變數提取**解決這個問題。一條訊息（AI 回覆�
 ```text
 {{#if .verbose}}
     這 4 空格縮排
-    以及首尾的換行都會原樣保留。
+    以及首尾的換行均會原樣保留。
 {{/if}}
 ```
 
@@ -537,7 +537,7 @@ Luker 用**逐樓層變數提取**解決這個問題。一條訊息（AI 回覆�
 
 這些 token 解析器能識別，但執行時沒有任何 hook 消費它們。<code v-pre>{{if !.dead}}</code> 裡的 `!` 是另一回事——那是 <code v-pre>{{if}}</code> 內部的條件取反，不是這裡的旗標。
 
-旗標之間、旗標和巨集名之間都允許空白，多個可以組合：<code v-pre>{{ #each ::list}} … {{/each}}</code>。
+旗標之間、旗標和巨集名之間均允許空白，多個可以組合：<code v-pre>{{ #each ::list}} … {{/each}}</code>。
 
 ### `|` — 管道符（普通字元）
 
@@ -584,7 +584,7 @@ STscript 裡的 `|` 是指令管道符，那是指令解析器的特性，不是
 - **逐樓層提取**（見 [逐樓層變數](#per-message-variables)）發生在**訊息儲存時**，不是 prompt 組裝時。
 - **未知巨集**保留原始 <code v-pre>{{...}}</code>（巢狀參數仍然會展開）。不拋錯也不告警。
 - **參數數量 / 類型不符**：預設 `strictArgs: true` 時記一條 runtime warning 並保留原始巨集文字；`strictArgs: false` 時記 warning 但 handler 仍然跑。
-- **結果規範化**——每個 handler 的回傳都會被規範化：`null` / `undefined` → `''`，`Date` → ISO 字串，陣列 / 物件 → `JSON.stringify(...)`，其他 → `String(...)`。這就是 <code v-pre>{{loop_value}}</code> 對一個物件會輸出 JSON 的原因。
+- **結果規範化**——每個 handler 的回傳均會被規範化：`null` / `undefined` → `''`，`Date` → ISO 字串，陣列 / 物件 → `JSON.stringify(...)`，其他 → `String(...)`。這就是 <code v-pre>{{loop_value}}</code> 對一個物件會輸出 JSON 的原因。
 - **後處理清掃**——殘留的 <code v-pre>{{trim}}</code> 標記和零散的 `else` 哨兵字元會在後處理裡被清掉。
 
 ## 自訂與外掛巨集
@@ -680,7 +680,7 @@ ctx.macros.register('greet', {
 {{/if}}{{/each}}
 ```
 
-AI 用 <code v-pre>{{setvar::quests::…}}</code> 在回覆裡維護 `quests` 結構；上面那段寫在世界書裡，每輪 prompt 時按目前狀態鋪開。
+AI 用 <code v-pre>{{setvar::quests::…}}</code> 在回覆裡維護 `quests` 結構；上面那段寫在世界書裡，prompt 組裝時按目前狀態鋪開。
 
 ### 根據 flag 切換的作者筆記
 

@@ -24,7 +24,7 @@ The publishing UI is gated by admin rights — only accounts with admin role can
 
 Open the admin panel and switch to the **Announcements** tab. Click **New announcement**.
 
-A form opens with four fields:
+A form opens with the following fields:
 
 - **Level**: one of `Info`, `Warning`, `Critical`. The level controls how aggressively the announcement reaches users (see [Levels](#levels) below).
 - **Title**: short headline (up to 200 characters). Shown in the modal header, the banner, and the inbox row.

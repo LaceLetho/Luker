@@ -1,6 +1,6 @@
 # Orchestration Presets
 
-Each orchestration mode (spec / agenda / loop / director) keeps its own **preset library** at two scopes:
+Each orchestration mode (spec / agenda / loop / director) keeps its own **preset library** at global and character-card scope:
 
 - **Global** — presets stored in extension settings, available to every chat.
 - **Character card** — presets stored on the character card itself, travelling with the card when it is exported.
@@ -32,7 +32,7 @@ Edits made in the panel write back to the **active** preset. There is no implici
 
 With no character loaded, the preset bar shows the global library for the current mode. Edits here affect every chat that doesn't run its own card preset.
 
-When a character is loaded, the dropdown splits into two groups — **Character** and **Global** — and one of them is selected. That selection is the whole decision:
+When a character is loaded, the dropdown splits into **Character** and **Global** groups, and one of them is selected. That selection is the whole decision:
 
 - **Character preset selected** — the card's preset takes effect for this character; the global active is ignored for this chat.
 - **Global preset selected** — the global active preset runs for this chat. The card's own library stays on the card untouched, so you can switch back to any of its presets from the same dropdown at any time.
@@ -47,7 +47,7 @@ Exporting a character card includes the card's preset library, so importing the 
 
 ## How presets interact with prompt and API presets
 
-An orchestration preset is one of three independent layers in a generation. The others are SillyTavern's prompt preset and the connection profile:
+An orchestration preset is an independent layer in a generation. The others are SillyTavern's prompt preset and the connection profile:
 
 | Concept | What it controls | Where it lives |
 |---|---|---|
@@ -73,9 +73,9 @@ The **Card-bound** `<optgroup>` at the top of each agent's preset picker in the 
 
 ## Committing an orchestration profile to a character embeds referenced presets on demand
 
-Committing an orchestration profile to the current character card runs a preflight check on the agent prompt-preset references and looks up which of them are not yet embedded on the card. Commit here covers two entry points — **Save To Character Override** in the orchestrator drawer and **Apply to Character** in the **AI Iteration Studio** popup — both sharing the same preflight.
+Committing an orchestration profile to the current character card runs a preflight check on the agent prompt-preset references and looks up which of them are not yet embedded on the card. Commit here covers the entry points — **Save To Character Override** in the orchestrator drawer and **Apply to Character** in the **AI Iteration Studio** popup — both sharing the same preflight.
 
-If any references are un-embedded, a summary popup opens listing them and offering three actions:
+If any references are un-embedded, a summary popup opens listing them and offering the following actions:
 
 - **Embed all** — copy each referenced preset's local body onto the card so the orchestration profile ships end-to-end runnable on export.
 - **Save names only** — persist the orchestration profile as-is, leaving the presets un-embedded. Recipients without matching local presets will fall back to the runtime default for those agents.
@@ -95,7 +95,7 @@ The only special behaviour: if you delete every preset in a library, `Default` i
 
 A few common workflows the preset bar enables:
 
-- **Two presets for one card** — a fast-and-cheap preset for casual scenes and a slower, denser preset for set-piece moments. Save both under the card scope, flip between them from the dropdown.
+- **Multiple presets for one card** — a fast-and-cheap preset for casual scenes and a slower, denser preset for set-piece moments. Save them under the card scope, flip between them from the dropdown.
 - **Promote a card preset to global** — export the card's active preset, switch the bar to global scope, import the JSON. The global library now has the same preset available to every chat.
 - **Try a preset without committing** — duplicate the active preset, edit the duplicate, and roll back by selecting the original from the dropdown if the experiment doesn't pan out.
 - **Hand off a tuned orchestration with the card** — finish iterating on the card scope, make sure the card's preset is the selected one in the dropdown, and export the card. The recipient gets the orchestration shape you tuned without any side configuration.

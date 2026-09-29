@@ -2,7 +2,7 @@
 
 一个共享的弹窗外壳，用于 **AI 驱动地迭代式编辑由适配器提供的工件**。外壳负责对话、工具分发、感知漂移的应用、历史列表和批准 / 拒绝 UI；插件通过适配器提供"编辑什么、哪些工具能提出变更、会话存储在哪"。
 
-仓库内有两份参考适配器：
+仓库内有参考适配器：
 
 - `public/scripts/extensions/orchestrator/iteration-adapter.js` —— 编辑编排器 profile（spec / agenda / loop）
 - `public/scripts/extensions/memory-graph/schema-adapter.js` —— 编辑记忆图节点类型 schema
@@ -20,7 +20,7 @@
 5. 批准的变更通过 `adapter.commit(newLive)` 提交回去。
 6. 只要这一轮发出过任何工具调用，外壳就会自动续到下一轮（程序按工具调用是否存在判定）。一旦 AI 改回纯文本、不再发工具，迭代就结束，控制权回到用户。
 
-外壳不持有工件的工作副本。`adapter.live()` 是唯一权威源，外壳每次需要当前值时都重新调用它。
+外壳不持有工件的工作副本。`adapter.live()` 是唯一权威源，外壳每次需要当前值时均重新调用它。
 
 **迭代工作台不合适的时候：** 如果你的界面需要 viewport 所有权（全屏 IDE、移动端接管），或者已经有一套成熟的独立 UI 想保留，直接用 [edits-lib](./edits-lib.md) —— 从 `/scripts/lib/edits/index.js` import `applyEdits` / `inverseEdit` / `showConflictResolution`，自己控制 UI。CardApp Studio（`extensions/character-editor-assistant/studio/`）是仓库内的参考实现。
 
@@ -85,8 +85,8 @@ await openIterationStudio(adapter, SillyTavern.getContext(), settings, document.
 
 `adapter.live()` 是唯一可信来源。
 
-- 外壳不缓存工作 profile。每次渲染和每次应用都重新调用 `live()`。
-- `adapter.commit(newLive)` 是唯一写入路径。适配器决定写到哪里（扩展设置、角色状态、IndexedDB、远程 API 都行）。
+- 外壳不缓存工作 profile。每次渲染和每次应用均重新调用 `live()`。
+- `adapter.commit(newLive)` 是唯一写入路径。适配器决定写到哪里（扩展设置、角色状态、IndexedDB、远程 API 均可）。
 - 漂移检测**在应用时逐条**通过 edits 库进行。若用户在 LLM 提案与点击批准之间从外部修改了工件，冲突会通过 `edits-lib` 标准冲突 UI 暴露出来。
 - 回滚把消息上 `appliedEdits` 数组逆序送入 `inverseEdit(edit)`，再重新提交。
 
@@ -96,7 +96,7 @@ await openIterationStudio(adapter, SillyTavern.getContext(), settings, document.
 
 `buildToolCatalog(session)` 返回适配器自己的可编辑工具加上自定义控制工具。外壳不再注入 continue / finalize 控制工具——多轮自动续轮由程序判定：这一轮发出过任意工具调用就续到下一轮，只回纯文本不调工具就停下来。如果你的适配器需要 popup 侧控制工具（比如重置状态、切模式），自行在 catalog 里声明，通过 `classifyToolCall` / `executeControlToolCall` 走和普通适配器特定控制工具一样的路径。
 
-每个 LLM 工具调用先经过 `classifyToolCall(call)`（默认：不匹配适配器声明的控制名的都是可编辑）。可编辑调用进入：
+每个 LLM 工具调用先经过 `classifyToolCall(call)`（默认：不匹配适配器声明的控制名的均为可编辑）。可编辑调用进入：
 
 ```ts
 normalizeToolCallToEdit(call, { session, live }): Edit[] | null | Promise<Edit[] | null>
@@ -110,13 +110,13 @@ normalizeToolCallToEdit(call, { session, live }): Edit[] | null | Promise<Edit[]
 2. 在 sandbox 上跑现有变更器。
 3. 发射一条粗粒度的 `{ op: 'set', path: '', oldValue: live, newValue: sandbox }` 编辑。
 
-两个参考适配器都用此模式。它足够上线，但产出 profile 级冲突（任何并发变更都会与整批冲突）。要做生产级冲突解决，应当把每个工具调用归一化成逐字段 op（`set` / `str_replace` / `list_insert` 等）。
+参考适配器均用此模式。它足够上线，但产出 profile 级冲突（任何并发变更均会与整批冲突）。要做生产级冲突解决，应当把每个工具调用归一化成逐字段 op（`set` / `str_replace` / `list_insert` 等）。
 
-适配器声明的控制工具（重置、切模式等）通过 runner 的 `isControlCall` 谓词路由到你的 `onControlCall` 处理函数，不走 normalize-to-edit 路径。外壳把它们也算成"这一轮有工具调用"——任意控制工具发射都会触发下一轮。
+适配器声明的控制工具（重置、切模式等）通过 runner 的 `isControlCall` 谓词路由到你的 `onControlCall` 处理函数，不走 normalize-to-edit 路径。外壳把它们也算成"这一轮有工具调用"——任意控制工具发射均会触发下一轮。
 
 ## Runner 设置
 
-Runner 有三项影响每次 LLM 往返的旋钮——重试次数、每分钟请求数上限、流式传输。适配器通过 `getRunnerSettings` 接入：
+Runner 有以下影响 LLM 往返的旋钮——重试次数、每分钟请求数上限、流式传输。适配器通过 `getRunnerSettings` 接入：
 
 ```ts
 getRunnerSettings(settings): RunnerSettings | null
@@ -131,7 +131,7 @@ type RunnerSettings = {
 };
 ```
 
-返回 `null` / `undefined` / `{}` 即采用全部默认值。外壳不会直接读取你的 settings 字段——只走这一个 hook。这样每个适配器可以自由暴露自己的设置 UI（CPA 两项都暴露；CardApp Studio 都不暴露），外壳不需要知道你的存储路径。底层传输（SSE / 一次性 POST）由 `generateTask` 依解析后预设的 `stream_openai` 决定，适配器不需要再暴露相应开关。
+返回 `null` / `undefined` / `{}` 即采用全部默认值。外壳不会直接读取你的 settings 字段——只走这一个 hook。这样每个适配器可以自由暴露自己的设置 UI（CPA 全部暴露；CardApp Studio 均不暴露），外壳不需要知道你的存储路径。底层传输（SSE / 一次性 POST）由 `generateTask` 依解析后预设的 `stream_openai` 决定，适配器不需要再暴露相应开关。
 
 ## 会话存储
 
@@ -173,7 +173,7 @@ deleteSession(scope, id): Promise<void>
 
 ## 预览面板
 
-`renderPreviewPane(state) => string` 为 `split` 布局返回右侧面板的 HTML。外壳每次 rerender（每次聊天 tick、busy 状态切换、AI 工具调用等）都会整体替换预览面板。适合：字段摘要、tab 占位、只读 diff 列表。如果适配器持有需要在 rerender 之间存活的控件状态（CodeMirror、图表等），那块界面应该放在迭代工作台外壳之外 —— 直接用 [edits-lib](./edits-lib.md)。
+`renderPreviewPane(state) => string` 为 `split` 布局返回右侧面板的 HTML。外壳每次 rerender（每次聊天 tick、busy 状态切换、AI 工具调用等）均会整体替换预览面板。适合：字段摘要、tab 占位、只读 diff 列表。如果适配器持有需要在 rerender 之间存活的控件状态（CodeMirror、图表等），那块界面应该放在迭代工作台外壳之外 —— 直接用 [edits-lib](./edits-lib.md)。
 
 ## 对比基准
 
@@ -184,7 +184,7 @@ listReferences(session): { id: string, label: string }[]
 loadReference(id): Promise<any>
 ```
 
-外壳在工具栏显示下拉菜单，用户选择时调 `loadReference(id)`，结果通过 `state.reference` 传给渲染钩子。两个都省略则整个选择器隐藏。
+外壳在工具栏显示下拉菜单，用户选择时调 `loadReference(id)`，结果通过 `state.reference` 传给渲染钩子。两个均省略则整个选择器隐藏。
 
 ## 自定义 op
 
@@ -214,7 +214,7 @@ registerCustomOps: (registry) => {
 clearObsoleteSessions?(scope): Promise<void>
 ```
 
-一个一次性钩子，外壳在升级后首次打开时按适配器调用一次。用它清掉旧的 v1 存储 key（外壳在 localStorage 中记录按适配器的清理标记，因此只跑一次）。两个参考适配器都实现了它，用来丢掉 v1 历史桶：
+一个一次性钩子，外壳在升级后首次打开时按适配器调用一次。用它清掉旧的 v1 存储 key（外壳在 localStorage 中记录按适配器的清理标记，因此只跑一次）。参考适配器均实现了它，用来丢掉 v1 历史桶：
 
 ```js
 clearObsoleteSessions: async () => {
@@ -230,7 +230,7 @@ clearObsoleteSessions: async () => {
 
 ## 三层 API 暴露
 
-按 Luker API 约定，外壳每个能力都在三层暴露 —— 与 `edits-lib` 一致：
+按 Luker API 约定，外壳每个能力均在三层暴露 —— 与 `edits-lib` 一致：
 
 ```js
 // Layer 1 —— 直接 ESM import（仓库内扩展）
@@ -251,7 +251,7 @@ Layer 3 表面重新导出与 Layer 1 相同的函数；`open` 是 `openIteratio
 
 - `public/scripts/extensions/orchestrator/iteration-adapter.js` —— 用 sandbox-diff 模式包裹编排器既有的变更器。布局 `split`、按 mode 分桶的会话、运行时 world-info 解析、自定义控制工具名。
 - `public/scripts/extensions/memory-graph/schema-adapter.js` —— 直接基于 v2 契约构建的节点类型 schema 编辑器。布局 `split`、仅全局会话、预览面板里有"应用到全局" /"应用到角色"动作按钮。
-- **CEA 角色编辑器** —— `public/scripts/extensions/character-editor-assistant/character-editor-adapter.js`，布局 `split`、按角色范围 `char_<avatar>`。实时数据结构为 `{ card, lorebook: { bookName, entries: { [uid]: entry } } }`。通过 `mergeCharacterAttributes` 编辑角色卡字段，通过 `context.saveWorldInfo` 编辑世界书。注册 3 个以条目 uid 为键的自定义 op（`lorebook_entry_add / update / remove`）。
-- **CPA（补全预设助手）** —— `public/scripts/extensions/completion-preset-assistant/cpa-iteration/`（studio 通过 `openCpaIterationStudio` 自挂为 popup，独立于分层 `iterationStudio` open / defineAdapter 契约）。按预设范围 `preset_<name>`。实时目标是用户当前选中的 OpenAI 预设（通过 `context.presets.get`）；`commit()` 通过 `context.presets.save(..., { select: true })` 写回。工具集为 15 个可编辑预设操作 + 5 个只读检查工具 + 12 个 Skills 编写工具（清单 + 写入 + 逐字抽取，仅在会话模式为 `orchestrator-optimize` 时暴露，直接复用编排器侧 `skill-iter-studio-tools.js` 的注册表）。无预览面板——聊天中的每条消息编辑摘要即为差异展示。
+- **CEA 角色编辑器** —— `public/scripts/extensions/character-editor-assistant/character-editor-adapter.js`，布局 `split`、按角色范围 `char_<avatar>`。实时数据结构为 `{ card, lorebook: { bookName, entries: { [uid]: entry } } }`。通过 `mergeCharacterAttributes` 编辑角色卡字段，通过 `context.saveWorldInfo` 编辑世界书。注册以条目 uid 为键的自定义 op（`lorebook_entry_add / update / remove`）。
+- **CPA（补全预设助手）** —— `public/scripts/extensions/completion-preset-assistant/cpa-iteration/`（studio 通过 `openCpaIterationStudio` 自挂为 popup，独立于分层 `iterationStudio` open / defineAdapter 契约）。按预设范围 `preset_<name>`。实时目标是用户当前选中的 OpenAI 预设（通过 `context.presets.get`）；`commit()` 通过 `context.presets.save(..., { select: true })` 写回。工具集涵盖可编辑预设操作、只读检查工具与 Skills 编写工具（清单 + 写入 + 逐字抽取，仅在会话模式为 `orchestrator-optimize` 时暴露，直接复用编排器侧 `skill-iter-studio-tools.js` 的注册表）。无预览面板——聊天中的每条消息编辑摘要即为差异展示。
 
 适配器契约 JSDoc 位于 `public/scripts/iteration-studio/adapter.js` —— 该文件是必需 vs 可选字段与精确签名的规范来源。

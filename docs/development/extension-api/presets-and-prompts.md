@@ -370,7 +370,7 @@ This is the same data that `buildPresetAwarePromptMessages` consumes internally.
 getActivePromptLayout(options?: object): PromptLayoutEntry[]
 ```
 
-Convenience accessor returning only the merged prompt layout. Each entry has `id`, `enabled`, `order`, `role`, `phase`, `source`, `content`, `path`, `promptIdentifier`, `tags`. <!-- banned-words-allow -->
+Convenience accessor returning only the merged prompt layout. Each entry has `id`, `enabled`, `order`, `role`, `phase`, `source`, `content`, `path`, `promptIdentifier`, `tags`.
 
 ### formatPromptPresetEnvelope
 

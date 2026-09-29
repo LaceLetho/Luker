@@ -1,11 +1,11 @@
 # The Character Card Replace Flow
 
-When a user replaces a character card (**Replace / Update** in the character management menu), the incoming file overwrites the previous card PNG. Chats, assets, and group memberships survive, but everything the old card carried inside `data.extensions.*` — and the card's world-book state — needs reconciliation. Core owns that reconciliation through two registries that run in order, before the `CHARACTER_REPLACED` event is emitted:
+When a user replaces a character card (**Replace / Update** in the character management menu), the incoming file overwrites the previous card PNG. Chats, assets, and group memberships survive, but everything the old card carried inside `data.extensions.*` — and the card's world-book state — needs reconciliation. Core owns that reconciliation through registries that run in order, before the `CHARACTER_REPLACED` event is emitted:
 
 1. **Card binding preservation** — a slot registry that silently writes back local bindings the new card lacks, and asks about conflicting ones.
 2. **Post-replace world book actions** — an action registry that decides what happens to the world book: import the new card's embedded book, keep the previously bound book, or run a plugin-registered action.
 
-Both registries share the same shape: owners register descriptors from their extension init, core never hard-codes plugin semantics, and a disabled plugin simply never registers — its protection/action disappears, while core's own keep working.
+The registries share the same shape: owners register descriptors from their extension init, core never hard-codes plugin semantics, and a disabled plugin simply never registers — its protection/action disappears, while core's own keep working.
 
 ## Flow order
 
@@ -17,7 +17,7 @@ Replace / Update (file or URL)
   → CHARACTER_REPLACED emitted
 ```
 
-Both steps run inside `emitCharacterReplacedEvent` before any listener is notified, so writes land before plugins react to the event. The world book step is awaited: an action that opens a long-lived UI (such as the Character Editor Assistant's merge studio) delays the event until that UI closes, and listeners then observe a settled state — either the new book bound, or the previous book restored by rollback.
+These steps run inside `emitCharacterReplacedEvent` before any listener is notified, so writes land before plugins react to the event. The world book step is awaited: an action that opens a long-lived UI (such as the Character Editor Assistant's merge studio) delays the event until that UI closes, and listeners then observe a settled state — either the new book bound, or the previous book restored by rollback.
 
 ## Part 1 — Card binding preservation
 
@@ -75,7 +75,7 @@ When a bound preset was preserved, the engine also re-runs the character-bound p
 
 ## Part 2 — Post-replace world book actions
 
-After binding preservation, core runs a decision step: if at least one action is available for this replacement, a popup asks the user what should happen to the card's world book. Core registers two actions — **Import new book** (save the new card's embedded world book as a standalone file and bind it) and **Keep old book** (re-bind the previously bound primary book). Extensions can register additional actions.
+After binding preservation, core runs a decision step: if at least one action is available for this replacement, a popup asks the user what should happen to the card's world book. Core registers these actions — **Import new book** (save the new card's embedded world book as a standalone file and bind it) and **Keep old book** (re-bind the previously bound primary book). Extensions can register additional actions.
 
 ### Registering an action
 

@@ -20,7 +20,12 @@
 
 ---
 
-Luker ist eine Rollenspiel-Chatplattform der nächsten Generation. Chatte mit Charakteren, die sich an das Geschehene erinnern, deren Szenen vor jeder Antwort von einem Ensemble unter der Regie eines Directors geplant werden, deren Karten du im Dialog mit einer KI bearbeitest, und die mitten im Gespräch im Web suchen können.
+Luker ist eine Rollenspiel-Chatplattform der nächsten Generation.
+
+- Frühe Handlungsdetails werden zitiert, wenn eine Antwort sie braucht
+- Mehrere Agenten erkunden den Kontext und verfassen den Nachrichtentext
+- Charakterkarten im Dialog mit der KI bearbeiten, Änderungen per Diff einzeln freigegeben
+- Fan-Material und Original-Lore im Web nachschlagen, mitten im Rollenspiel
 
 ## Was ist Luker
 
@@ -32,15 +37,15 @@ Luker baut auf [SillyTavern](https://github.com/SillyTavern/SillyTavern) auf und
 
 ### Memory Graph — deine Charaktere erinnern sich wirklich
 
-Ein Langzeitgedächtnis auf Basis eines Wissensgraphen. Jede Szene wird zu typisierten Knoten verdichtet (Charaktere, Orte, Ereignisse, Handlungsstränge), die untereinander verknüpft sind. Vor jeder Antwort läuft ein Recall-Durchgang über den Graphen und injiziert die relevantesten Erinnerungen — wenn du dich dreißig Züge später nach „dem dritten Weg zum verfallenen Schrein“ erkundigst, bringt der Charakter genau dieses frühere Gespräch zur Sprache.
+Ein Langzeitgedächtnis auf Basis eines Wissensgraphen. Chat-Inhalte werden zu typisierten Knoten verdichtet (Charaktere, Orte, Ereignisse, Handlungsstränge), die untereinander verknüpft sind. Vor einer Antwort läuft ein Recall-Durchgang über den Graphen und injiziert die relevantesten Erinnerungen — wenn die Hauptfigur an einen früher besuchten Ort zurückkehrt, wird eine früh eingeführte Figur, die lange nicht aufgetreten ist, wieder hervorgeholt.
 
 ![Memory-Graph-Demo](https://raw.githubusercontent.com/funnycups/Luker/release/docs/public/images/branding/memory-graph-demo.gif)
 
 → [Memory-Graph-Dokumentation](https://luker.cups.moe/features/memory-graph)
 
-### Multi-Agent-Orchestrator — ein Ensemble unter der Regie eines Directors plant jede Antwort
+### Multi-Agent-Orchestrator — mehrere Agenten erkunden den Kontext und verfassen den Nachrichtentext
 
-Bevor das schreibende LLM überhaupt zum Zug kommt, läuft zuerst ein frei konfigurierbares Ensemble aus Agenten: Ein Destillierer komprimiert den jüngsten Kontext, ein Planer skizziert die nächste Szene, ein Kritiker prüft. Die endgültige Antwort kommt mit einem Runtime-Trace, den du einsehen kannst. Wähle einen von fünf Ausführungsmodi — Spec (eine feste Pipeline), Single Agent, Agenda (der Ablauf verteilt Agenten im laufenden Betrieb), Loop (ein einzelner Agent arbeitet Tool-Aufrufe iterativ ab, bis die Aufgabe abgeschlossen ist) oder Director (ein Haupt-Agent plus ein Sub-Agent-Team schreiben den Nachrichtentext direkt).
+Ein frei konfigurierbares Agententeam läuft zuerst und übergibt an das schreibende LLM: distiller komprimiert den jüngsten Kontext, planner skizziert die nächste Szene, critic prüft. Die endgültige Antwort kommt mit einem Runtime-Trace, den du einsehen kannst. Wähle den Ausführungsmodus — Spec (eine feste Pipeline), Single Agent, Agenda (der Ablauf verteilt Agenten im laufenden Betrieb), Loop (ein einzelner Agent arbeitet Tool-Aufrufe iterativ ab, bis die Aufgabe abgeschlossen ist) oder Director (ein Haupt-Agent und ein Sub-Agent-Team erkunden den Kontext und verfassen den Nachrichtentext).
 
 ![Orchestrator-Demo](https://raw.githubusercontent.com/funnycups/Luker/release/docs/public/images/branding/orchestrator-demo.gif)
 
@@ -48,7 +53,7 @@ Bevor das schreibende LLM überhaupt zum Zug kommt, läuft zuerst ein frei konfi
 
 ### Skills — wiederverwendbare Wissenspakete, bei Bedarf geladen
 
-Wiederverwendbare Wissenspakete, die ein Agent bei Bedarf liest: Schreibregeln, Tonfall-Konventionen, Anti-Klischee-Checklisten. Das Format ist mit Claude Skills von Anthropic kompatibel; ein für Claude Code geschriebener Skill lässt sich ohne Änderungen nach Luker übernehmen und wieder zurück. Das Standard-Director-Profil des Orchestrators bringt 24 mitgelieferte Skills mit, und Skills lassen sich zusammen mit einer Charakterkarte oder einem Preset verteilen.
+Wiederverwendbare Wissenspakete, die ein Agent bei Bedarf liest: Schreibregeln, Tonfall-Konventionen, Anti-Klischee-Checklisten. Das Format ist mit Claude Skills von Anthropic kompatibel. Das Standard-Director-Profil des Orchestrators bringt mitgelieferte Skills mit, und Skills lassen sich zusammen mit einer Charakterkarte oder einem Preset verteilen.
 
 <img alt="Skill-Manager mit installierten und mitgelieferten Skills" src="https://raw.githubusercontent.com/funnycups/Luker/release/docs/public/_screenshots/skills/manager-installed-tab.png" width="720">
 
@@ -56,7 +61,7 @@ Wiederverwendbare Wissenspakete, die ein Agent bei Bedarf liest: Schreibregeln, 
 
 ### CardApp Studio & AI Card Editor — Karten im Dialog mit einer KI bearbeiten
 
-Eine vollwertige IDE für Charakterkarten mit CodeMirror-6-Editor, KI-Chat-Panel und diff-basierter Freigabe für jedes Änderungspaket. Normale Karten bekommen den Popup-Editor; Karten mit eingebetteter **CardApp** — einer in der Karte gehosteten Mini-Anwendung — öffnen sich im vollständigen Studio mit Dateibaum, Live-Vorschau und Verlauf.
+Eine vollwertige IDE für Charakterkarten mit CodeMirror-6-Editor, KI-Chat-Panel und diff-basierter Freigabe der Änderungen, einzeln bestätigt. Normale Karten bekommen den Popup-Editor; Karten mit eingebetteter **CardApp** — einer in der Karte gehosteten Mini-Anwendung — öffnen sich im vollständigen Studio mit Dateibaum, Live-Vorschau und Verlauf.
 
 ![CardApp-Studio-Demo](https://raw.githubusercontent.com/funnycups/Luker/release/docs/public/images/branding/cardapp-studio-demo.gif)
 
@@ -64,7 +69,7 @@ Eine vollwertige IDE für Charakterkarten mit CodeMirror-6-Editor, KI-Chat-Panel
 
 ### Preset Assistant — ein Preset aus einer Beschreibung erstellen
 
-Sag dem Assistenten, was ein Chat-Completion-Preset tun soll. Er arbeitet mit dir Schritt für Schritt per Diff am Preset, bis es deinen Anforderungen entspricht — liest Parameter, bearbeitet Prompt-Einträge und vergleicht mit einem Referenz-Preset. Derselbe Workflow deckt auch Orchestrator-Presets ab.
+Sag dem Assistenten, was ein Chat-Completion-Preset tun soll. Er überarbeitet das Preset gemeinsam mit dir, Änderung für Änderung als Diff, bis es deinen Anforderungen entspricht — liest Parameter, bearbeitet Prompt-Einträge und vergleicht mit einem Referenz-Preset. Derselbe Workflow deckt auch Orchestrator-Presets ab.
 
 <img alt="Preset Assistant" src="https://raw.githubusercontent.com/funnycups/Luker/release/docs/public/images/preset-assistant/cpa-overview.png" width="720">
 
@@ -92,7 +97,7 @@ Koppel zwei Luker-Instanzen im selben Netzwerk. Chats, Karten, Weltinfos und Ein
 
 ### Chats zusammenführen & aufteilen
 
-Teile einen langen Chat an beliebiger Stelle oder führe zwei Chats zu einem zusammen; der Verzweigungsverlauf bleibt konsistent. Nützlich, wenn eine Szene ausgeufert ist und du die interessanten Teile abzweigen willst, ohne den Rest zu verlieren.
+Teile einen langen Chat an beliebiger Stelle oder führe Chats zusammen; der Verzweigungsverlauf bleibt konsistent. Nützlich, wenn eine Szene ausgeufert ist und du die interessanten Teile abzweigen willst, ohne den Rest zu verlieren.
 
 <img alt="Chats zusammenführen und aufteilen" src="https://raw.githubusercontent.com/funnycups/Luker/release/docs/public/screenshots/chat-merge-split/07-split-dialog-three-segments.png" width="720">
 
@@ -100,7 +105,7 @@ Teile einen langen Chat an beliebiger Stelle oder führe zwei Chats zu einem zus
 
 ### TTS — NPC-Dialogen die passende Stimme zuordnen
 
-Wenn TTS aktiviert ist, kann jede zitierte Zeile einer Antwort mit der Stimme des jeweiligen Sprechers abgespielt werden. Ein Hintergrund-Durchgang ermittelt, wer welche Zeile spricht — NPCs, die er entdeckt, erscheinen automatisch in der Stimmenzuordnung, und Namen, die du vorab hinzufügst, werden schon beim ersten Abspielen erkannt.
+Wenn TTS aktiviert ist, können zitierte Zeilen einer Antwort mit der Stimme des jeweiligen Sprechers abgespielt werden. Ein Hintergrund-Durchgang ermittelt die Sprecherzuordnung — NPCs, die er entdeckt, erscheinen automatisch in der Stimmenzuordnung, und Namen, die du vorab hinzufügst, werden schon beim ersten Abspielen erkannt.
 
 <img alt="Abspiel-Buttons für einzelne Zitate in einer Chat-Nachricht" src="https://raw.githubusercontent.com/funnycups/Luker/release/docs/public/screenshots/tts-npc-attribution/03-inline-buttons-zoom.png" width="678">
 

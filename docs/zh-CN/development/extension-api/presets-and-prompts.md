@@ -68,7 +68,7 @@ presets.resolve(
 
 绑定到预设的插件运行时/会话数据。预设状态与预设文件并排存放，**不会随预设一起导出**，仅供插件侧运行时使用（例如编排器的「按预设记忆 agent 覆盖」、预设助手的「上次使用的模板」）。不要把插件数据写入预设 body，应使用 `presets.state.*`。
 
-所有方法都接受 `options.target`（`PresetRef`）和 `options.collection` 做跨预设读写；两者默认指向当前选中的预设。
+所有方法均接受 `options.target`（`PresetRef`）和 `options.collection` 做跨预设读写；两者默认指向当前选中的预设。
 
 ::: warning 行为变更（2026-06-28）
 预设状态的读写 API（`get`、`getBatch`、`update`、`patch`、`delete`、`deleteAll`）在 HTTP 失败时不再抛出异常，改为返回 `{ok, ...}` envelope（与聊天状态一致）。如果你的插件原本写了 `try { await ctx.presets.state.get(...) } catch (e) { ... }`，请改用 `if (!result.ok) { ... }`。

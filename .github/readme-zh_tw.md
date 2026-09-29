@@ -20,27 +20,32 @@
 
 ---
 
-Luker 是一款下一代角色扮演聊天平台。和真正記得住劇情的角色對話，讓一整支導演帶隊的 agent 團在每次回覆前先把這場戲排好，透過和 AI 聊天來修改角色卡，讓角色能在對話中途即時聯網檢索。
+Luker 是一款下一代角色扮演聊天平台。
+
+- 早期劇情的細節，回覆時準確引用
+- 多 agent 探索上下文資訊、創作正文
+- 與 AI 對話修改角色卡，改動以 diff 逐條批准
+- 扮演中聯網查詢同人資料、原作設定
 
 ## Luker 是什麼
 
-Luker 是一個為大型語言模型角色扮演場景專門打造的平台。開箱即用，不需要裝第三方擴充，內建了：基於知識圖譜的長期記憶、自帶可重用技能庫的多 Agent 場景編排、AI 輔助的角色卡編輯工作台、聊天補全預設助手、區域網路同步，以及一個可在手機上執行完整後端的原生 Android 應用。
+Luker 是一個為大型語言模型角色扮演場景專門打造的平台。開箱即用，不需要裝第三方擴充，內建了：基於知識圖譜的長期記憶、自帶可重用技能庫的多 Agent 場景編排、AI 輔助的角色卡編輯工作台、聊天補全預設助手、區域網路同步，以及可在手機上執行完整後端的原生 Android 應用。
 
-Luker 基於 [SillyTavern](https://github.com/SillyTavern/SillyTavern) 深度重構而來，與其保持**雙向 100% 資料相容**。角色卡、世界書、預設、聊天記錄都可以在兩者之間無損搬遷，零遷移成本。
+Luker 基於 [SillyTavern](https://github.com/SillyTavern/SillyTavern) 深度重構而來，與其保持**雙向 100% 資料相容**。角色卡、世界書、預設、聊天記錄均可以在兩者之間無損搬遷，零遷移成本。
 
 ## 核心亮點
 
 ### 記憶圖 —— 讓角色真的記得住
 
-一套基於知識圖譜的長期記憶。每一場戲都會被提取成帶類型的節點（角色、地點、事件、劇情線），節點之間互相連邊。每次回覆前，召回環節會在圖上游走，把最相關的記憶注入上下文——所以三十輪之後使用者隨口問一句「通往廢棄神殿的第三條路徑呢」，角色能準確翻出之前的那次對話。
+一套基於知識圖譜的長期記憶。聊天內容會被提取成帶類型的節點（角色、地點、事件、劇情線），節點之間互相連邊。回覆前，召回環節會在圖上游走，把最相關的記憶注入上下文——主角返回先前到訪的地點時，長期沒有登場的早期角色會被回憶起來。
 
 ![記憶圖演示](https://raw.githubusercontent.com/funnycups/Luker/release/docs/public/images/branding/memory-graph-demo.gif)
 
 → [記憶圖文件](https://luker.cups.moe/zh-TW/features/memory-graph)
 
-### 多 Agent 編排 —— 一整支導演隊伍替你把每場戲排好
+### 多 Agent 編排 —— 多 agent 探索上下文資訊、創作正文
 
-在創作 LLM 開口之前，一支可自由配置的 agent 隊伍先行執行：蒸餾器壓縮最近上下文，規劃師草擬下一場戲，評審員做最後審校。最終回覆出來的同時，附帶一份可展開檢查的執行時 trace。五種執行模式任選：Spec（固定流水線）、單 Agent、Agenda（流程動態派發 agent）、Loop（單一 agent 進行迴圈迭代）、Director（主 agent 帶一支子 agent 團隊直接寫正文）。
+可自由配置的多 agent 先行執行，創作 LLM 隨後接手：distiller 壓縮最近上下文，planner 草擬接下來的劇情，critic 做最後審校。最終回覆出來的同時，附帶可展開檢查的執行時 trace。執行模式任選：Spec（固定流水線）、單 Agent、Agenda（流程動態派發 agent）、Loop（單一 agent 進行迴圈迭代）、Director（主 agent 與子 agent 團隊探索上下文資訊、創作正文）。
 
 ![多 Agent 編排演示](https://raw.githubusercontent.com/funnycups/Luker/release/docs/public/images/branding/orchestrator-demo.gif)
 
@@ -48,7 +53,7 @@ Luker 基於 [SillyTavern](https://github.com/SillyTavern/SillyTavern) 深度重
 
 ### 技能 —— 按需讀取的可重用知識包
 
-agent 按需讀取的可重用知識包：寫作規則、口吻約定、反八股清單。格式相容 Anthropic Claude Skills，為 Claude Code 撰寫的技能可原樣遷移至 Luker，也可遷移回去。編排器預設的 Director profile 自帶 24 個內建技能，技能也可以隨角色卡或預設一起分發。
+agent 按需讀取的可重用知識包：寫作規則、口吻約定、反八股清單。格式相容 Anthropic Claude Skills。編排器預設的 Director profile 自帶內建技能，技能也可以隨角色卡或預設一起分發。
 
 <img alt="技能管理器：已安裝與內建技能" src="https://raw.githubusercontent.com/funnycups/Luker/release/docs/public/_screenshots/skills/manager-installed-tab.png" width="720">
 
@@ -56,7 +61,7 @@ agent 按需讀取的可重用知識包：寫作規則、口吻約定、反八�
 
 ### CardApp Studio 與角色卡編輯助手 —— 透過和 AI 對話來編輯角色卡
 
-一整套針對角色卡的編輯環境：CodeMirror 6 程式碼編輯器、AI 聊天面板、每批改動都以 diff 形式讓你逐條批准。普通角色卡使用輕量彈窗版編輯助手；帶 **CardApp**（內嵌在角色卡裡的迷你應用）的卡片則進入功能完整的 Studio，內含檔案樹、即時預覽、歷史記錄。
+一整套針對角色卡的編輯環境：CodeMirror 6 程式碼編輯器、AI 聊天面板、改動以 diff 形式讓你逐條批准。普通角色卡使用輕量彈窗版編輯助手；帶 **CardApp**（內嵌在角色卡裡的迷你應用）的卡片則進入功能完整的 Studio，內含檔案樹、即時預覽、歷史記錄。
 
 ![CardApp Studio 演示](https://raw.githubusercontent.com/funnycups/Luker/release/docs/public/images/branding/cardapp-studio-demo.gif)
 
@@ -64,7 +69,7 @@ agent 按需讀取的可重用知識包：寫作規則、口吻約定、反八�
 
 ### 聊天補全預設助手 —— 透過描述構建預設
 
-告訴助手你想讓某個聊天補全預設做什麼，它會與你逐輪迭代，每次改動都以 diff 形式供你審閱，直至符合預期——讀取參數、編輯提示詞條目、並與參考預設對比。同一套工作流也覆蓋多 Agent 編排的預設。
+告訴助手你想讓某個聊天補全預設做什麼，它會與你迭代改進，改動以 diff 形式供你審閱，直至符合預期——讀取參數、編輯提示詞條目、並與參考預設對比。同一套工作流也覆蓋多 Agent 編排的預設。
 
 <img alt="聊天補全預設助手" src="https://raw.githubusercontent.com/funnycups/Luker/release/docs/public/images/preset-assistant/cpa-overview.png" width="720">
 
@@ -92,7 +97,7 @@ Luker 的後端**內嵌於** Android 應用執行。安裝 APK 並打開，即�
 
 ### 聊天合併與拆分
 
-任意位置拆分長聊天，或將兩段聊天合併成一條；分支歷史保持一致。適用於劇情失控、希望保留精彩片段並拆分另開分支的場景。
+任意位置拆分長聊天，或將聊天合併；分支歷史保持一致。適用於劇情失控、希望保留精彩片段並拆分另開分支的場景。
 
 <img alt="聊天合併與拆分" src="https://raw.githubusercontent.com/funnycups/Luker/release/docs/public/screenshots/chat-merge-split/07-split-dialog-three-segments.png" width="720">
 
@@ -100,9 +105,9 @@ Luker 的後端**內嵌於** Android 應用執行。安裝 APK 並打開，即�
 
 ### TTS NPC 對白歸屬
 
-開啟 TTS 之後，一則回覆裡每一句引號台詞都可以用說話者自己的聲音唸出來。後台會有一個 AI 環節判斷每句台詞是誰說的——它發現的 NPC 會自動出現在語音映射裡；你事先手動加進去的名字，從第一次播放起就能被辨識。
+開啟 TTS 之後，回覆裡的引號台詞均可以用說話者自己的聲音唸出來。後台會有一個 AI 環節判斷台詞歸屬——它發現的 NPC 會自動出現在語音映射裡；你事先手動加進去的名字，從首次播放起就能被辨識。
 
-<img alt="訊息中每句台詞旁的播放按鈕" src="https://raw.githubusercontent.com/funnycups/Luker/release/docs/public/screenshots/tts-npc-attribution/03-inline-buttons-zoom.png" width="678">
+<img alt="訊息中台詞旁的播放按鈕" src="https://raw.githubusercontent.com/funnycups/Luker/release/docs/public/screenshots/tts-npc-attribution/03-inline-buttons-zoom.png" width="678">
 
 → [TTS NPC 對白歸屬](https://luker.cups.moe/zh-TW/features/tts-npc-attribution)
 

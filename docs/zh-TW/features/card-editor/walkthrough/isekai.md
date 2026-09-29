@@ -76,7 +76,7 @@ AI 擔任環境和敘事者(第三人稱視角描寫主角看到 / 感受到什�
 - 改寫 `first_mes`（主角穿越的開場白，帶 setvar 初始化變數）
 - 把 `world` 欄位繫結到新建的世界書
 
-每個工具呼叫都會**彈出審批**讓你看 diff — 一般可以放心點「批准」一併通過。
+每個工具呼叫均會**彈出審批**讓你看 diff — 一般可以放心點「批准」一併通過。
 
 ![AI 工作過程：工具呼叫 + diff 審批](/images/walkthrough/isekai/step-04-first-round-work.png)
 
@@ -94,9 +94,9 @@ AI 全部完成後，Studio 中間預覽區會自動重新載入，你能看到�
 
 ## 3. 不滿意就追問 AI
 
-跑過一輪你可能發現配色想換一種、按鈕順序想調一下、AI 描述的氛圍跟你想的不一樣、某個 NPC 的設定想再豐滿一點 — 這些都直接在左欄追問就行，Studio AI 會順著上下文繼續改：
+跑過一輪你可能發現配色想換一種、按鈕順序想調一下、AI 描述的氛圍跟你想的不一樣、某個 NPC 的設定想再豐滿一點 — 這些均直接在左欄追問就行，Studio AI 會順著上下文繼續改：
 
-::: tip 都可以大大方方追問
+::: tip 均可大大方方追問
 - "底部按鈕順序換成 寄出 / 改寫 / 舊冊 / 新章 / 合卷"
 - "狀態列的字號能不能調大一點"
 - "NPC 那條 keyed entry 加點暗示玩家可以送什麼禮物"
@@ -156,8 +156,8 @@ AI 全部完成後，Studio 中間預覽區會自動重新載入，你能看到�
    - 不要回頭自己改檔案，也不要重寫整個 prompt
 
 4. **看 diff 再批准**
-   - 每個工具呼叫都會彈出審批，真出問題時就能攔住
-   - 但一般信任預設 — Studio 系統提示詞已經把 [Required UX](/zh-TW/features/cardapp#必備-ux)、[op-log 用法](/zh-TW/features/variable-op-log)、[世界書繫結](/zh-TW/development/card-developers#cardapp-內容存放約定)、巨集 escape 這些都內建了
+   - 每個工具呼叫均會彈出審批，真出問題時就能攔住
+   - 但一般信任預設 — Studio 系統提示詞已經把 [Required UX](/zh-TW/features/cardapp#必備-ux)、[op-log 用法](/zh-TW/features/variable-op-log)、[世界書繫結](/zh-TW/development/card-developers#cardapp-內容存放約定)、巨集 escape 這些均內建了
 
 5. **不會的就讓它解釋**
    - "為什麼這裡要用 <code v-pre>\{{...}}</code> 而不是 <code v-pre>{{...}}</code>?"

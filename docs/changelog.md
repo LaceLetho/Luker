@@ -1,23 +1,38 @@
 # Changelog
 
-This changelog covers every Luker release, from v1.0.0 to the current development version. Entries for released versions come from the GitHub release notes; the Unreleased section tracks the upcoming version.
+This changelog covers every Luker release, from v1.0.0 to the current development version.
 
 ## Unreleased
 
 ### Multi-Agent Orchestrator
 
-- **Added two built-in director presets** with per-mode preset help and one-click import.
+- **Added two built-in director presets**: Default (Memory Graph + Search) and Default (No Memory Graph, No Search).
+- Agent preset pickers can import the bundled agent presets in one click.
 - **Skills can now be bound to orchestration presets**, and the binding survives renames, deletions, and exports.
-- **Director, loop, and agenda agents can edit their own system prompts** with find-and-replace tools.
+- Skill tools are available only to orchestration agents, not the main chat.
 - **Custom tools can now be authored and test-run inside the iteration studio.**
+- The orchestration preset dropdown can directly select global or per-character agent presets.
 - Each preset can define a world info filter that applies wherever agents read the book.
+- Loop, spec, and agenda agents can force-activate dormant lorebook entries.
+- Runtime agents gain world book browsing tools to list visible books and inspect entry indexes and contents.
 - Spec and agenda agents now read Open Notes.
 - User regex now applies to what agents read and what they output.
 - Raised agent round limits and removed hidden upper bounds from configurable settings.
 - Reworked the orchestrator settings drawer into Agents, Tools & Skills, and General tabs, and all changes save automatically.
-- Improved the run panel with per-agent timers and auto-collapsing finished rounds in simulation review.
+- The run panel shows per-agent timers.
+- Finished rounds collapse automatically when a run ends.
+- Improved the simulation review experience.
+- Concurrent sub-agent dispatches wait for the first streamed chunk to reuse the upstream prompt cache.
+- Spec preset cards show which nodes bind them.
+- Draft editing is now a per-agent tool permission, enabled on the main agent by default.
+- Switching the director preset no longer overwrites the user's chat completion preset files.
+- Deleting a chat completion preset clears references to it from orchestration presets.
+- Custom tools embedded in an imported character card are reviewed before they are registered.
+- Editing spec and agenda presets now keeps tools, skills, and default-tool state.
+- The Open Notes panel refreshes as agents write and reports failed writes.
+- The running indicator no longer covers the toolbar.
 - Stopping a run now halts immediately instead of waiting for the current round to end.
-- Fixed stale preset selections after creating or renaming presets, and global iteration saves no longer resurrect deleted agents.
+- Fixed stale preset selections after creating or renaming presets; sub-agents deleted from a character card are no longer brought back by the global config.
 
 ### Memory Graph
 
@@ -26,16 +41,23 @@ This changelog covers every Luker release, from v1.0.0 to the current developmen
 - Extraction gains a crawl mode: it first explores the graph structure and starts from a rough outline, saving prompt tokens.
 - Simplified recall to LLM and RAG modes, with optional rerank and query rewrite.
 - Recall is now balanced across node types, so one dominant type no longer crowds out the rest.
-- Always-injected nodes that age out of their window fall back to normal recall instead of being dropped.
+- **Added a recency horizon for always-injected nodes**; nodes beyond it fall back to normal recall.
+- Setting the recall query window to zero now uses only the last user message.
+- Removed the length cap on RAG recall queries.
 - Event extraction now separates what a character lived through from a mere mention, and merges symmetric relations into a single edge.
-- Vector search now returns concrete leaf memories only.
+- Event extraction scales detail with hierarchy depth and classifies psychological state and NPC baselines.
+- Graph editor saves and compressions anchor at the floor they actually cover; a failed batch edit no longer applies the rest of its batch.
+- Vector search returns concrete events only, without rollup summaries.
 - User regex now applies to the text extraction reads.
 - Reorganized the settings drawer into Recall, Extract, Graph, and Advanced tabs, with field help throughout.
-- Fixed empty replays wiping the graph, stale vectors leaking after a chat reset, and read failures going unreported.
+- Fixed empty replays wiping the graph, stale vectors leaking after a chat reset, and read failures going unreported; deleted event summaries no longer leak into the world info scan.
+- Swipe regenerations reuse the recall snapshot from the same turn.
+- Swiping the opening greeting no longer invalidates the memory graph.
 
 ### Character Card Editor (CardApp Studio)
 
 - Fixed a batch of card-editing reliability issues: applied edits no longer roll back on their own, the rollback button works again, and duplicate diff cards are gone.
+- Replacing a character card now offers world book choices: import the new card's embedded book, keep the previous book, or merge the two in the editor.
 
 ### Iteration Studio
 
@@ -53,68 +75,103 @@ This changelog covers every Luker release, from v1.0.0 to the current developmen
 - Preset-scoped world info now survives export and import.
 - Prompt entries can be dragged into existing groups, and sub-group rendering is fixed.
 - Plugin prompt structure is reworked for prompt-cache reuse, making repeated requests faster and cheaper.
-- The connection manager warns when Claude prompt caching is combined with squashing post-processing.
+- Saving an orchestration profile to a card now offers to embed the chat completion presets it references.
+- Clearing card-bound presets now offers to save each snapshot to the global library first.
+- Card-bound presets can be renamed and no longer depend on a stale global name.
+- Third-party extensions reading the preset list now see the active card-bound preset.
+- Fixed stale sampler and prompt values left behind after switching presets.
+- Prompt Manager reports render failures and falls back to the identifier for entries without a name.
 - Edits to a card-bound preset are saved back to the card instead of being lost.
 - Deleting a preset now purges its associated state everywhere.
 
 ### Connections & Models
 
 - **Each connection profile can now set its own request timeout and retry policy.**
+- **Connection profiles can now auto-continue when a response is truncated**, with a configurable attempt limit.
 - **Added an OpenAI Responses chat completion source.**
+- **Custom models are now saved per connection profile**, so switching profiles no longer mixes them.
 - Kimi gains partial prefill and correct reasoning forwarding.
 - Added support for the newer Claude 5 and Opus 4 models, and dropped obsolete beta flags that blocked Bedrock.
 - Advanced request settings fold into a collapsible drawer.
 - Google AI Studio now retries when a request is blocked by safety filters instead of failing, and Vertex model listing is fixed.
-- The model picker no longer picks a wrong option or fabricates options.
+- OpenRouter adds a Gemini history cache, with a configurable number of recent turns left uncached.
+- The Custom source now forwards reasoning effort and omits the parameter when set to Auto.
+- The connection manager warns when Claude prompt caching is combined with squashing post-processing.
+- Fixed the model picker selecting a wrong model.
 - Fixed profile switching overwriting the model field.
+- Fixed "Save and Update" skipping the profile write when the exclude list was unchanged, which dropped additional parameters.
+- Fixed /model with no argument not reading the input box.
 
 ### Generation & Streaming
 
-- **Chat completions, text completions, NovelAI, Kobold, and image generation all run through a unified pipeline**, fixing generation under Bun.
-- **Claude thinking blocks persist and replay across turns**, and DeepSeek and OpenRouter reasoning content is preserved the same way.
+- **Unified the generation pipeline for chat completions, text completions, NovelAI, Kobold, and image generation**, fixing generation under Bun.
+- **Claude, DeepSeek, and OpenRouter thinking content now persists and replays across turns.**
 - Stop requests reach providers immediately, so a ComfyUI image job can be interrupted mid-run.
 - Token counting and token encoding are configured independently.
 - Recovered generations reconnect to the live stream.
 - Token counting moved off the main thread so long prompts no longer freeze the UI, and more tokenizers are bundled locally.
 - Upstream errors now arrive as proper error responses instead of hanging streams, and error text is no longer truncated mid-message.
-- Empty responses are retried automatically, while Gemini safety blocks are not retried.
-- WebSocket delivery no longer duplicates streamed text after reconnects, and large payloads are no longer capped.
+- Empty responses are retried automatically.
+- Hiding a message now hides its tool call records as well.
+- Unknown models fall back to client-side tiktoken tokenization.
+- **WebSocket connections reconnect automatically after a drop.**
+- Fixed WebSocket connections failing on https pages and inside iframes.
+- Fixed aborted requests being rejected by request validation and leaving the underlying stream open.
+- Fixed third-party response wrappers not applying to non-streaming requests.
+- Fixed the retry prompt still appearing after a user aborts a request.
+- Fixed Claude requests failing due to whitespace-only message blocks in converted history.
+- Fixed DeepSeek requests failing when tool_choice was sent in thinking mode.
+- Fixed Gemini force-merging consecutive same-role messages.
 
 ### Chat & Characters
 
-- **Card replacement now shows a structured full-screen diff overview.**
+- **Replacing a character card now preserves its local bindings**, asking per category when the new card conflicts.
+- Card replacement now shows a structured full-screen diff overview.
 - **Chats can be merged in a chosen order or split at chosen points.**
-- Streaming token usage is reported and normalized across providers.
+- Streaming token usage is displayed and normalized across providers.
 - Chat search now covers older messages that are not loaded yet.
 - Pending chat saves now flush on page unload, save conflicts recover automatically, and save failures show the server error.
 - Chat file names no longer accumulate duplicate extensions.
 - Rapid character switching no longer writes to the wrong chat.
-- Reasoning blocks are saved or discarded cleanly when editing a message.
+- Fixed the reasoning editor being left behind when committing or cancelling a message edit.
 - Character saves surface real errors, and embedded lorebooks survive edits and world deletion.
+- The open chat stays selected across card replacement, character reloads, and unshallowing a character.
+- Opening a recent chat no longer creates a phantom empty chat file.
+- The Manage chat files popup highlights the currently open chat.
+- Replacing a card with the same file again now works after a failed replacement.
+- New group chats no longer hit a save conflict on the first message.
+- First-run onboarding no longer blocks characters and group chats from loading.
 
 ### World Info
 
 - **Reworked mobile World Info editing** with a cleaner layout that survives viewport switches.
 - Lorebooks embedded in a card stay bound across reloads, and deleted entries stop leaking into exports.
 - World books with array-form entries import and edit correctly.
+- Exporting a card whose bound world book cannot be embedded now shows a warning.
+- Deleting a missing world book no longer errors.
 
 ### Request Inspector
 
-- **Reasoning content, thinking blocks, and signatures now render as styled blocks** in the request and response views.
+- **Request and response views now display reasoning content, thinking blocks, and signatures.**
 - The upstream native finish reason is displayed alongside the normalized one.
-- Vector embedding and rerank requests are captured alongside chat requests.
-- Non-streaming requests and early failures are captured too, and streamed responses are inspected chunk by chunk.
+- Vector embedding and rerank requests are recorded.
+- Non-streaming requests and early failures are recorded, and streamed responses are inspected chunk by chunk.
+- **Added a configurable retention window**, with expired records cleaned up automatically.
+- Fixed HTTP 200 responses with an error body not being marked as failed.
+- The inspector and streaming usage stats now cover OpenAI Responses instructions, input, function calls, images, and reasoning tokens.
 
 ### Storage & Sync
 
 - **Added SQLite, MySQL, and PostgreSQL storage engines** with an admin migration panel and resumable migrations.
 - **The Backup Manager now converts backups between storage modes.**
-- Added server-side and browser-side storage inspectors with subdirectory browsing.
+- Added a storage inspector with subdirectory browsing.
 - Restore archives upload in chunks with retry and resume.
-- LAN Sync streams data directly.
+- **Added LAN Sync**: two Luker instances on the same network can pair, sync incrementally by category, resolve conflicts file by file, and undo the last sync.
+- LAN Sync saves peer credentials and warns when a pairing link belongs to a different account.
 - Migrations between file-system and database backends preserve chat integrity and timestamps.
-- Deleting a chat or character now reclaims its media files.
+- Deleting a chat or character now offers to delete associated media as well; character asset folders are deleted with the card.
 - Unsafe file names are now rejected before being written to storage.
+- The Backup Manager groups its data-category selection into its own section that applies to download, restore, and migration links.
 
 ### TTS
 
@@ -124,21 +181,27 @@ This changelog covers every Luker release, from v1.0.0 to the current developmen
 
 - The pre-request agent no longer collides with world info operations.
 - Injection depth and role fields now hide when the entry position is not At Chat Depth.
+- Search snapshot write failures now report the reason instead of being silently dropped.
 
 ### UI & Mobile
 
-- **Android gains shareable crash diagnostics and an automatic safe mode** that disables third-party extensions after a crash loop.
+- **Android gains a crash diagnostics bundle**, and a crash loop disables all third-party extensions into safe mode.
+- Android adds a debug recording toggle that writes native events and logs into crash reports, with a copyable diagnostics snapshot in the endpoint dialog.
+- Android runtime and endpoint notifications gain a reload button.
 - Android cold start is faster, and debug builds can upgrade in place over release builds.
+- Chat export now uses native download on Android.
 - The iOS keyboard no longer breaks the viewport layout.
 - Fixed Android viewport-height and full-width layout quirks.
 
 ### Authentication & Users
 
 - New OAuth accounts start with the provider profile picture, OAuth-only accounts reject password login, and debug export details are admin-only.
+- Fixed the default avatar pointing at a nonexistent file.
 
 ### Internationalization
 
-- The lazy-load media setting, admin panel values, and the swipe picker now ship with Simplified and Traditional Chinese translations.
+- The lazy-load media setting, log viewer time filters, and the Swipe picker now ship with Simplified and Traditional Chinese translations.
+- Fixed the admin panel treating quota and OAuth status values as translatable text.
 
 ### Platform
 
@@ -147,7 +210,7 @@ This changelog covers every Luker release, from v1.0.0 to the current developmen
 ### Completion Preset Assistant
 
 - **The iteration workbench can import an existing chat to work from.**
-- Edit conflicts and already-applied operations are now reported instead of being silently dropped.
+- Edit conflicts and already-applied operations are now reported.
 
 ### Background Keep-Alive
 
@@ -155,8 +218,23 @@ This changelog covers every Luker release, from v1.0.0 to the current developmen
 
 ### Extension API
 
-- Added character state read, patch, and batch-get helpers, saveChatDebounced, and lookup APIs for recall results and inline memory-graph UI.
+- Added character state read, patch, and batch-get helpers, exposed saveChatDebounced, and added lookup APIs for recall results and inline memory-graph UI.
 - Character replacement world book decisions now run in the core replace flow.
+- Checkpoint creation now emits a branch-created event so plugins can copy chat-bound state.
+- Fixed chat metadata assignment and chat-scoped variable persistence.
+- Floor state now exposes a log size accessor.
+
+### New Contributors
+* @hershalakenya519-arch made their first contribution in https://github.com/funnycups/Luker/pull/17
+* @Illustar0 made their first contribution in https://github.com/funnycups/Luker/pull/25
+* @KronosXup made their first contribution in https://github.com/funnycups/Luker/pull/27
+* @Bobpage-sys made their first contribution in https://github.com/funnycups/Luker/pull/31
+* @jojo552 made their first contribution in https://github.com/funnycups/Luker/pull/32
+* @liushuangls made their first contribution in https://github.com/funnycups/Luker/pull/33
+* @ZZZdragondYNGPHX made their first contribution in https://github.com/funnycups/Luker/pull/36
+* @chieftain4201 made their first contribution in https://github.com/funnycups/Luker/pull/42
+
+**Full Changelog**: https://github.com/funnycups/Luker/compare/v2.7.0...v2.8.0
 
 ## v2.7.0 (2026-06-13)
 
@@ -327,8 +405,8 @@ This changelog covers every Luker release, from v1.0.0 to the current developmen
 ### Memory Graph
 
 - Rewrote the event summary writing guidelines with a numbered outline format, category grouping by action type, and no quotation marks or repeated details, producing significantly shorter and more focused summaries.
-- Event compression now merges different objects that share the same subject and action into one topic, eliminating mechanical item stacking. <!-- banned-words-allow --> <!-- banned-words-allow -->
-- Extraction now requires the AI to check existing nodes in the graph one by one before creating or editing characters and locations, reducing redundant creation. <!-- banned-words-allow -->
+- Event compression now merges different objects that share the same subject and action into one topic, eliminating mechanical item stacking.
+- Extraction now requires the AI to check existing nodes in the graph one by one before creating or editing characters and locations, reducing redundant creation.
 - Fixed the issue of the memory graph following when creating branch chats.
 
 ### Multi-Agent Orchestration

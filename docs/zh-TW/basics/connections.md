@@ -26,7 +26,7 @@ Luker 支援多種主流的 LLM API：
 | **Text Generation WebUI** | Oobabooga 的 Web 介面 |
 
 ::: info
-Chat Completion 和 Text Completion 是兩種不同的 API 模式。大多數商業 API（OpenAI、Claude、Gemini）使用 Chat Completion 模式；本機模型通常兩種都支援。如果你不確定，Chat Completion 是更常用的選擇。
+Chat Completion 和 Text Completion 是兩種不同的 API 模式。大多數商業 API（OpenAI、Claude、Gemini）使用 Chat Completion 模式；本機模型通常兩種均支援。如果你不確定，Chat Completion 是更常用的選擇。
 :::
 
 ## 連線管理器
@@ -53,13 +53,13 @@ Luker 提供了**連線管理器**（Connection Manager）來管理多個 API �
 - 一個用於高品質創作的旗艦模型
 - 一個用於本機模型的配置
 
-透過連線管理器可以在它們之間快速切換，無需每次都重新填寫 API 位址和金鑰。
+透過連線管理器可以在它們之間快速切換，無需重新填寫 API 位址和金鑰。
 
 ## API 金鑰配置
 
 ### 取得 API 金鑰
 
-每個 API 供應商都有自己的金鑰取得方式：
+每個 API 供應商均有自己的金鑰取得方式：
 
 - **OpenAI**：在 [platform.openai.com](https://platform.openai.com) 建立 API Key
 - **Anthropic**：在 [console.anthropic.com](https://console.anthropic.com) 建立 API Key
@@ -86,7 +86,7 @@ Luker 提供了**連線管理器**（Connection Manager）來管理多個 API �
 
 **不快取最近幾輪**預設為 **2** 個完整回合，目前輸入也始終不快取。如果正則或擴充功能會隨深度變化改寫較早的訊息，請調大此值。邊界從最終發出的訊息中選取，因此連續的 user 訊息算作一個回合，工具結果不算新的 user 回合。訊息文字、角色、摘要位置、工具呼叫和多媒體內容均保持不變。
 
-Gemini 對普通訊息內容只使用最後一個顯式快取標記。因此 Luker 將一個標記固定在相同的歷史位置，而不是每輪都向後推進，並在每次重用前檢查前綴。五分鐘後，或者編輯、swipe、摘要替換、上下文裁剪、系統提示或工具定義改變了該前綴時，會選取新的邊界。新訊息在下次重新整理前始終位於固定前綴之外。調大不快取尾部設定也會在下次請求時生效。
+Gemini 對普通訊息內容只使用最後一個顯式快取標記。因此 Luker 將一個標記固定在相同的歷史位置，而不是每輪均向後推進，並在每次重用前檢查前綴。五分鐘後，或者編輯、swipe、摘要替換、上下文裁剪、系統提示或工具定義改變了該前綴時，會選取新的邊界。新訊息在下次重新整理前始終位於固定前綴之外。調大不快取尾部設定亦會在下次請求時生效。
 
 已有的**快取 system prompt**開關適用於歷史不足的短請求。歷史快取啟用時，Luker 只放置一個歷史標記，不再新增與之競爭的系統標記。其他擴充功能提供的顯式標記會被保留並優先生效。
 
@@ -96,7 +96,7 @@ Gemini 對普通訊息內容只使用最後一個顯式快取標記。因此 Luk
 
 在請求檢查器中查看最終發出的請求：被選中的歷史訊息的最後一個文字塊應包含 `cache_control: { "type": "ephemeral" }`。伺服器日誌會報告本地邊界計畫的狀態：`created`、`reused`、`refreshed`、`no-history` 或 `external-breakpoint`。**邊界被重用並不代表提供商快取命中。** 請跨多個回合檢查 OpenRouter 返回的 `usage.prompt_tokens_details.cached_tokens`、快取寫入次數和總費用。
 
-OpenRouter 文件說明 Gemini 顯式快取有五分鐘的生命週期，且快取寫入和儲存都會計費。快取前綴較大時，如果頻繁重建或只用一次，費用可能反而更高。長時間停頓、上游路由、最小快取長度和伺服器重新啟動都會降低重用率。Luker 只在記憶體中保存有界的、按使用者/憑證/工作階段隔離的雜湊和位置，不保存提供商快取物件；它無法保證命中，也無法控制上游快取的生命週期。參見 [OpenRouter 的 Gemini 快取文件](https://openrouter.ai/docs/guides/best-practices/prompt-caching#google-gemini)。
+OpenRouter 文件說明 Gemini 顯式快取有五分鐘的生命週期，且快取寫入和儲存均會計費。快取前綴較大時，如果頻繁重建或只用一次，費用可能反而更高。長時間停頓、上游路由、最小快取長度和伺服器重新啟動均會降低重用率。Luker 只在記憶體中保存有界的、按使用者/憑證/工作階段隔離的雜湊和位置，不保存提供商快取物件；它無法保證命中，也無法控制上游快取的生命週期。參見 [OpenRouter 的 Gemini 快取文件](https://openrouter.ai/docs/guides/best-practices/prompt-caching#google-gemini)。
 
 ## 代理設定
 
@@ -136,7 +136,7 @@ Luker 的連線管理器提供了斜線命令，方便進階使用者快速操�
 
 ## 請求檢查器
 
-Luker 內建了請求檢查器（Request Inspector），可以查看每次產生請求的詳細資訊，包括傳送給 API 的完整請求內容和回傳的回應。這在除錯連線問題或優化提示詞時非常有用。
+Luker 內建了請求檢查器（Request Inspector），可以查看產生請求的詳細資訊，包括傳送給 API 的完整請求內容和回傳的回應。這在除錯連線問題或優化提示詞時非常有用。
 
 ## 下一步
 

@@ -57,7 +57,7 @@ REPLAY -> REBUILD
 - <code v-pre>{{pushvar::name::value}}</code>
 - <code v-pre>{{popvar::name}}</code>
 
-每一種被識別的 op 都接受點號路徑名（<code v-pre>{{setvar::roster.alice.hp::50}}</code>）——見下文的 [結構化物件工作流程](#structured-objects)。
+每一種被識別的 op 均接受點號路徑名（<code v-pre>{{setvar::roster.alice.hp::50}}</code>）——見下文的 [結構化物件工作流程](#structured-objects)。
 
 按出現順序逐個處理：
 
@@ -75,7 +75,7 @@ REPLAY -> REBUILD
 {{setvar::a::1}} {{setvar::b::{{getvar::a}}}}
 ```
 
-提取完成後：`a = 1`，`b = 1`。每個宏都是先完整求值再 apply，再處理下一個。
+提取完成後：`a = 1`，`b = 1`。每個宏均先完整求值再 apply，再處理下一個。
 :::
 
 ::: info JSON 形態的 value
@@ -129,7 +129,7 @@ value 末尾是字面 `}` 的情形（典型 `{"x":1}` / `[1,2]` 類負載）會
 
 | 來源 | 行為 |
 |------|------|
-| 世界書 <code v-pre>{{setvar}}</code> | 走 SillyTavern 原生流程，prompt 組裝時執行；快取裡這個 key 每輪都會被 WI 的值覆蓋。如果想讓 WI 充當「初始化」而不是「每輪覆蓋」，把這類條目放在高 depth / prompt 最前。 |
+| 世界書 <code v-pre>{{setvar}}</code> | 走 SillyTavern 原生流程，prompt 組裝時執行；快取裡這個 key 每輪均會被 WI 的值覆蓋。如果想讓 WI 充當「初始化」而不是「每輪覆蓋」，把這類條目放在高 depth / prompt 最前。 |
 | 預設 <code v-pre>{{setvar}}</code> | 同世界書。 |
 | Slash 命令 `/setvar` | 直接寫 `chat_metadata.variables`。下次重播掃到同名 key（即存活的 AI op 提到了這個 key）時會被覆蓋。 |
 | Quick Reply 腳本 | 同 slash 命令。給 QR 管理的變數起一個 AI op 不會碰的名字。 |
@@ -145,7 +145,7 @@ value 末尾是字面 `}` 的情形（典型 `{"x":1}` / `[1,2]` 類負載）會
 
 ## 何時使用變數驅動 UI
 
-當某些欄位需要隨對話推進而變化、並被某種 UI 消費（CardApp 面板、世界書條目、自定義渲染器等）時，把它們建模成 chat 變數。生產端三種途徑：
+當某些欄位需要隨對話推進而變化、並被某種 UI 消費（CardApp 面板、世界書條目、自定義渲染器等）時，把它們建模成 chat 變數。生產端途徑：
 
 1. `first_mes` / alt greetings 裡 setvar 兜底初始值
 2. 世界書條目裡指引 AI 在 reply 中用 setvar 改寫
@@ -192,7 +192,7 @@ chat[i] = {
 
 `op.key` 永遠是頂層變數名（上例裡是 `roster`），所以 tracked-keys／重播／swipe 還原邏輯把整個結構當成一個單位。刪掉某個寫過某片葉子的訊息時，結構會從存活的 op 重建，那片葉子自然回退——`roster` 整體跟存活時間線保持一致。
 
-任何由 AI 跨輪維護的結構化集合都推薦這條路：NPC 名冊、隊伍物品、任務日誌、關係圖、地點狀態等。逐葉粒度給刪除／swipe／分支提供了最小的回滾單元，也能配合 <code v-pre>{{each::roster}}…{{/each}}</code> 直接從頂層 key 下掛的 JSON 物件渲染出來。
+任何由 AI 跨輪維護的結構化集合均推薦這條路：NPC 名冊、隊伍物品、任務日誌、關係圖、地點狀態等。逐葉粒度給刪除／swipe／分支提供了最小的回滾單元，也能配合 <code v-pre>{{each::roster}}…{{/each}}</code> 直接從頂層 key 下掛的 JSON 物件渲染出來。
 
 ## 渲染結構化變數 — `{{each}}` 與 `loop_value`
 

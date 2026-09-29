@@ -1,6 +1,6 @@
 # 从 SillyTavern 迁移
 
-Luker 是 SillyTavern 的下游分支，保持了完整的数据兼容性。从 SillyTavern 迁移到 Luker 只需几个简单步骤，你的所有数据都可以无缝使用。
+Luker 是 SillyTavern 的下游分支，保持了完整的数据兼容性。从 SillyTavern 迁移到 Luker 只需几个简单步骤，你的所有数据均可无缝使用。
 
 ::: tip 在 Android 上从 Termux 迁移？
 本指南适用于 PC / Linux / Docker → Luker，以及 **Termux(Sillytavern) → Termux(Luker)**，两端共享文件系统，按下面步骤复制 `data/` 即可。

@@ -37,7 +37,7 @@ Luker 新增了统一生成层端点（`/api/backends/luker-generation`），作
 
 注意：`startInspection` 由后端端点（如 `chat-completions.js`）调用，而非由生成层本身调用。
 
-这确保了无论使用哪个后端，Token 消耗都能被准确追踪。
+这确保了无论使用哪个后端，Token 消耗均能被准确追踪。
 
 ### 统一流式处理
 

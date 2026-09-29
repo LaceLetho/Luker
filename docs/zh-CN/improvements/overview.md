@@ -28,21 +28,21 @@ Luker 对 SillyTavern 的改进不是简单的功能堆叠，而是从数据传�
 
 SillyTavern 中，API 连接参数（如模型名称、API 地址、代理设置）与预设（如温度、Top-P、提示词配置）耦合在同一个配置对象中。这意味着切换 API 提供商时，用户不得不重新配置生成参数；反过来，调整采样策略也可能意外影响连接设置。
 
-Luker 将两者拆分为独立实体：**连接配置**负责「连到哪里」，**预设**负责「怎么生成」。在代码层面，每个设置字段都通过 `isConnection` 标记进行分类，加载预设时自动跳过连接字段。两者可以自由组合——同一套预设可以搭配不同的 API 连接使用，反之亦然。
+Luker 将两者拆分为独立实体：**连接配置**负责「连到哪里」，**预设**负责「怎么生成」。在代码层面，每个设置字段均通过 `isConnection` 标记进行分类，加载预设时自动跳过连接字段。两者可以自由组合——同一套预设可以搭配不同的 API 连接使用，反之亦然。
 
 这一解耦也为角色卡绑定预设、连接管理器等下游功能奠定了基础。详见 [预设解耦](/zh-CN/improvements/preset-decoupling)。
 
 ### 增量同步
 
-传统的前后端数据同步采用全量覆盖：每次修改都将完整对象发送到服务端。当对象体积增长（如包含大量消息的聊天记录），这种方式会产生显著的带宽浪费和写入冲突风险。
+传统的前后端数据同步采用全量覆盖：修改时将完整对象发送到服务端。当对象体积增长（如包含大量消息的聊天记录），这种方式会产生显著的带宽浪费和写入冲突风险。
 
-Luker 新增了三个增量端点：
+Luker 新增了增量端点：
 
 - **`append`**：将新消息追加到 `.jsonl` 文件末尾，而非重写整个文件
 - **`patch`**：按消息索引修补指定行，只更新变更的消息
 - **`patch-metadata`**：使用深度合并更新聊天元数据，而非替换
 
-每次写入后，后端计算文件的 integrity hash 并返回给前端；后续请求携带该值进行校验，不匹配时返回 409 Conflict，从根本上防止并发写入冲突。设置数据同样支持增量 patch 保存，带冲突检测和序列化写入。详见 [增量同步](/zh-CN/improvements/incremental-sync)。
+写入后，后端计算文件的 integrity hash 并返回给前端；后续请求携带该值进行校验，不匹配时返回 409 Conflict，从根本上防止并发写入冲突。设置数据同样支持增量 patch 保存，带冲突检测和序列化写入。详见 [增量同步](/zh-CN/improvements/incremental-sync)。
 
 ### 后端实时存储
 
@@ -63,12 +63,12 @@ Luker 将存储逻辑下沉到后端：数据变更在到达服务端的同时�
 
 ### 函数调用运行时
 
-Luker 内置了统一的函数调用（Function Calling）运行时，支持两种工作模式：
+Luker 内置了统一的函数调用（Function Calling）运行时，支持多种工作模式：
 
 - **原生模式**：利用 API 提供商的原生工具调用能力（兼容 OpenAI、Claude、Gemini 等格式），由模型直接输出结构化调用指令，支持流式工具调用规范化
 - **纯文本模式**：通过提示词引导模型在普通文本中输出调用意图，再由运行时解析执行，支持多工具调用和可配置的错误重试
 
-两种模式覆盖了从高端商业 API 到本地小模型的全部场景。连接管理器中可按配置独立设置纯文本函数调用的开关和重试策略。详见 [函数调用运行时](/zh-CN/improvements/function-call-runtime)。
+这些模式覆盖了从高端商业 API 到本地小模型的全部场景。连接管理器中可按配置独立设置纯文本函数调用的开关和重试策略。详见 [函数调用运行时](/zh-CN/improvements/function-call-runtime)。
 
 ### 角色卡绑定预设与人设
 
@@ -78,13 +78,13 @@ Luker 内置了统一的函数调用（Function Calling）运行时，支持两�
 
 ### 请求检查器
 
-调试 AI 对话时，用户经常需要知道「到底发了什么给 API」。Luker 的请求检查器追踪每个 AI 生成请求从发起到完成的完整生命周期，记录 prompt token、completion token 和总用量。它支持流式响应的 Token 统计（从 SSE 事件中提取 usage 信息），也覆盖图像生成、向量嵌入和重排请求的追踪。请求检查器追踪的 Token 用量是独立的统计功能，与存储配额管理是两个独立的系统。详见 [请求检查器](/zh-CN/improvements/request-inspector)。
+调试 AI 对话时，用户经常需要知道「到底发了什么给 API」。Luker 的请求检查器追踪 AI 生成请求从发起到完成的完整生命周期，记录 prompt token、completion token 和总用量。它支持流式响应的 Token 统计（从 SSE 事件中提取 usage 信息），也覆盖图像生成、向量嵌入和重排请求的追踪。请求检查器追踪的 Token 用量是独立的统计功能，与存储配额管理相互独立。详见 [请求检查器](/zh-CN/improvements/request-inspector)。
 
 ### Skill
 
-多 agent 编排器 profile 的系统提示词往往越来越长 —— 每条可复用的写作规则、每份评审方法、每份工作流契约，过去都内联在 `systemPrompt` 字段里，经常在多个子代理里重复拷贝。Luker 引入了 **Skill（skills）**：兼容 Anthropic 的本地知识包（`SKILL.md` + frontmatter + 可选子文件），agent 按需读取。Skill 按名字寻址（引用里不带作用域前缀），住在三种作用域下（`global` / `preset` / `character`），派遣时按后者优先解析。
+多 agent 编排器 profile 的系统提示词往往越来越长 —— 可复用的写作规则、评审方法、工作流契约，过去均内联在 `systemPrompt` 字段里，经常在多个子代理里重复拷贝。Luker 引入了 **Skill（skills）**：兼容 Anthropic 的本地知识包（`SKILL.md` + frontmatter + 可选子文件），agent 按需读取。Skill 按名字寻址（引用里不带作用域前缀），住在 `global` / `preset` / `character` 作用域下，派遣时按后者优先解析。
 
-编排器默认 director profile 自带 24 个出厂 Skill，覆盖共享写作规则、主代理工作流，以及每个子代理一份方法 Skill。同一格式与 Anthropic Claude Code 双向可移植 —— Skill 可不经转换跨平台往返。Skill 可以跟角色卡（PNG 元数据）或预设（嵌入载荷）一起分发，所以分发卡片也就分发了支撑它工作的写作规则。Skill 管理子面板覆盖安装、编辑、迁移作用域、嵌入导出；迭代工作台 AI 可以通过专用工具从长 `systemPrompt` 文本里抽出可复用规则到 Skill。概念模型见 [Skills 概览](/zh-CN/features/skills/)，格式见 [创作 Skill](/zh-CN/features/skills/authoring)。
+编排器默认 director profile 自带出厂 Skill，覆盖共享写作规则、主代理工作流，以及子代理的方法 Skill。Skill 可以跟角色卡（PNG 元数据）或预设（嵌入载荷）一起分发，所以分发卡片也就分发了支撑它工作的写作规则。Skill 管理子面板覆盖安装、编辑、迁移作用域、嵌入导出；迭代工作台 AI 可以通过专用工具从长 `systemPrompt` 文本里抽出可复用规则到 Skill。概念模型见 [Skills 概览](/zh-CN/features/skills/)，格式见 [创作 Skill](/zh-CN/features/skills/authoring)。
 
 ## 基础设施
 
@@ -92,7 +92,7 @@ Luker 内置了统一的函数调用（Function Calling）运行时，支持两�
 
 SillyTavern 中，不同 AI 后端（OpenAI、Anthropic、Google、Kobold 等）的生成请求走各自独立的代码路径，导致功能支持不一致。Luker 新增了统一生成层，将多后端的生成请求统一封装，共享 Token 计量、流式处理和错误处理逻辑。
 
-该模块为所有 AI 后端提供统一的处理管线，确保无论使用哪种 AI 服务，用户都能获得一致的功能体验（如请求检查、Token 统计、生成确认等）。详见 [统一生成层](/zh-CN/improvements/generation-layer)。
+该模块为所有 AI 后端提供统一的处理管线，确保无论使用哪种 AI 服务，用户均能获得一致的功能体验（如请求检查、Token 统计、生成确认等）。详见 [统一生成层](/zh-CN/improvements/generation-layer)。
 
 ### 认证与配额
 
@@ -124,8 +124,8 @@ Luker 增加了 OAuth 登录支持（GitHub、Discord）和存储配额管理：
 
 ## 与 SillyTavern 的关系
 
-Luker 是 SillyTavern 的下游分支，而非独立项目。所有改进都以**不破坏上游兼容性**为前提进行设计：
+Luker 是 SillyTavern 的下游分支，而非独立项目。所有改进均以**不破坏上游兼容性**为前提进行设计：
 
 - **定期同步**：Luker 持续跟踪 SillyTavern 上游的更新，定期合并上游变更
-- **数据兼容**：Luker 的数据格式在 SillyTavern 的基础上进行扩展而非替换。新增的状态文件和配置项都有合理的默认值
+- **数据兼容**：Luker 的数据格式在 SillyTavern 的基础上进行扩展而非替换。新增的状态文件和配置项均有合理的默认值
 - **功能叠加**：Luker 的改进是在上游功能之上的增量叠加，而非破坏性重写。从 SillyTavern 迁移到 Luker 时，用户的现有数据可以无缝使用

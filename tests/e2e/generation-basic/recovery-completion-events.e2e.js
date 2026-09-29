@@ -14,7 +14,7 @@
 //   - TTS / audio keep-alive teardown (GENERATION_ENDED)
 //   - PromptManager token display (MESSAGE_RECEIVED)
 //
-// This spec pins the contract that a recovered reply behaves like a // banned-words-allow
+// This spec pins the contract that a recovered reply behaves like a
 // normally-received one:
 //
 //   1. GENERATION_ENDED fires BEFORE MESSAGE_RECEIVED (ordering contract

@@ -2,12 +2,12 @@
 
 精心设置的场景——剑拔弩张的对峙、微妙的政治谈判、慢热的浪漫——仍可能被回复破坏：它跳过你刚铺垫的节奏、忘了两段以前确立的世界规则、出戏做总结、或者把不该这一回合解决的伏笔仓促收尾。这不是模型能力的问题，而是它一次只能关注一件事，而你让它在一次回复里同时处理太多事：守人设、调上下文、守世界观、规划下一步、*还要*把文笔写好。
 
-编排器的做法是在主模型动笔之前先派遣一支小队。一个 Agent 提取最近聊天里的关键状态。一个确定当前生效的世界规则。一个起草这一回合应推进的内容。一个审查全队的工作。最后一个 Agent 把全队的产出整合为一份精简的「作业说明」。等到主模型开始写回复，它已收到这份说明（且仅有这份），因此可以把预算用于文笔，而不是繁琐的核对工作。
+编排器的做法是让 agent 团队在主模型动笔之前先完成准备工作：提取最近聊天里的关键状态、确定当前生效的世界规则、起草这一回合应推进的内容、审校方案，最后把产出整合为一份精简的「作业说明」。等到主模型开始写回复，它已收到这份说明（且仅有这份），因此可以把预算用于文笔，而不是繁琐的核对工作。
 
-**编排器自带一套可用的默认 Spec 工作流，无需先行设计，启用即可运行。** 后续需要不同形态时，各执行模式都有独立编辑器。
+**编排器自带一套可用的默认 Spec 工作流，无需先行设计，启用即可运行。** 后续需要不同形态时，各执行模式均有独立编辑器。
 
 ::: info 它什么时候触发？
-编排器在五种生成类型上触发：`normal`（普通生成）、`continue`（继续）、`regenerate`（重新生成）、`swipe`（滑动切换）和 `impersonate`（扮演）。它在世界书解析**之后**、主模型回复**之前**运行。运行面板只保存在内存中，切换聊天时会清空。
+编排器在 `normal`（普通生成）、`continue`（继续）、`regenerate`（重新生成）、`swipe`（滑动切换）和 `impersonate`（扮演）这些生成类型上触发。它在世界书解析**之后**、主模型回复**之前**运行。运行面板只保存在内存中，切换聊天时会清空。
 :::
 
 ## 5 分钟跑起来（用默认编排）
@@ -17,7 +17,7 @@
 ### Step 0 — 你需要先有什么 {#step-0}
 
 - 你的主对话已经能正常用 Chat Completion API 出回复
-- 当前对话至少有 3 轮以上聊天记录（没有内容，工作流没什么可规划的）
+- 当前对话至少有数轮聊天记录（没有内容，工作流没什么可规划的）
 
 ### Step 1 — 启用编排器 {#step-1}
 
@@ -30,16 +30,16 @@
 在同一面板里继续往下看，找到 **LLM 节点 API 预设** 和 **AI 生成 API 预设**。这两个字段告诉编排器各 Agent 用哪个 API、哪个 Chat Completion 预设。
 
 ::: tip 这里能省钱
-编排器每回合会调用 LLM 5–10 次（每个节点一次）。如果主对话使用的是 Claude Opus 这类昂贵模型，为编排器选择更便宜的模型——如 Haiku、Gemini Flash——可节省 70% 以上的成本。如果需要更高的质量，可以为不同节点配置不同模型（每个节点都能单独覆写 API/预设）。
+编排器各节点各调用一次 LLM。如果主对话使用的是 Claude Opus 这类昂贵模型，为编排器选择更便宜的模型——如 Haiku、Gemini Flash——可显著节省成本。如果需要更高的质量，可以为不同节点配置不同模型（每个节点均能单独覆写 API/预设）。
 :::
 
 ### Step 3 — 直接发一条消息 {#step-3}
 
-在主对话中发送一条消息，无需调整其他设置。主模型回复之前，默认 Spec 工作流会自动在后台执行。首次运行会比平时慢一些（顺序调用 5–10 个 Agent），后续运行会更快。
+在主对话中发送一条消息，无需调整其他设置。主模型回复之前，默认 Spec 工作流会自动在后台执行。首次运行会比平时慢一些（agent 顺序执行），后续运行会更快。
 
 ### Step 4 — 看它替你干了什么 {#step-4}
 
-运行一开始，**运行面板**就会从聊天区右侧滑入（窄屏上从底部升起）。面板实时更新：每一轮都是一张可折叠的卡片，展开后就能看到模型当时怎么想、调用了哪些工具、工具返回了什么。
+运行一开始，**运行面板**就会从聊天区右侧滑入（窄屏上从底部升起）。面板实时更新：轮次是一张可折叠的卡片，展开后就能看到模型当时怎么想、调用了哪些工具、工具返回了什么。
 
 ![编排器开始运行时的面板](/_screenshots/run-panel/01-panel-initial.png)
 
@@ -64,14 +64,14 @@
 
 这就是「AI 在回复前先思考」在实际中的体现。如果回复不理想，打开面板就能定位问题出在哪一步。
 
-至此编排器已启用。接下来根据需求有三个方向：
+至此编排器已启用。接下来根据需求选择方向：
 
 - 默认 Spec 流程不够用，需要自行或由 AI 协助定制 → [Spec 模式](/zh-CN/features/orchestrator/spec)
 - 流程需要根据情况动态变化，无法预先写死 DAG → [Agenda 模式](/zh-CN/features/orchestrator/agenda)
 - 希望单一 Agent 反复调用工具（查记忆、查世界书……）直到自行判定完成 → [Loop 模式](/zh-CN/features/orchestrator/loop)
 
-::: tip 不管你选哪种模式，定制都从这里开始
-**[AI 迭代工作台](/zh-CN/features/orchestrator/iteration-studio)** 是编排器的核心定制工具——用一句话描述目标，AI 返回方案，逐条审批。Spec / Agenda / Loop / Director 四种模式共用同一个工作台，**在 99% 的定制场景下都优于手动编辑**。
+::: tip 不管你选哪种模式，定制均从这里开始
+**[AI 迭代工作台](/zh-CN/features/orchestrator/iteration-studio)** 是编排器的核心定制工具——用一句话描述目标，AI 返回方案，逐条审批。Spec / Agenda / Loop / Director 共用同一个工作台，**多数定制场景下均优于手动编辑**。
 :::
 
 ## 选你的执行模式
@@ -82,21 +82,21 @@
 | **单 Agent** | 只有一个节点的 Spec | 成本低、速度快。不需要多 Agent 协作 | 在那一个节点上注入目录 | [单 Agent 模式](/zh-CN/features/orchestrator/single) |
 | **Agenda** | 一个 Planner Agent 通过工具调用动态调度其他 Agent | 流程要动态决定运行什么，像 Agent loop | Planner + 每个被派遣 worker 上注入目录 | [Agenda 模式](/zh-CN/features/orchestrator/agenda) |
 | **Loop** | 单 Agent 在同一会话里循环调工具，自己决定何时 `finalize` | 速度与效果之间想要平衡；探索性研究、动态决策 | 在 loop agent 上注入目录 | [Loop 模式](/zh-CN/features/orchestrator/loop) |
-| **Director** | 主代理 + 子代理团队直接写正文 | 接管模式，用于高质量长篇 RP；出厂自带预绑定 24 个 Skill | 主代理 + 每次子代理派遣时注入目录 | [Director 模式](/zh-CN/features/orchestrator/director) |
+| **Director** | 主代理 + 子代理团队探索上下文信息、创作正文 | 接管模式，用于高质量长篇 RP；出厂自带预绑定 Skill | 主代理 + 子代理派遣时注入目录 | [Director 模式](/zh-CN/features/orchestrator/director) |
 
 切换模式：扩展抽屉里的 **执行模式** 下拉。Spec 与 Agenda 可以在编辑器中互相转换（尽力而为）；Loop 结构差异较大，没有对应的互转入口。
 
 ::: tip 想定制？优先用 AI 迭代工作台
-切到任何模式后，**[AI 迭代工作台](/zh-CN/features/orchestrator/iteration-studio)** 都是优先选择。Spec / Agenda 提供 diff 供审批，Loop 直接 patch profile，两者的面板与工作流程一致。
+切到任何模式后，**[AI 迭代工作台](/zh-CN/features/orchestrator/iteration-studio)** 均为优先选择。Spec / Agenda 提供 diff 供审批，Loop 直接 patch profile，两者的面板与工作流程一致。
 :::
 
 ::: info Skill 这一列
-五种模式共用同一套 Skill 策略形状（模式级 `skills.visible` / `skills.deny`、每 agent 可选的 `+` 继承覆写）。完整模型见 [编排器集成](/zh-CN/features/skills/orchestrator-integration)。Director 是唯一在出厂配置中预绑定默认 Skill 的模式；其它模式起步为 `visible: ["*"]`（所有已安装 Skill 可见）。
+所有模式共用同一套 Skill 策略形状（模式级 `skills.visible` / `skills.deny`、每 agent 可选的 `+` 继承覆写）。完整模型见 [编排器集成](/zh-CN/features/skills/orchestrator-integration)。Director 是唯一在出厂配置中预绑定默认 Skill 的模式；其它模式起步为 `visible: ["*"]`（所有已安装 Skill 可见）。
 :::
 
 ## 通用配置
 
-无论选哪种模式，以下设定都共享。
+无论选哪种模式，以下设定均共享。
 
 ### 结果注入
 
@@ -118,12 +118,12 @@ capsule 绑定到触发编排的用户消息楼层。同一楼层 swipe 时，�
 - 配置随卡导出。别人导入卡片自动获得推荐工作流
 - 卡作者可以为自己的角色定制最优工作流
 - 切换到这张卡自动应用其工作流
-- 卡可以指定自己的执行模式（Spec / Agenda / Loop / Director 都支持）
-- 从卡的下拉中选择某个预设后，这次聊天会立即切换到它；无论怎么选，卡上的库都会保留
+- 卡可以指定自己的执行模式（Spec / Agenda / Loop / Director 均支持）
+- 从卡的下拉中选择某个预设后，这次聊天会立即切换到它；无论怎么选，卡上的库均会保留
 - 「清除这张卡上的预设」恢复到全局配置
 - 你可以在卡绑定配置上层叠个人调整
 
-卡上预设四种模式都支持。
+卡上预设各模式均支持。
 
 ### 导入导出
 
@@ -180,7 +180,7 @@ Loop 模式目前尚未提供文件级的 Profile 导入导出按钮，可通过
 <details>
 <summary>给其他扩展和脚本</summary>
 
-编排器在每次运行结果后会派发一个前端事件，其他代码可以消费编排结果而不必读 UI 内部状态。
+编排器在运行结束后会派发一个前端事件，其他代码可以消费编排结果而不必读 UI 内部状态。
 
 - **事件名：** `luker.orchestrator.result`
 - **通道：** `getContext().eventSource`
@@ -225,9 +225,9 @@ context.eventSource.on('luker.orchestrator.result', (evt) => {
 - [单 Agent 模式](/zh-CN/features/orchestrator/single) — 退化的 Spec，仅执行一个节点
 - [Agenda 模式](/zh-CN/features/orchestrator/agenda) — Planner 动态调度
 - [Loop 模式](/zh-CN/features/orchestrator/loop) — 单 Agent 工具循环
-- [Director 模式](/zh-CN/features/orchestrator/director) — 多 Agent 接管；出厂自带 24 个 Skill
+- [Director 模式](/zh-CN/features/orchestrator/director) — 多 Agent 接管；出厂自带 Skill
 - [Skills 概览](/zh-CN/features/skills/) — 所有模式共用的知识包底层素材
 - [笔记 — 作者侧剧情线索](/zh-CN/features/orchestrator/notes) — 以 agent 为作者的线索追踪器，作用域为当前聊天
-- [Function Call Runtime](/zh-CN/improvements/function-call-runtime) — Agenda / Loop 模式都依赖此框架
+- [Function Call Runtime](/zh-CN/improvements/function-call-runtime) — Agenda / Loop 模式均依赖此框架
 - [角色卡编辑器](/zh-CN/features/card-editor/) — 与迭代工作台共用 diff 引擎
 - [卡内绑定预设与人格](/zh-CN/improvements/card-bound-presets) — 编排配置如何随角色卡一同分发

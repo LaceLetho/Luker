@@ -4,7 +4,7 @@
 
 skill 本身是什么、SKILL.md 长什么样、怎么写——见 [Skills 概览](/zh-CN/features/skills/)。
 
-## 两种挂载方式
+## 挂载方式
 
 **让工作台替你挂（推荐）。** 在 AI 迭代工作台里让它写 skill 或改 skill 的时候，顺便告诉它你想让谁能看到——"让导演模式下所有 agent 都看到"、"只给 voice_critic 看"——它会在同一轮审批里把这条挂到对应的位置。你不用想该放哪一层。详见 [《用 skills 调教 RP 输出》](/zh-CN/recipes/rp-skills-walkthrough) 和 [工作台的 skill 编写](/zh-CN/features/orchestrator/iteration-studio#用工作台编写-skill)。
 

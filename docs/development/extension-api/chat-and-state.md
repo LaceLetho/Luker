@@ -81,7 +81,7 @@ const result = await ctx.generateTask({ taskMessages });
 
 The `sourceFloorIndex` field on converted messages is a provenance stamp: it tells the dispatch layer that this text was already cooked by `readPluginFloors`, so its own regex pass skips the message instead of applying scripts a second time.
 
-The contract has three parts:
+The contract covers:
 
 - The read API stamps every message it produces; the field is never computed or maintained by the caller
 - The dispatcher recognizes the stamp, passes those messages through uncooked, and strips the marker before anything leaves for the network
@@ -97,7 +97,7 @@ No action is required on the response side either: sub-agent output that re-ente
 
 ### Which regex rules apply where
 
-Rule scope is split cleanly between the two lanes:
+Rule scope is split cleanly between the lanes:
 
 - `promptOnly` rules never appear in plugin requests — they stay scoped to the main generation pipeline
 - `pluginOnly` rules appear *only* in plugin requests — they are invisible to the main pipeline
@@ -320,7 +320,7 @@ Deletes the chat state for a given namespace. On success returns `{ok: true}`; o
 
 ### Error reasons
 
-Every write returns `{ok: false, reason, hint}` on failure. The `reason` field is one of nine values:
+Every write returns `{ok: false, reason, hint}` on failure. Possible `reason` values:
 
 | Reason | When it fires | Suggested handling |
 |---|---|---|
@@ -365,7 +365,7 @@ Floor State is a thin layer on top of Chat State that tracks every write at the 
 
 ### How it works
 
-A floor state instance owns one chat-state namespace (`<ns>`) and a private commit log (`<ns>__floor_log`). Writes go through the instance's `update` method, which reads the current state, runs your reducer, computes the diff, applies it to the data namespace, and appends a commit. Each instance is registered into a module-level registry inside `floor-state.js`; whenever the chat structure changes, core code drives every registered instance through the matching handler **before** the corresponding `eventSource` event fires to plugin subscribers, guaranteeing that any plugin handler observes a fully settled floor state. The four structural transitions are:
+A floor state instance owns one chat-state namespace (`<ns>`) and a private commit log (`<ns>__floor_log`). Writes go through the instance's `update` method, which reads the current state, runs your reducer, computes the diff, applies it to the data namespace, and appends a commit. Each instance is registered into a module-level registry inside `floor-state.js`; whenever the chat structure changes, core code drives every registered instance through the matching handler **before** the corresponding `eventSource` event fires to plugin subscribers, guaranteeing that any plugin handler observes a fully settled floor state. The structural transitions are:
 
 - `CHAT_CHANGED` — new chat opened; rebuild data from this chat's log
 - `MESSAGE_SWIPED` — user switched swipes; rebuild data with the new active swipe
@@ -487,7 +487,7 @@ The diff engine that powers Luker's patch-first persistence. Returns the minimal
 
 ### When to await `ready()`
 
-The four structural transitions are settled by core synchronously before the matching `eventSource` event fires, so plugin handlers reading the floor state from inside `MESSAGE_DELETED` / `MESSAGE_SWIPED` / `MESSAGE_SWIPE_DELETED` / `CHAT_CHANGED` / `CHAT_BRANCH_CREATED` listeners always observe a settled state — no `ready()` is needed there.
+The structural transitions are settled by core synchronously before the matching `eventSource` event fires, so plugin handlers reading the floor state from inside `MESSAGE_DELETED` / `MESSAGE_SWIPED` / `MESSAGE_SWIPE_DELETED` / `CHAT_CHANGED` / `CHAT_BRANCH_CREATED` listeners always observe a settled state — no `ready()` is needed there.
 
 `ready()` is still useful for serializing against in-flight `update` / `patch` calls when concurrent writes might overlap. The instance returns its currently-resolved promise when no rebuild or write is in flight, so the cost is minimal.
 
@@ -509,7 +509,7 @@ The four structural transitions are settled by core synchronously before the mat
 
 ### Error reasons
 
-Every write returns `{ok: false, reason, hint}` on failure. The `reason` field is one of nine values:
+Every write returns `{ok: false, reason, hint}` on failure. Possible `reason` values:
 
 | Reason | When it fires | Suggested handling |
 |---|---|---|
@@ -668,7 +668,7 @@ Removes the character state for the given namespace. Idempotent — succeeds whe
 
 ### Error reasons
 
-Every write returns `{ok: false, reason, hint}` on failure. The `reason` field is one of nine values:
+Every write returns `{ok: false, reason, hint}` on failure. Possible `reason` values:
 
 | Reason | When it fires | Suggested handling |
 |---|---|---|

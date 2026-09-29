@@ -1,6 +1,6 @@
 # Building a card-specific orchestration
 
-This walkthrough is organized around three actions:
+This walkthrough is organized around the following actions:
 
 1. **Generate a dedicated multi-agent orchestration for one character card in a single sentence.** No prompt engineering, no manual sub-agent plumbing — the AI Iteration Studio does the work for us.
 2. **Run a simulation, annotate the LLM clichés in the output, and let the Studio improve the orchestration prompts and Skills accordingly.** The targets here are the patterns Chinese-RP readers call **八股** ("eight-leg essay" — formulaic boilerplate). The most common family is **numeral + classifier counting**: narration that lapses into a stage-direction tally.
@@ -28,7 +28,7 @@ The Studio splits into a conversation pane on the left and a live preview of the
 
 ![Prompt typed in composer](/_screenshots/recipes-card-customization/03-prompt-typed.png)
 
-Click **Send**. The Studio reads the card and the lorebook, enumerates the currently visible skills, then begins rewriting the main agent's system prompt, adding sub-agents that make sense for this card, and adjusting the visible-skill set. Each change surfaces as a review card — green is additions, red is removals. A quick review followed by **Apply to character override** commits the change.
+Click **Send**. The Studio reads the card and the lorebook, enumerates the currently visible skills, then begins rewriting the main agent's system prompt, adding sub-agents that make sense for this card, and adjusting the visible-skill set. Changes surface as review cards — green is additions, red is removals. A quick review followed by **Apply to character override** commits the change.
 
 ![A single change review card](/_screenshots/recipes-card-customization/04-review-card.png)
 
@@ -38,7 +38,7 @@ For a closer look, expand the line-diff inside the card; for those who would rat
 To avoid confirming every diff manually, tick **Auto-apply changes** under the composer. The next section ("Annotating clichés") goes more smoothly with auto-apply on.
 :::
 
-After a few iteration rounds, the Studio produces a plain-language summary describing what changed and why each change fits this card.
+After a few iteration rounds, the Studio produces a plain-language summary describing what changed and why the changes fit this card.
 
 ![Studio summary at the end](/_screenshots/recipes-card-customization/05-customize-summary.png)
 
@@ -107,7 +107,7 @@ Comparing the two runs side-by-side, the difference is plain — the baseline's 
 
 ## Let the Studio write a custom verification tool
 
-This card has a hard rule: every reply must end with an `<overall>` summary block and an `<UpdateVariable>` block. When the main agent gets carried away with the prose, those trailing tags are easy to drop — and then the card's state machinery does not pick up the turn's update, distorting the next round's context.
+This card has a hard rule: replies must end with an `<overall>` summary block and an `<UpdateVariable>` block. When the main agent gets carried away with the prose, those trailing tags are easy to drop — and then the card's state machinery does not pick up the turn's update, distorting the next round's context.
 
 For requirements like this, we do not need to write any code ourselves or hand-edit the main agent's prompt — **we describe what we want in plain natural language**:
 
@@ -115,7 +115,7 @@ For requirements like this, we do not need to write any code ourselves or hand-e
 
 ![Describing the format requirement to the Studio](/_screenshots/recipes-card-customization/11-tool-prompt.png)
 
-The Studio decides how to fulfill the requirement on its own. This is a format check that code can verify exactly (literal string match), which makes it a fit for a **custom tool**. The party that needs to be checked, and reminded to amend, is the main agent that writes the reply, so the tool belongs to the main agent and must be invoked at its finalization step. Based on that read, the Studio produces a coherent change set:
+The Studio decides how to fulfill the requirement on its own. This is a format check that code can verify exactly (literal string match), which makes it a fit for a **custom tool**. The party that needs to be checked, and reminded to amend, is the main agent that drafts the reply, so the tool belongs to the main agent and must be invoked at its finalization step. Based on that read, the Studio produces a coherent change set:
 
 1. **Inspects the runtime ctx surface** with `luker_ctx_describe` (and reads the relevant docs via `luker_docs_read`) so it knows the exact shape of the data the tool will touch — no guessing.
 2. **Drafts the tool body and dry-runs it** with `luker_orch_dry_run_custom_tool` against sample args so any runtime exception surfaces before you are asked to approve anything.
@@ -124,7 +124,7 @@ The Studio decides how to fulfill the requirement on its own. This is a format c
 
 Decisions the user would otherwise have to spell out — which mechanism best fits, who should call it, what else needs to be updated in sync — the Studio makes on its own from a natural-language request. We do not have to phrase the ask in technical terms.
 
-Each edit still goes through a review card on the ProposalBus — green for additions, red for removals. **Because a custom tool runs JavaScript in your browser, the proposal card carries a safety banner** — expand "View body" to inspect the tool code, confirm that it is a read-only scan with no side effects, then approve. Reject any card whose body you can't read.
+Edits still go through a review card on the ProposalBus — green for additions, red for removals. **Because a custom tool runs JavaScript in your browser, the proposal card carries a safety banner** — expand "View body" to inspect the tool code, confirm that it is a read-only scan with no side effects, then approve. Reject any card whose body you can't read.
 
 ![New tool's code review + security confirmation](/_screenshots/recipes-card-customization/12-tool-review.png)
 

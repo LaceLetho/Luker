@@ -27,7 +27,7 @@ const matches = session.findByName({ query: 'Alice' });
 const ranked = session.keywordSearch({ query: 'sword fight in the inn', k: 5 });
 const semantic = await session.vectorSearch({ query: 'betrayal', k: 5 });
 
-// Write —— 每个写方法都是 async；await 拿到结果。
+// Write —— 每个写方法均为 async；await 拿到结果。
 const { id } = await session.createNode({ type: 'event', title: 'Alice draws her sword', fields: { what: '...' } });
 await session.editNode({ id, setFields: { who: ['Alice', 'Bob'] } });
 await session.upsertLinks({ source: { id }, links: [{ target: { id: 'alice_node' }, relation: 'about' }] });
@@ -39,7 +39,7 @@ await session.compactNodes({ type: 'event', childIds: [...], summary: '...' });
 
 ### 生命周期
 
-每次 `openSession` 调用都会解析当前聊天的 store 快照。如果用户切换聊天，或者你想读取另一条路径刚做出的改动，再次调用 `openSession` 即可 —— 开启会话的开销很低。
+每次 `openSession` 调用均会解析当前聊天的 store 快照。如果用户切换聊天，或者你想读取另一条路径刚做出的改动，再次调用 `openSession` 即可 —— 开启会话的开销很低。
 
 ### 空 store
 
@@ -55,7 +55,7 @@ orchestrator 的 `memory_*` loop 工具会把 `null` 会话翻译成 `ToolError(
 
 ### 方法参考
 
-返回的 session 对象上一共 16 个方法：
+返回的 session 对象上的方法：
 
 | 方法 | 返回 | 备注 |
 | --- | --- | --- |
@@ -80,11 +80,11 @@ orchestrator 的 `memory_*` loop 工具会把 `null` 会话翻译成 `ToolError(
 
 ### 底层访问
 
-`getMemoryGraphReadApi(store, context)` 与 `getMemoryGraphWriteApi(store, context)` 仍然导出，供已经持有 store 引用的内部调用方使用（例如原生 `chooseRecallRoute` 流水线）。第三方扩展应优先使用 `openSession` —— 会话外观把 store 加载、空聊天兜底、通过 Luker 标准 extension api 的注册都收在了一处。
+`getMemoryGraphReadApi(store, context)` 与 `getMemoryGraphWriteApi(store, context)` 仍然导出，供已经持有 store 引用的内部调用方使用（例如原生 `chooseRecallRoute` 流水线）。第三方扩展应优先使用 `openSession` —— 会话外观把 store 加载、空聊天兜底、通过 Luker 标准 extension api 的注册均收在了一处。
 
 ## 角色级 override 访问器
 
-除了 `openSession`，`'memory-graph'` 这个 extension api 还发布了六个访问器，给其他插件用于读取或写入活动角色卡上的 character-bound override。CardApp 的 `ctx.getMemoryGraphSchema` / `setMemoryGraphSchema` / `setMemoryGraphAdvanced`，以及 CardApp Studio 的工具 `character_get_memory_graph` / `character_update_memory_graph_schema` / `character_update_memory_graph_advanced` 都走这同一套接口。
+除了 `openSession`，`'memory-graph'` 这个 extension api 还发布了访问器，给其他插件用于读取或写入活动角色卡上的 character-bound override。CardApp 的 `ctx.getMemoryGraphSchema` / `setMemoryGraphSchema` / `setMemoryGraphAdvanced`，以及 CardApp Studio 的工具 `character_get_memory_graph` / `character_update_memory_graph_schema` / `character_update_memory_graph_advanced` 均走这同一套接口。
 
 ```js
 const mg = ctx.getExtensionApi('memory-graph');
@@ -115,7 +115,7 @@ await mg.removeCharacterAdvancedOverride(ctx, avatar);
 
 除了 `openSession` 和 override 访问器，`'memory-graph'` extension api 还发布了一组查询方法，供外部前端（例如内联消息 UI、侧栏查看器）和任何想做定向节点 / 边访问、又不想开整套 session 的扩展使用，提供对当前聊天 store 的只读、冻结访问。
 
-所有返回值都遵守 `openSession` 读面同一套 `NodeView` / `EdgeView` 冻结契约 —— 调用方永远不会获得可变的 store 引用。
+所有返回值均遵守 `openSession` 读面同一套 `NodeView` / `EdgeView` 冻结契约 —— 调用方永远不会获得可变的 store 引用。
 
 ```js
 const mg = ctx.getExtensionApi('memory-graph');
@@ -143,7 +143,7 @@ const projection = await mg.getLastRecallProjection(ctx);
 | `getCurrentInjection(ctx)` | `InjectionState \| null` | 当前主流注入状态的防御性拷贝；见 [InjectionState](#injectionstate)。 |
 | `getLastRecallProjection(ctx)` | `Promise<LastRecallProjection \| null>` | 上一轮召回实际注入的 `corePacket` + `focusPacket` 文本的冻结快照；见 [LastRecallProjection](#lastrecallprojection)。 |
 
-每次查询都会针对活动 store 打开一个短生命周期的 read-api 工厂。一次性发起多次查询的调用方应改走 `openSession()` —— 一个工厂可以服务所有读取。
+每次查询均会针对活动 store 打开一个短生命周期的 read-api 工厂。一次性发起多次查询的调用方应改走 `openSession()` —— 一个工厂可以服务所有读取。
 
 ### 读取上一轮召回投影
 
@@ -159,11 +159,11 @@ if (projection) {
 }
 ```
 
-runtime store 无法加载或该聊天尚未执行过召回时返回 `null`。返回对象为冻结的防御性拷贝；`blocks` 的两个字段始终为字符串（packet 为空时也是空串，不会是 `undefined`）。
+runtime store 无法加载或该聊天尚未执行过召回时返回 `null`。返回对象为冻结的防御性拷贝；`blocks` 的字段始终为字符串（packet 为空时也是空串，不会是 `undefined`）。
 
 ## 变更订阅
 
-`'memory-graph'` extension api 还发布了两个观察者钩子，供想响应 store / 注入变化、又不想轮询的调用方使用。
+`'memory-graph'` extension api 还发布了观察者钩子，供想响应 store / 注入变化、又不想轮询的调用方使用。
 
 ```js
 const mg = ctx.getExtensionApi('memory-graph');
@@ -204,9 +204,9 @@ mg.offStoreCommit(callback);
 
 读 API 是严格只读的：
 
-- 返回的视图都是深冻结的纯对象 / 数组 / Set。工厂从不返回 store 内部引用。
+- 返回的视图均为深冻结的纯对象 / 数组 / Set。工厂从不返回 store 内部引用。
 - 视图在每次调用时从传入的 store 合成，所以单个 API 实例在该 store 引用的生命周期内始终有效。
-- 所有变更都走 Write API；读工厂不暴露写路径。
+- 所有变更均走 Write API；读工厂不暴露写路径。
 
 ## 快速开始
 
@@ -230,7 +230,7 @@ import { getMemoryGraphReadApi } from '/scripts/extensions/memory-graph/read-api
 
 const api = getMemoryGraphReadApi(store, context);
 const candidates = api.listVisibleCandidates();
-// ... onInjectionChanged、listNodes、projectEdges 等方法都挂在这里。
+// ... onInjectionChanged、listNodes、projectEdges 等方法均挂在这里。
 const unsubscribe = api.onInjectionChanged(state => {
     console.log('injection changed', state.alwaysInjectIds.size, state.recallSelectedIds.size);
 });
@@ -238,7 +238,7 @@ const unsubscribe = api.onInjectionChanged(state => {
 
 ## 类型参考
 
-所有接口都以深冻结的纯对象返回（标注为 `ReadonlySet` 的字段会被冻结 `Set` 包一层）。
+所有接口均以深冻结的纯对象返回（标注为 `ReadonlySet` 的字段会被冻结 `Set` 包一层）。
 
 ### NodeView
 
@@ -321,7 +321,7 @@ interface LastRecallProjection {
 }
 ```
 
-上一轮召回时记忆图实际注入到主聊天 prompt 的预渲染文本。`corePacket` 承载 always-inject 节点，`focusPacket` 承载被召回选中的节点（markdown 表格形式）。两个字符串始终存在（packet 为空时也是空串）。通过 [`getLastRecallProjection`](#读取上一轮召回投影) 获取。
+上一轮召回时记忆图实际注入到主聊天 prompt 的预渲染文本。`corePacket` 承载 always-inject 节点，`focusPacket` 承载被召回选中的节点（markdown 表格形式）。这些字符串始终存在（packet 为空时也是空串）。通过 [`getLastRecallProjection`](#读取上一轮召回投影) 获取。
 
 ### SchemaSpecView
 
@@ -383,7 +383,7 @@ interface NodeBriefView {
 
 - 默认 `activeOnly: true` —— 排除归档节点和召回诊断节点（过滤规则与原生 `collectAlwaysInjectNodes` 一致）。
 - 按 `compareNodesByTimeline` 排序（seqTo 升序，id 平手）—— 用于离线分析的稳定时间线顺序。这与 `listVisibleCandidates` **不同**，后者按 `compareNodesByRecency` 排序（seqTo 降序、depth 降序、id 字典序）。
-- 返回冻结的 `NodeView` 对象的冻结数组。数组本身、每个视图、每个 `fields` record、每个 `childrenIds` 数组都是冻结的。
+- 返回冻结的 `NodeView` 对象的冻结数组。数组本身、每个视图、每个 `fields` record、每个 `childrenIds` 数组均为冻结的。
 
 **何时使用：** 对整个 store 做离线扫描 —— 调试、一次性统计、穷举遍历。复刻召回的热路径调用方应改用 `listVisibleCandidates`，它的顺序跟路由 LLM 输入对齐，且已经应用了召回侧过滤。
 
@@ -439,7 +439,7 @@ console.log(mentions.length, 'semantic mention edges');
 **契约：**
 
 - 返回角色卡生效后的 schema（即 `getEffectiveNodeTypeSchema(context, settings)`）。角色卡 override（若有）已经应用。
-- 每个 `SchemaSpecView` 都是冻结的，内部数组（`tableColumns`、`requiredColumns`、`primaryKeyColumns`）也都是冻结的。
+- 每个 `SchemaSpecView` 均为冻结的，内部数组（`tableColumns`、`requiredColumns`、`primaryKeyColumns`）同样冻结。
 - 这是原生召回 LLM 输入中 `schema_overview` 区块的源数据。
 
 **何时使用：** 构造 `schema_overview` prompt 区块时，或基于 schema 派生信息（哪些列是主键、哪些是必填等）做反射时。
@@ -463,7 +463,7 @@ for (const spec of schema.types) {
 
 - 默认 `direction: 'both'`，默认 `projectTo: 'raw'`。
 - `projectTo: 'raw'` 时返回存储原貌的邻居（不做 rollup 替换）。
-- `projectTo: 'visible'` 时，每个原始邻居 id 都会用当前 `visibleIds` 执行一次 `getNearestVisibleAncestorId`；不能 rollup 到可见集合内的邻居会被丢弃。
+- `projectTo: 'visible'` 时，每个原始邻居 id 均会用当前 `visibleIds` 执行一次 `getNearestVisibleAncestorId`；不能 rollup 到可见集合内的邻居会被丢弃。
 - `projectTo: string[]` 时，用调用方提供的 visible 集合做同样的替换。
 - 归档邻居总是被过滤。
 - 按 `(neighborId, edgeType, direction)` 去重。
@@ -551,7 +551,7 @@ const rollup = api.getNearestVisibleAncestor('event_99', { visibleNodeIds: visib
 
 - `visibleNodeIds` **必填**。
 - 默认 `excludeInternal: true` —— 剥除 `contains` / `semantic_contains` 边（与 `expandFromSeeds` 不同，后者默认 `false`，以对齐 `expandRouteCandidates`）。
-- 对每条原始边，两端都会被上卷到最近的可见祖先；两端中任何一端 rollup 不到可见集合的边会被丢弃。
+- 对每条原始边，两端均会被上卷到最近的可见祖先；两端中任何一端 rollup 不到可见集合的边会被丢弃。
 - 投影后 `(from, to, type)` 相同的边会被折叠；`weight` 是底层原始边的计数。
 - 返回带 `weight` 的冻结 `EdgeView` 对象。
 - 实现直接 re-export 内部的 `buildProjectedEdges` —— 没有偏移风险。
@@ -601,7 +601,7 @@ console.log(candidates.length, 'visible candidates');
 - 层级压缩类型的 semantic 节点返回 `'high_only'`（它们的字段被门控到仅"高重要性"）。
 - 其他任何活跃节点返回 `'full'`。
 - 节点不存在或已归档时返回 `null`。
-- 每次调用都重新计算，因此角色卡 override 立即生效。
+- 每次调用均重新计算，因此角色卡 override 立即生效。
 
 **何时使用：** 决定自定义 prompt 中要渲染节点字段 payload 的哪一部分。镜像原生路由器的门控。
 
@@ -830,7 +830,7 @@ unsubscribe();
 
 ## 实战示例：复刻原生召回 LLM 输入
 
-`chooseRecallRoute` 构造的两个 LLM 输入区块是 `schema_overview` 和 `candidateRows`。用本 API 复刻它们非常直接：
+`chooseRecallRoute` 构造的 LLM 输入区块是 `schema_overview` 和 `candidateRows`。用本 API 复刻它们非常直接：
 
 ```js
 import { getExtensionApi } from '/scripts/extensions.js';
@@ -861,7 +861,7 @@ const candidateRows = candidates.map(view => api.getNodeBrief(view.id, {
 // recall_query_context to your own recall LLM (with whatever model / preset you prefer).
 ```
 
-完整的等价性保证 —— `candidateRows` 在字段层面和顺序层面都与原生路由器的输入一致 —— 由 dogfood 测试（`tests/memory-graph/read-api-dogfood.test.js`）强制保证，它通过 API 构造出相同的区块，并对原生 `chooseRecallRoute` 的内部状态断言结构相等。
+完整的等价性保证 —— `candidateRows` 在字段层面和顺序层面均与原生路由器的输入一致 —— 由 dogfood 测试（`tests/memory-graph/read-api-dogfood.test.js`）强制保证，它通过 API 构造出相同的区块，并对原生 `chooseRecallRoute` 的内部状态断言结构相等。
 
 ## Write API
 
@@ -897,9 +897,9 @@ const persistingApi = getMemoryGraphWriteApi(store, context, {
     - `{ op: 'delete', nodeId }` —— 删除一个节点。
     - `{ op: 'link_upsert', sourceNodeId? | sourceRef?, links: [{ targetNodeId? | targetRef?, relation, direction? }] }` —— 添加关系边。同批次 `ref` 在调用内解析。
     - `{ op: 'link_delete', sourceNodeId, targetNodeId, relation, direction? }` —— 移除一条关系边。
-- 下面的逐 op 原语都是便利封装 —— 它们各自构造一个单 op 批次，然后走同一条流水线。
+- 下面的逐 op 原语均为便利封装 —— 它们各自构造一个单 op 批次，然后走同一条流水线。
 
-**何时使用：** 任何一个逻辑动作产生多 op 的 agent —— 原子性、批次级的 `ref` 解析、可预测的失败报告都在这一层。
+**何时使用：** 任何一个逻辑动作产生多 op 的 agent —— 原子性、批次级的 `ref` 解析、可预测的失败报告均在这一层。
 
 **最小示例：**
 
@@ -923,7 +923,7 @@ console.log(applied.length, 'applied;', rejected.length, 'rejected');
 - 返回新节点的 `id`。若提供了 `ref`，会把同一个 `ref` 一并回传，以便调用方在同批次后续的 `upsertLinks` 中引用。
 - 底层批次拒绝该 op（例如 schema 校验失败）时抛 `{ code: 'OP_FAILED', rejected }`。
 
-**何时使用：** 一次性的单节点创建。如果同一个逻辑动作里要 create-plus-link，优先用 `applyExtractionBatch`，这样 link 解析和回滚边界对整个意图都生效。
+**何时使用：** 一次性的单节点创建。如果同一个逻辑动作里要 create-plus-link，优先用 `applyExtractionBatch`，这样 link 解析和回滚边界对整个意图均生效。
 
 **最小示例：**
 
@@ -1061,10 +1061,10 @@ if (groups.length > 0) {
 
 - `listNodes` / `listEdges` 会遍历整个 store —— 仅用于离线 / 一次性分析。开销随节点 / 边数线性增长。
 - `listVisibleCandidates` 是热路径上的对应物 —— 开销与一次原生 `collectRootCandidates` 调用相当。它已预先应用召回侧过滤，调用方不必重复这部分工作。
-- `getEdgeSummary` / `projectEdges` 不缓存 —— 每次调用都从原始边重新计算。对典型召回 workload（每轮 1-2 次调用）这是可接受的。如果在热循环中逐个候选调用 `getEdgeSummary`，可以以 visible-id 集合为 key 自行缓存结果。
+- `getEdgeSummary` / `projectEdges` 不缓存 —— 每次调用均从原始边重新计算。对典型召回 workload（每轮 1-2 次调用）这是可接受的。如果在热循环中逐个候选调用 `getEdgeSummary`，可以以 visible-id 集合为 key 自行缓存结果。
 - `keywordSearch` 在候选池上做纯 token 重合 —— 同步、永远可用、不回退到 recency。`vectorSearch` 依赖向量索引已构建并已配置 embedding profile；它会抛 `NO_EMBEDDING_PROFILE` 而不是静默回退，所以调用方自行决定回退策略（通常是 `keywordSearch`）。
 - Write-API ops 会在批次边界持久化 store 并重建下游索引（向量 / edge summary）。一组同属一个逻辑动作的 op，优先用 `applyExtractionBatch` 而不是逐原语调用 —— 这样回滚 / 持久化边界对整个批次生效。
-- 所有返回的视图都在构造时惰性冻结。对已冻结对象再次冻结是 no-op，因此对同一节点的重复读取在消费方一侧开销很低。
+- 所有返回的视图均在构造时惰性冻结。对已冻结对象再次冻结是 no-op，因此对同一节点的重复读取在消费方一侧开销很低。
 
 ## 参见
 

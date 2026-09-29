@@ -4,7 +4,7 @@ Luker provides a WebSocket (WS) proxy feature that transmits AI generation reque
 
 ## What is WS Proxy
 
-In the traditional approach, each AI generation request is an independent HTTP request. If the network fluctuates, the request may be interrupted, causing generation results to be lost.
+In the traditional approach, AI generation requests are independent HTTP requests. If the network fluctuates, the request may be interrupted, causing generation results to be lost.
 
 The WS proxy transmits these requests through a **persistent WebSocket connection**. Once a WebSocket connection is established, it remains open, and all generation requests and responses communicate bidirectionally through this connection, without the need to repeatedly establish new connections.
 
@@ -132,7 +132,7 @@ Native browser `WebSocket` does not let JavaScript set HTTP headers, so the upgr
 | Ticket in transit (MITM) | n/a | 30 s TTL + single-use, infeasible over HTTPS |
 | Ticket replay | n/a | single-use, deleted on consume |
 
-- **Tickets do not carry user identity.** They authorize *channel access* only. Per-user identity is decided on every dispatched request by `cookieSession` + `setUserDataMiddleware` + `requireLoginMiddleware`. A stolen ticket gives an attacker exactly nothing if they don't also have a valid login session — and if they have one, they could mint their own ticket anyway.
+- **Tickets do not carry user identity.** They authorize *channel access* only. Per-user identity is decided on dispatched requests by `cookieSession` + `setUserDataMiddleware` + `requireLoginMiddleware`. A stolen ticket gives an attacker exactly nothing if they don't also have a valid login session — and if they have one, they could mint their own ticket anyway.
 - **The Symbol cannot be forged.** `WS_PROXY_AUTH_BYPASS` is a module-private `Symbol`; no header, query parameter, or body field can install a same-key property on the request object.
 - **Application-layer middleware still runs.** cookieSession, CSRF, setUserData, and requireLogin gate every dispatched request regardless of the bypass marker. Unauthenticated callers — even those holding a valid ticket — are still rejected.
 
@@ -141,7 +141,7 @@ Native browser `WebSocket` does not let JavaScript set HTTP headers, so the upgr
 - **Heartbeat keepalive**: Client and server periodically exchange heartbeat messages, preventing intermediate network devices from timing out idle connections
 - **Stream offset recovery**: If the connection briefly drops mid-generation, the client can reconnect and resume from the breakpoint
 - **Job cleanup**: Stale jobs are detected via the `lastActivity` timestamp rather than `createdAt`, ensuring active long-running generations are never killed by accident
-- **Re-mint ticket on reconnect**: Each reconnection first calls `POST /api/ws-ticket` for a fresh ticket; the old ticket has already been consumed and cannot be reused.
+- **Re-mint ticket on reconnect**: On reconnect, the client first calls `POST /api/ws-ticket` for a fresh ticket; the old ticket has already been consumed and cannot be reused.
 
 
 ## Use Cases

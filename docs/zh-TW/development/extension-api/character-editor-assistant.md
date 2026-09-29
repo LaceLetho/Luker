@@ -1,6 +1,6 @@
 # Character Editor Assistant Extension API
 
-`character-editor-assistant`（CEA）擴充透過 Luker 的 extension 註冊表發布三個 helper，讓其他外掛擁有的迭代工作台能複用 CEA 的 helper-tool 面，而不必跨外掛邊界 import。這正是編排器 iter-studio 彈窗和記憶圖 schema iter-studio 彈窗共同消費的介面。
+`character-editor-assistant`（CEA）擴充透過 Luker 的 extension 註冊表發布 helper，讓其他外掛擁有的迭代工作台能複用 CEA 的 helper-tool 面，而不必跨外掛邊界 import。這正是編排器 iter-studio 彈窗和記憶圖 schema iter-studio 彈窗共同消費的介面。
 
 ## 為什麼需要這套介面
 
@@ -44,13 +44,13 @@ buildCharacterEditorHelperApis(
 - `context` —— SillyTavern context（必須暴露 `characters`、`loadWorldInfo`、……）。
 - `opts.avatar` —— 角色 avatar，用於把 lorebook / world-book-list 介面限定到正確的角色卡。全域彈窗可省略。
 
-回傳的陣列恆定包含四個 helper（lorebook 讀、lorebook 寫、simulate、world-book-list），當 `globalThis.Luker.searchTools` 接好時會額外多一個 web 搜尋 helper。
+回傳的陣列恆定包含以下 helper（lorebook 讀、lorebook 寫、simulate、world-book-list），當 `globalThis.Luker.searchTools` 接好時會額外附帶 web 搜尋 helper。
 
 ### `runCharacterEditorHelperToolCall(call, helperApis)`
 
 分發一次 helper 工具呼叫。呼叫端傳入 `buildCharacterEditorHelperApis` 回傳的 helper API 陣列；分發器透過 `isToolName` 找到匹配的 helper 並轉發。匹配不到時拋 `Unsupported helper tool: <name>`。
 
-這正是 iter-studio 彈窗注入到共享的 `iteration-library/tools/lorebook-reads.js` 和 `lorebook-writes.js` 裡的分發器 —— 那兩個模組本身與外掛無關，按呼叫注入分發器。
+這正是 iter-studio 彈窗注入到共享的 `iteration-library/tools/lorebook-reads.js` 和 `lorebook-writes.js` 裡的分發器 —— 這些模組本身與外掛無關，按呼叫注入分發器。
 
 ### `applyCharacterEditorLorebookProposal(context, { kind, args })`
 

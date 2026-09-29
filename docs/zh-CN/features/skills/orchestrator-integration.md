@@ -2,7 +2,7 @@
 
 本页介绍 Skill 如何挂载到编排器 profile，以及每个 agent 在派遣时如何看到正确的 Skill 集合。
 
-整体而言，编排器 profile 在两个层级上带有 `skills` 策略 —— **模式级**（默认值）与**每 agent 覆写** —— 运行时在每次派遣前把两层与物理库存对账。agent 只看到它解析后的可见集；其余被过滤掉。
+整体而言，编排器 profile 带有 `skills` 策略：**模式级**（默认值）与 **agent 级覆写**，运行时在派遣前与物理库存对账。agent 只看到它解析后的可见集；其余被过滤掉。
 
 ## 策略形状
 
@@ -39,9 +39,9 @@
 }
 ```
 
-`visible` 与 `deny` 都是**只有名字**的列表 —— 没有作用域前缀。解析器遍历三个物理作用域，按名字匹配（后者优先：character > preset > global）。
+`visible` 与 `deny` 均为**只有名字**的列表 —— 没有作用域前缀。解析器遍历物理作用域，按名字匹配（后者优先：character > preset > global）。
 
-## 三条解析规则
+## 解析规则
 
 派遣 agent 时，运行时从模式 + agent 两个块算出有效的 `visible` 与 `deny`：
 
@@ -108,7 +108,7 @@
 
 ## agent 实际看到什么
 
-策略解析完之后，运行时在派遣时交给 agent 两件东西：
+策略解析完之后，运行时在派遣时交给 agent 以下内容：
 
 ### 1. 自动注入的目录
 
@@ -129,7 +129,7 @@
 
 默认 director profile 的约 18 项合计约 150–300 token，开销很低。
 
-### 2. 三个函数工具
+### 2. 函数工具
 
 被限制在可见集内，这是 agent 唯一能拿到 Skill 内容的方式：
 
@@ -188,11 +188,11 @@ agent 真正需要正文时才会调用 `skill_read`。`skill_search` 适用于 
 
 读这份策略：
 
-- **每个 agent 都拿到 5 条共享写作规则** —— 通过模式级 visible。
+- **每个 agent 均拿到 5 条共享写作规则** —— 通过模式级 visible。
 - **主代理额外拿到** 回合工作流 + 派遣协议 —— 它特有的职责。
 - **每个子代理额外拿到自己的方法 Skill** —— `voice_critic` 读 `voice-critic-method-zh`，`memory_curator` 读 `event-summary-rules-zh`，依此类推。
 
-没有任何一个 agent 的 `skills.visible` 重复模式级条目。`"+"` 前缀让每条 per-agent 覆写都很短 —— 只列出这个 agent 特有的部分，而不是整摞栈。
+没有任何一个 agent 的 `skills.visible` 重复模式级条目。`"+"` 前缀让 per-agent 覆写均很短 —— 只列出这个 agent 特有的部分，而不是整摞栈。
 
 ## 各模式行为
 
@@ -206,7 +206,7 @@ agent 真正需要正文时才会调用 `skill_read`。`skill_search` 适用于 
 | **agenda** | Planner + 每个被派遣 worker 的系统消息 | `planner.skills` + `workers[].skills` |
 | **single** | 该单一节点的系统消息 | `node.skills` |
 
-所有模式下，没有显式 `skills.skills` 字段的 agent 都通过上文规则 1 继承模式级默认值。
+所有模式下，没有显式 `skills.skills` 字段的 agent 均通过上文规则 1 继承模式级默认值。
 
 ::: info 审查节点跳过目录注入
 spec 模式的审查节点（review nodes）的目录注入是有意跳过的 —— 审查是结构化的判断任务而不是内容生成任务，给它的 prompt 加 `<available_skills>` 只是噪音。审查节点仍然可以显式调 `skill_list` 或 `skill_read` 看到 Skill，但自动注入的目录被省略。
@@ -222,7 +222,7 @@ spec 模式的审查节点（review nodes）的目录注入是有意跳过的 �
 这种「软失败」行为是有意的。意味着：
 
 - 导入一张跳过了内嵌 Skill 的角色卡不会造成任何破坏 —— 这些引用只是悬空。
-- 删除一个 Skill 不需要清理每一个引用它的 profile。
+- 删除一个 Skill 不需要清理引用它的 profile。
 - 重命名一个 Skill 只需一步——引用会失效，但派遣仍可正常工作，直到你选择修复。
 
 ## 编辑策略
@@ -247,7 +247,7 @@ spec 模式的审查节点（review nodes）的目录注入是有意跳过的 �
 
 ## 相关
 
-- [Skills 概览](/zh-CN/features/skills/) —— 什么是 Skill、三种作用域
+- [Skills 概览](/zh-CN/features/skills/) —— 什么是 Skill、作用域
 - [创作 Skill](/zh-CN/features/skills/authoring) —— 写自己的
 - [Skill 管理](/zh-CN/features/skills/management) —— 安装 / 迁移 / 删除
 - [Director 模式](/zh-CN/features/orchestrator/director) —— 出厂自带完整 Skill 集成的典型多 agent profile

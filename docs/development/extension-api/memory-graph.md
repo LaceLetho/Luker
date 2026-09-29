@@ -55,7 +55,7 @@ The orchestrator's `memory_*` loop tools translate a `null` session into `ToolEr
 
 ### Method reference
 
-All 16 methods on the returned session object:
+Methods on the returned session object:
 
 | Method | Returns | Notes |
 | --- | --- | --- |
@@ -84,7 +84,7 @@ For full signatures of each method, see the **Read API** and **Write API** secti
 
 ## Per-character override accessors
 
-Alongside `openSession`, the `'memory-graph'` extension api publishes six accessors that other plugins can use to read or persist a character-bound override on the active card. The same surface backs CardApp's `ctx.getMemoryGraphSchema` / `setMemoryGraphSchema` / `setMemoryGraphAdvanced` and the CardApp Studio tools `character_get_memory_graph` / `character_update_memory_graph_schema` / `character_update_memory_graph_advanced`.
+Alongside `openSession`, the `'memory-graph'` extension api publishes accessors that other plugins can use to read or persist a character-bound override on the active card. The same surface backs CardApp's `ctx.getMemoryGraphSchema` / `setMemoryGraphSchema` / `setMemoryGraphAdvanced` and the CardApp Studio tools `character_get_memory_graph` / `character_update_memory_graph_schema` / `character_update_memory_graph_advanced`.
 
 ```js
 const mg = ctx.getExtensionApi('memory-graph');
@@ -159,11 +159,11 @@ if (projection) {
 }
 ```
 
-Returns `null` when the runtime store cannot be loaded or no recall has run for the current chat yet. The returned object is a frozen defensive copy; the two `blocks` fields are always strings (empty string when the packet was blank), never `undefined`.
+Returns `null` when the runtime store cannot be loaded or no recall has run for the current chat yet. The returned object is a frozen defensive copy; the `blocks` fields are always strings (empty string when the packet was blank), never `undefined`.
 
 ## Change subscriptions
 
-The `'memory-graph'` extension api also publishes two observer hooks for callers that want to react to store / injection changes without polling.
+The `'memory-graph'` extension api also publishes observer hooks for callers that want to react to store / injection changes without polling.
 
 ```js
 const mg = ctx.getExtensionApi('memory-graph');
@@ -321,7 +321,7 @@ interface LastRecallProjection {
 }
 ```
 
-The pre-rendered text memory-graph actually injected into the main chat's prompt during the previous recall pass. `corePacket` carries always-inject nodes; `focusPacket` carries recall-selected nodes as markdown tables. Both strings are always present (empty string when the packet was blank). Retrieved via [`getLastRecallProjection`](#reading-the-last-recall-projection).
+The pre-rendered text memory-graph actually injected into the main chat's prompt during the previous recall pass. `corePacket` carries always-inject nodes; `focusPacket` carries recall-selected nodes as markdown tables. These strings are always present (empty string when the packet was blank). Retrieved via [`getLastRecallProjection`](#reading-the-last-recall-projection).
 
 ### SchemaSpecView
 
@@ -830,7 +830,7 @@ unsubscribe();
 
 ## Worked Example: replicate the native recall LLM input
 
-The two LLM-input blocks that `chooseRecallRoute` constructs are `schema_overview` and `candidateRows`. With the API, replicating them is direct:
+The LLM-input blocks that `chooseRecallRoute` constructs are `schema_overview` and `candidateRows`. With the API, replicating them is direct:
 
 ```js
 import { getExtensionApi } from '/scripts/extensions.js';

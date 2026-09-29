@@ -1,16 +1,16 @@
 # 编排器工具 API
 
-注册可被编排器四种模式（loop、spec、agenda、director）调度的工具。
+注册可被各编排模式（loop、spec、agenda、director）调度的工具。
 
 ## 什么时候用这个 API
 
-你的扩展提供了一项能力，让某个编排 agent 自主调用会更顺手——查数据库、调第三方 API、跑 Stable Diffusion 出图，都行。如果用户装了编排器扩展，你注册的工具会出现在他们的编排编辑器「自定义工具 → 扩展（来自其他插件）」分组里，由他们按编排粒度决定开还是关。
+你的扩展提供了一项能力，让某个编排 agent 自主调用会更顺手——查数据库、调第三方 API、跑 Stable Diffusion 出图，均可。如果用户装了编排器扩展，你注册的工具会出现在他们的编排编辑器「自定义工具 → 扩展（来自其他插件）」分组里，由他们按编排粒度决定开还是关。
 
 如果用户没装编排器，你的工具也不会丢——注册调用会静默 no-op。你的扩展独立使用时仍然完整可用。
 
 ## API 入口
 
-编排器扩展通过 Luker 的扩展注册表暴露 API。三种入口指向同一组函数引用——按你的代码情境挑一种：
+编排器扩展通过 Luker 的扩展注册表暴露 API。多个入口指向同一组函数引用——按你的代码情境挑一种：
 
 ```js
 import { getExtensionApi } from '/scripts/extensions.js';
@@ -27,7 +27,7 @@ import { registerOrchestrationTool } from
     '/scripts/extensions/orchestrator/register-custom-tool.js';
 ```
 
-任何时候都加一层「编排器是否在场」的保护，让你的扩展在独立装的场景下仍然可用。
+任何时候均加一层「编排器是否在场」的保护，让你的扩展在独立装的场景下仍然可用。
 
 ## registerOrchestrationTool(spec)
 
@@ -59,7 +59,7 @@ import { registerOrchestrationTool } from
 - `ctx.chat`、`ctx.characters`、`ctx.characterId`、`ctx.groups`、`ctx.groupId`、`ctx.name1`、`ctx.name2`
 - `ctx.eventSource`、`ctx.eventTypes` —— 运行时事件总线
 - `ctx.getExtensionApi(name)` —— 其他扩展发布的 API
-- `ctx.registerOrchestrationTool`、`ctx.bridgeSillyTavernTool` 等 —— 本文档介绍的整套 API 都挂在 ctx 上
+- `ctx.registerOrchestrationTool`、`ctx.bridgeSillyTavernTool` 等 —— 本文档介绍的整套 API 均挂在 ctx 上
 
 编排运行时挂的（只在编排过程中存在）:
 
@@ -76,7 +76,7 @@ import { registerOrchestrationTool } from
 
 ## 错误处理
 
-`exec` 和 `simulate` 都可以 `throw`。普通 `Error` 就够用；想要 LLM 能从结构化失败里恢复，附带 `{ code, hint }`：
+`exec` 和 `simulate` 均可以 `throw`。普通 `Error` 就够用；想要 LLM 能从结构化失败里恢复，附带 `{ code, hint }`：
 
 ```js
 throw Object.assign(new Error('Database is read-only.'), {
@@ -103,7 +103,7 @@ throw Object.assign(new Error('Database is read-only.'), {
 
 ## 角色级 override 访问器
 
-除了工具注册接口，`'orchestrator'` 这个 extension api 还发布了六个访问器加一个写入 helper，其他插件用它读取或写入角色级编排 override。CardApp 的 `ctx.getOrchestratorOverride` / `setOrchestratorOverride` / `clearOrchestratorOverride`，以及 CardApp Studio 的工具 `character_get_orchestrator` / `character_update_orchestrator` / `character_clear_orchestrator` 都走这同一套接口。
+除了工具注册接口，`'orchestrator'` 这个 extension api 还发布了访问器与写入 helper，其他插件用它读取或写入角色级编排 override。CardApp 的 `ctx.getOrchestratorOverride` / `setOrchestratorOverride` / `clearOrchestratorOverride`，以及 CardApp Studio 的工具 `character_get_orchestrator` / `character_update_orchestrator` / `character_clear_orchestrator` 均走这同一套接口。
 
 ```js
 const orch = ctx.getExtensionApi('orchestrator');
@@ -135,11 +135,11 @@ orch.applyCharacterExecutionModeForAvatar(ctx, ctx.extensionSettings?.orchestrat
 
 ## Iter-studio 技能工具目录
 
-编排器的 iter-studio 弹窗用一组技能管理工具（库存查询、创作、策略绑定、迁移 helper），其它 iter-studio 风格的弹窗可以把它们 splice 进自己的工具目录。Extension api 上有三个属性暴露这个目录：
+编排器的 iter-studio 弹窗用一组技能管理工具（库存查询、创作、策略绑定、迁移 helper），其它 iter-studio 风格的弹窗可以把它们 splice 进自己的工具目录。Extension api 上的属性暴露这个目录：
 
 | 属性 | 类型 | 用途 |
 | --- | --- | --- |
-| `SKILL_ITER_STUDIO_TOOL_DEFS` | `readonly array` | OpenAI 形状的工具定义（编排器 iter-studio 暴露的 17 个 `skill_*` 工具）。按 `function.name` 过滤出弹窗想要的子集。 |
+| `SKILL_ITER_STUDIO_TOOL_DEFS` | `readonly array` | OpenAI 形状的工具定义（编排器 iter-studio 暴露的 `skill_*` 工具）。按 `function.name` 过滤出弹窗想要的子集。 |
 | `isSkillIterStudioTool(name)` | `(string) => boolean` | 判断一个工具调用名是否属于技能工具的谓词。 |
 | `runSkillIterStudioTool(call, mutationCtx)` | `async ({name, args}, {getWorkingProfile}) => result` | 单次技能工具调用的分发器。纯库存 / 创作 / 迁移 handler 忽略 `mutationCtx`；策略绑定类 handler（`skill_bind_to_agent` / `skill_unbind_from_agent` / `skill_set_mode_defaults` / `skill_replace_in_systemprompt`）则要求 `getWorkingProfile()` 返回一个可变的编排器工作 profile。 |
 
@@ -166,6 +166,6 @@ export function registerMemoryGraphOrchestrationTools() {
 
 ## 相关页面
 
-- [自定义工具（用户文档）](/zh-CN/features/orchestrator/custom-tools) —— 用户视角下三条通道（扩展 / SillyTavern 桥接 / 手写）在编排编辑器里的呈现方式
+- [自定义工具（用户文档）](/zh-CN/features/orchestrator/custom-tools) —— 用户视角下多条通道（扩展 / SillyTavern 桥接 / 手写）在编排编辑器里的呈现方式
 - [插件集成](./plugin-integration.md) —— 注册 `'orchestrator'` 与其他扩展入口的扩展 API 注册表全貌
 - [记忆图扩展 API](./memory-graph.md) —— 本 API 的参考消费者

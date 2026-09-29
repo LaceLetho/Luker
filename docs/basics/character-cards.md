@@ -1,6 +1,6 @@
 # Character Card Basics
 
-Character cards are one of the most fundamental concepts in Luker. A character card defines everything about an AI character — from name and appearance to personality, speech patterns, and even the world they inhabit. Each time you chat with the AI, the information in the character card is sent to the AI model, guiding it to roleplay as that character.
+Character cards are one of the most fundamental concepts in Luker. A character card defines everything about an AI character — from name and appearance to personality, speech patterns, and even the world they inhabit. When you chat with the AI, the information in the character card is sent to the AI model, guiding it to roleplay as that character.
 
 ## What is a Character Card
 
@@ -94,7 +94,7 @@ See [Preset System](/basics/presets) and [Card-Bound Presets and Personas](/impr
 
 ### Orchestration Config
 
-Character cards can carry dedicated multi-agent orchestration configurations. The orchestrator runs multiple AI agents for plot analysis and planning before each response generation, producing orchestration guidance that's injected into the creative AI's context.
+Character cards can carry dedicated multi-agent orchestration configurations. The orchestrator runs multiple AI agents for plot analysis and planning before response generation, producing orchestration guidance that's injected into the creative AI's context.
 
 Card creators can design custom orchestration workflows for specific characters and export them along with the character card. Users can use these orchestration configs immediately after importing the card.
 

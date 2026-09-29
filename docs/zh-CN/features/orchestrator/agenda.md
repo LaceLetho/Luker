@@ -9,10 +9,10 @@ Agenda 用一个 **Planner Agent** 替换 Spec 的静态 DAG。Planner 维护 to
 - 用[Function Call Runtime](/zh-CN/improvements/function-call-runtime)的能力让 Planner 自己组织调度。
 
 ::: tip Agenda 不是 Spec 的替代
-Spec 的可预期性、prompt 缓存友好度、debug 友好度都比 Agenda 强。绝大多数 RP 场景固定 DAG 已经够用，Agenda 是给确实需要动态调度的场景准备的。
+Spec 的可预期性、prompt 缓存友好度、debug 友好度均比 Agenda 强。绝大多数 RP 场景固定 DAG 已经够用，Agenda 是给确实需要动态调度的场景准备的。
 :::
 
-::: warning 99% 的人不该手搓
+::: warning 多数情况下不该手改
 手搓 Planner prompt 之前先看一眼 [AI 迭代工作台](/zh-CN/features/orchestrator/iteration-studio)——一句话描述需求，AI 给你一份 Planner + Agent 池的方案，逐条审。
 :::
 
@@ -36,11 +36,11 @@ Planner 是 Agenda 的核心，它做几件事：
 
 ### Agenda Agents
 
-每个 Agenda Agent 类似 Spec 的 Node：有自己的 System Prompt、User Prompt Template、可选的 API / Chat Completion 预设覆写。区别在于 Agent 不绑死在某个 stage，**何时被调用、被调用几次、是否被调用，都由 Planner 决定**。
+每个 Agenda Agent 类似 Spec 的 Node：有自己的 System Prompt、User Prompt Template、可选的 API / Chat Completion 预设覆写。区别在于 Agent 不绑死在某个 stage，**何时被调用、被调用几次、是否被调用，均由 Planner 决定**。
 
-### 三个运行时上限
+### 运行时上限
 
-Agenda 是动态调度，失控容易，所以有三道闸：
+Agenda 是动态调度，失控容易，所以设有几道闸：
 
 - **Planner 最大轮数** — Planner 调度的轮数上限
 - **最大并发 Agent 数** — 同时跑的 Agent 数量上限（`Promise.all` 的并发度）
@@ -50,7 +50,7 @@ Agenda 是动态调度，失控容易，所以有三道闸：
 
 ## 默认编排流程
 
-Agenda 把节奏交给 Planner Agent 来定，Planner 每轮从一个 worker 池里挑人派活。默认 profile 自带 Planner + 5 个 worker（`distiller`、`lorebook_reader`、`planner`、`critic`、`finalizer`）；每轮 Planner 派出一个或多个 worker、读回结果、必要时重新规划，看板搞定后由 `finalizer` 落笔写 capsule。
+Agenda 把节奏交给 Planner Agent 来定，Planner 从 worker 池里挑人派活。默认 profile 自带 Planner 与 worker 池（`distiller`、`lorebook_reader`、`planner`、`critic`、`finalizer`）；Planner 派出 worker、读回结果、必要时重新规划，看板搞定后由 `finalizer` 产出 capsule。
 
 ```d2
 direction: down
@@ -87,7 +87,7 @@ loop: "Planner 主导的动态调度" {
   pool -> driver: "结果回收 · 必要时重新规划"
 }
 
-finalizer: "finalizer\n读完最终的看板 · 落笔写编排指引 capsule" {
+finalizer: "finalizer\n读完最终的看板 · 产出编排指引 capsule" {
   style.fill: "#c8e6c9"
 }
 
@@ -105,7 +105,7 @@ finalizer -> out
 
 | Agent | 作用 | 简单示例（RP 场景） |
 |---|---|---|
-| `Planner`（循环驾驶员，非 worker） | 读聊天和用户消息，维护 todo 看板（`add` / `set_status` / `drop`），每轮从下面的 worker 池里挑一个或多个派活，读回结果，决定是继续规划还是交给 `finalizer`。 | 第 1 轮：并行派 `distiller` + `lorebook_reader`。第 2 轮：读完输出，判断还需要 `planner` 与 `critic`。第 3 轮：交给 `finalizer`。 |
+| `Planner`（循环驾驶员，非 worker） | 读聊天和用户消息，维护 todo 看板（`add` / `set_status` / `drop`），从下面的 worker 池里挑人派活，读回结果，决定是继续规划还是交给 `finalizer`。 | 并行派 `distiller` + `lorebook_reader`；读完输出，判断还需要 `planner` 与 `critic`；交给 `finalizer`。 |
 | `distiller` | 紧凑、有据可查的场景状态读取（用户意图、当前张力、即时方向）；写给 Planner 与下游 agent 看，不直接面向玩家。 | 「林晚在试探用户对洛阳话题的态度；如果用户绕开，她会彻底换话题。」 |
 | `lorebook_reader` | 只挑出本回合**真的有影响**的世界书 / world-info 约束，写成可执行的写作 / 行为约束，不抄世界书原文。 | 「洛阳被围 —— 林晚不可能离开。文风：别用现代词，她会说『不知怎的』而非『somehow』。」 |
 | `planner` | 场景进程分析师 —— 提下一拍该走哪些 beat / 决策点，保留因果、不让世界围着用户转。 | 节拍：「用户追问 → 她躲闪 → 换个角度再问 → 她漏出一个洛阳细节 → 回复停在那」。 |
@@ -127,17 +127,17 @@ finalizer -> out
 
 Agenda 模式的 Planner 调度通过 OpenAI 工具调用实现，依赖 Luker 的 [Function Call Runtime](/zh-CN/improvements/function-call-runtime)框架。这意味着：
 
-- Planner 用的连接配置必须支持 function calling（OpenAI / Claude / Gemini 都支持）
+- Planner 用的连接配置必须支持 function calling（OpenAI / Claude / Gemini 均支持）
 - 工具调用失败时的重试由 Function Call Runtime 处理（详见对应文档）
 
 ## 看一次 Agenda 跑
 
-[运行面板](/zh-CN/features/orchestrator/#step-4) 会实时显示每次 Agenda 运行。每一轮 Planner 是一张卡片，该轮派发的每个 worker 是它下面的子卡片，展开就能看到完整推理和输出。Agenda 模式可以重点关注：
+[运行面板](/zh-CN/features/orchestrator/#step-4) 会实时显示 Agenda 运行。Planner 轮次是卡片，该轮派发的 worker 是它下面的子卡片，展开就能看到完整推理和输出。Agenda 模式可以重点关注：
 
-- **每轮 Planner 输出** —— `todo_ops` 列表（`set_status` / `add` / `set_goal` 等），就地展开。Planner 派错 agent、漏步、死循环时，对照这些 ops 与 worker 输出找根因。
-- **worker 派发** —— 该轮 Planner 调起来的每个 worker 都在这一轮的卡片下。展开能看到入参与输出。
+- **Planner 输出** —— `todo_ops` 列表（`set_status` / `add` / `set_goal` 等），就地展开。Planner 派错 agent、漏步、死循环时，对照这些 ops 与 worker 输出找根因。
+- **worker 派发** —— 该轮 Planner 调起来的每个 worker 均在这一轮的卡片下。展开能看到入参与输出。
 - **Final Agent 输出** —— run 末尾的最后一个 worker（默认是 `finalizer`）产出注入主模型的 capsule。配置参考里能换成其他 agent id。
-- **事件密度** —— Agenda 一次 run 通常会有 20+ 事件（Planner 轮次 + 每次派发都会留下记录），所以面板比 Spec 看起来更密。
+- **事件密度** —— Agenda 一次 run 的事件记录较密（Planner 轮次与派发均会留下记录），所以面板比 Spec 看起来更密。
 
 面板顶部的**导出**按钮把整次 run 下载为 JSON（便于回报问题）。
 

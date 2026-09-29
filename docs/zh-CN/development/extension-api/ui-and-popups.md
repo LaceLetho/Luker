@@ -282,7 +282,7 @@ toastr.error('Import failed: ' + error.message);
 
 ## 共享组件
 
-用于常见扩展抽屉 / 弹窗 UI 模式的可复用 HTML 字符串生成器。每个组件都在三层 API 上暴露。
+用于常见扩展抽屉 / 弹窗 UI 模式的可复用 HTML 字符串生成器。每个组件均在各层 API 上暴露。
 
 ### renderLukerTabs
 
@@ -298,7 +298,7 @@ renderLukerTabs(options: {
 
 为扩展抽屉或弹窗 UI 渲染一个分页面板。返回完整的 HTML 字符串；显隐由模块加载时挂载的委托点击处理器负责切换，调用方只需把返回的标记插入 DOM 即可。分页选择会持久化到 `extension_settings[moduleName].tabState[scope]`——同一个模块下不同的 `scope` 各自保存独立的选择。
 
-三层暴露同一个函数：
+各层暴露同一个函数：
 
 ```js
 // Layer 1 — ESM
@@ -346,7 +346,7 @@ renderFieldHelpButton(options: {
 
 渲染一个小小的「?」图标按钮，点击后弹出标题 + 正文的弹窗。用于挂在标签或标题旁的通用字段说明。若需要基于预设槽位解析的帮助文本（preset-slot help），请使用 `renderPresetHelpButton`。
 
-三层暴露同一个函数：
+各层暴露同一个函数：
 
 ```js
 // Layer 1 — ESM

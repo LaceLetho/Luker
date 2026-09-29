@@ -1,8 +1,8 @@
 # Search Tools
 
-Search Tools provides AI characters with web search capabilities, allowing characters to retrieve real-time information during conversations and inject search results into the context. The search plugin supports multiple search engine backends and provides two working modes to accommodate different use cases.
+Search Tools provides AI characters with web search capabilities, allowing characters to retrieve real-time information during conversations and inject search results into the context. The search plugin supports multiple search engine backends and provides working modes to accommodate different use cases.
 
-## Two Working Modes
+## Working Modes
 
 ```d2
 direction: right
@@ -68,7 +68,7 @@ Before the creative LLM generates a response, an independent search Agent runs a
 ::: tip Choosing Between Modes
 **Tool Mode** is suitable for scenarios where the model needs to autonomously decide when to search during conversation — for example, when a user asks "What's in the news lately?" the model will automatically call the search tool to get information. Search behavior is autonomously triggered by the model based on conversation content.
 
-**Pre-request Agent Mode** automatically executes searches before each AI generation, with the search process completely separated from the main conversation. Suitable for scenarios where you want every response to be backed by the latest information.
+**Pre-request Agent Mode** automatically executes searches before an AI generation, with the search process completely separated from the main conversation. Suitable for scenarios where you want responses backed by the latest information.
 :::
 
 ## Settings Panel
@@ -77,7 +77,7 @@ All search plugin configuration lives under the "Search Tools" subsection of the
 
 ![Search Tools settings panel](/images/search-tools/search-tools-settings.png)
 
-The two top toggles map to the two modes above ("Expose tools to main model" = Tool Mode, "Run search agent before requests" = Pre-request Agent Mode); they can be enabled independently or together. Below them are engine selection, agent-only presets, and World Info entry injection parameters.
+The top toggles map to the modes above ("Expose tools to main model" = Tool Mode, "Run search agent before requests" = Pre-request Agent Mode); they can be enabled independently or together. Below them are engine selection, agent-only presets, and World Info entry injection parameters.
 
 ## Supported Search Engines
 
@@ -166,9 +166,9 @@ The search plugin monitors message deletion and editing events, automatically ma
 | Setting | Description |
 |---------|-------------|
 | Enable Search Tools | Enable Tool Mode, allowing the model to autonomously call search during conversation |
-| Enable Pre-request Agent | Enable Pre-request Agent Mode, automatically searching before each generation |
+| Enable Pre-request Agent | Enable Pre-request Agent Mode, automatically searching before generation |
 | Search Engine | Select search engine (DuckDuckGo / SearXNG / Brave Search) |
-| Search Result Count | Number of results returned per search |
+| Search Result Count | Number of results returned by a search |
 | Page Extract Characters | Maximum text length extracted when visiting web pages |
 | Safe Search | Safety filtering level for search results |
 | Agent API Preset | API connection preset for the pre-request Agent (empty uses main connection) |

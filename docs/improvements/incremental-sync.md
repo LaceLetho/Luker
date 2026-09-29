@@ -4,9 +4,9 @@ Incremental Sync is Luker's fundamental improvement to SillyTavern's data transm
 
 ## Problem Background
 
-SillyTavern's data saving uses a full-transmission model: every modification (even editing a single character in one message) serializes the entire chat history and sends it to the backend for overwrite. This causes several serious issues:
+SillyTavern's data saving uses a full-transmission model: any modification (even editing a single character in one message) serializes the entire chat history and sends it to the backend for overwrite. This causes several serious issues:
 
-- **Bandwidth waste** — A chat history with hundreds of messages can be hundreds of MB (especially when some plugins store large amounts of data in chat metadata), and every operation requires transmitting the full data
+- **Bandwidth waste** — A chat history with hundreds of messages can be hundreds of MB (especially when some plugins store large amounts of data in chat metadata), and any operation requires transmitting the full data
 - **Write conflicts** — When multiple tabs or devices operate simultaneously, later writes overwrite earlier ones, causing data loss
 - **Performance bottleneck** — Serialization and transmission of large chat histories is itself a performance burden
 - **Save latency** — The I/O overhead of full writes makes real-time saving impossible
@@ -34,7 +34,7 @@ ST: "SillyTavern: full overwrite" {
 
 ## Incremental Endpoints
 
-Luker introduces three incremental endpoints covering different modification scenarios for chat data:
+Luker introduces incremental endpoints covering different modification scenarios for chat data:
 
 ### Append Messages (append)
 
@@ -56,7 +56,7 @@ Deep merge means only fields included in the request are updated; unmentioned fi
 
 ## Integrity Hash Concurrent Conflict Detection
 
-After each write operation completes, the backend generates a new UUID, writes it to the [chat state file](/improvements/backend-storage#chat-state-file), and returns it in the response. The frontend caches this value and includes it in subsequent write requests:
+After a write operation completes, the backend generates a new UUID, writes it to the [chat state file](/improvements/backend-storage#chat-state-file), and returns it in the response. The frontend caches this value and includes it in subsequent write requests:
 
 1. **Match** — Write executes normally, returns a new integrity UUID
 2. **Mismatch** — Returns `409 Conflict`, indicating the file has been modified by another source since the last operation

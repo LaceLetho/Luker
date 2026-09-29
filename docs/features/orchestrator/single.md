@@ -1,6 +1,6 @@
 # Single Agent Mode
 
-Single Agent is the orchestrator's lightest execution mode — one node, one LLM call, producing one capsule that gets injected into the main model. Under the hood it's a degenerate Spec with exactly one node, but because there's no multi-node coordination, the extension drawer gives you two simplified fields and you skip the orchestration editor entirely.
+Single Agent is the orchestrator's lightest execution mode — one node, one LLM call, producing one capsule that gets injected into the main model. Under the hood it's a degenerate Spec with exactly one node, but because there's no multi-node coordination, the extension drawer gives you simplified fields and you skip the orchestration editor entirely.
 
 ::: tip Who is this for
 Workloads that don't need multi-agent collaboration, don't need a tool loop, and only want "a single short briefing" injected into the main model. Examples: a brief OOC reminder, a short lorebook summary, a one-line style constraint. If you're thinking "I wish I could just have the main model read X before replying," this mode probably fits.
@@ -8,7 +8,7 @@ Workloads that don't need multi-agent collaboration, don't need a tool loop, and
 
 ## Switch to Single Agent
 
-In the extension drawer, set the execution mode to **Single Agent**. The Spec / Agenda / Loop editor entry points hide, and the drawer reveals two simplified fields — **System Prompt** and **User Prompt template**.
+In the extension drawer, set the execution mode to **Single Agent**. Spec / Agenda / Loop editor entries hide, and the drawer reveals simplified fields — **System Prompt** and **User Prompt template**.
 
 Write your prompt directly in those fields. No orchestration editor needed.
 
@@ -53,7 +53,7 @@ Switching between the two modes preserves the configuration (System Prompt + Use
 | Dimension | Single Agent | Spec | Agenda | Loop |
 |---|---|---|---|---|
 | LLM calls | 1 | 5–10 | Planner-decided | Agent-decided (default ≤ 20 rounds) |
-| Setup cost | Two fields | Author DAG + per-node prompts | Planner prompt + worker pool | One system prompt + tool toggles |
+| Setup cost | Simplified fields | Author DAG + per-node prompts | Planner prompt + worker pool | One system prompt + tool toggles |
 | Tool calling | ❌ | ❌ | ✅ Planner | ✅ Agent free-call |
 | Variable flow | ❌ | Hard-wired topology | Planner schedules | Agent picks next step |
 | Card override | ✅ | ✅ | ✅ | ✅ |

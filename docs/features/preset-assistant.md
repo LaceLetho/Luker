@@ -51,7 +51,7 @@ The Completion Preset Assistant can not only adjust generation parameters but al
 
 ### Session Modes
 
-The toolbar's "Session mode" tells the assistant how to interpret the editing intent for the current preset, matching three typical preset uses:
+The toolbar's "Session mode" tells the assistant how to interpret the editing intent for the current preset, matching typical preset uses:
 
 - **General editing**: The assistant acts as a generic preset editor, adjusting entries directly per your request without special bias. Default mode.
 - **Agent orchestration preset**: For presets whose downstream consumer is the main agent of a multi-agent orchestrator. The assistant identifies hard format constraints that interfere with tool-calling (forced chains of thought, output schemas, etc.) and rewrites them into soft cognitive hints rather than deleting them; conditions final-product-only directives (summaries and the like) on "the final committed message" stage; and disables placeholders that duplicate the orchestrator's own injection (character card, user persona, worldbook splice entries) while keeping chat history, jailbreak/bypass, and writing-style entries enabled. NSFW permissions, jailbreaks, and RP voice rules are preserved.
@@ -65,7 +65,7 @@ After deriving an `-orchestrator` preset, the assistant offers a **Bundle skills
 
 ### Authoring skills from preset content (Agent orchestration mode)
 
-In Agent orchestration mode the assistant doesn't just rewrite process-coercion entries — it also **sweeps the preset for reusable writing or output-format rules** that would be more useful as skills (so the orchestrator's sub-agents can read them, not just the main agent). It surfaces what it finds as additional extraction proposals in the same round, each independently approvable.
+In Agent orchestration mode the assistant doesn't just rewrite process-coercion entries — it also **sweeps the preset for reusable writing or output-format rules** that would be more useful as skills (so the orchestrator's sub-agents can read them, not just the main agent). It surfaces what it finds as additional extraction proposals in the same round, independently approvable.
 
 ![CPA popup with Editing mode set to "Adapt for orchestrator"](/_screenshots/skills/cpa-orch-04-orchestrator-mode-selected.png)
 
@@ -79,7 +79,7 @@ Alongside the usual coercion/format rewrites, the assistant proposes per-candida
 2. Remove the slice from the source prompt entry.
 3. Splice in a one-line pointer like `参考 skill <skill-name>` at the same anchor so the entry still acknowledges the rule's existence — the orchestrator agent reads the pointer and pulls the full skill on demand.
 
-Each extraction lands as its own diff card under the existing per-edit Approve / Reject review — you can take some, leave others, or reject them all and the rest of the adapt still applies.
+Extractions land as diff cards under the existing per-edit Approve / Reject review — you can take some, leave others, or reject them all and the rest of the adapt still applies.
 
 ![CPA round showing the Create skill tool chip after the AI commits the skill](/_screenshots/skills/cpa-orch-07-after-llm-round.png)
 
@@ -90,7 +90,7 @@ When the sweep is suppressed:
 - You already rejected a candidate in an earlier round — it doesn't get re-proposed.
 
 ::: warning Upgrading from a pre-skills Luker version?
-If you've customized the **Mode addition — orchestrator-optimize** textarea under the assistant settings panel's *Iteration System Prompts (advanced)* section, your custom content still wins over the new defaults — including the new third disposition that tells the assistant to extract reusable rules to skills. Click **Reset to default** under that textarea to pick up the skill-aware version. (Untouched defaults pick it up automatically on next page load.)
+If you've customized the **Mode addition — orchestrator-optimize** textarea under the assistant settings panel's *Iteration System Prompts (advanced)* section, your custom content still wins over the new defaults — including the new disposition that tells the assistant to extract reusable rules to skills. Click **Reset to default** under that textarea to pick up the skill-aware version. (Untouched defaults pick it up automatically on next page load.)
 :::
 
 You can also call out a specific extraction yourself (`pull the anti-cliché block out of the NSFW entry into a skill — keep it verbatim`), look up what's already installed (`I have a NSFW anti-cliché skill somewhere — let's reuse it instead of authoring a new one`), inspect a skill, rename it, move it between scopes, or delete one. Binding the skill to a specific orchestrator sub-agent's `visible` list still lives in the [orchestrator iteration studio](/features/orchestrator/iteration-studio#authoring-skills-via-iter-studio) — author it here, attach it there.

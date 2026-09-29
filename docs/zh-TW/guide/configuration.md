@@ -197,9 +197,9 @@ storage:
     poolSize: 10
 ```
 
-Luker 支援四種使用者資料持久化後端，由 `mode` 選擇；只有對應的子區塊會被讀取。
+Luker 支援多種使用者資料持久化後端，由 `mode` 選擇；只有對應的子區塊會被讀取。
 
-- `fs`（預設）：每筆聊天/預設/世界書等都是 `<dataRoot>/<handle>/` 下的一個檔案。最適合單使用者安裝，也是最方便手動檢視的後端。
+- `fs`（預設）：每筆聊天/預設/世界書等均為 `<dataRoot>/<handle>/` 下的一個檔案。最適合單使用者安裝，也是最方便手動檢視的後端。
 - `sqlite`：每位使用者一個獨立的 `luker-storage.sqlite` 檔案，位於 `<dataRoot>/<handle>/`。適合希望使用單檔案交易式儲存、又不想額外運行資料庫服務的安裝。
 - `mysql`：所有使用者共用一個 MySQL 8.0+ 資料庫，以 `handle` 欄位區分。適合已經在跑 MySQL 的多使用者部署。
 - `postgres`：所有使用者共用一個 PostgreSQL 14+ 資料庫，結構與 MySQL 相同，使用 PostgreSQL。

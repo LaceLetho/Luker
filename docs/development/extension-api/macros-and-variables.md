@@ -168,7 +168,7 @@ The `additionalMacros` are not registered globally — they exist only for this 
 
 ## Variables
 
-Two scopes are available: **local** (per-chat, persisted in `chat_metadata.variables`) and **global** (cross-chat, persisted in `extension_settings.variables.global`).
+The available scopes are: **local** (per-chat, persisted in `chat_metadata.variables`) and **global** (cross-chat, persisted in `extension_settings.variables.global`).
 
 ### Local Variables
 
@@ -243,7 +243,7 @@ ctx.variables.local.set('inventory', 'shield', { index: 1, as: 'string' });
 
 ### Floor-bound writes
 
-Beyond the seven-method `local` / `global` CRUD, luker also exports a top-level `setVariable` that can bind a single write to a specific floor — the code-side equivalent of writing <span v-pre>`{{setvar::name::value}}`</span> inside that floor's text.
+Beyond the `local` / `global` CRUD, luker also exports a top-level `setVariable` that can bind a single write to a specific floor — the code-side equivalent of writing <span v-pre>`{{setvar::name::value}}`</span> inside that floor's text.
 
 ```ts
 context.setVariable(
@@ -284,4 +284,4 @@ await ctx.setVariable('hp', 42, { floor: ctx.chat.length - 1 });
 | Commit log | variable-op-log (floor `extra.var_ops`) | Floor structured commit log (`__floor_log`) |
 | Use for | Rollback-friendly scalars co-owned with AI-written <span v-pre>`{{setvar}}`</span> | Plugin- or CardApp-managed rollback-friendly structured state |
 
-The two mechanisms have independent commit logs. **Don't write the same key from both** — replay order isn't guaranteed across them, and you'll see one clobber the other.
+These mechanisms have independent commit logs. **Don't write the same key from both** — replay order isn't guaranteed across them, and you'll see one clobber the other.

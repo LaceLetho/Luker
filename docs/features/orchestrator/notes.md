@@ -31,7 +31,7 @@ If you write your own director sub-agents or operate in loop mode without a cura
 
 ## The Notes panel
 
-The Notes panel lives in the orchestrator extension's panel, scoped to the current chat. It shows two tabs:
+The Notes panel lives in the orchestrator extension's panel, scoped to the current chat. It shows the following tabs:
 
 - **Open notes** — currently active threads. Each row has Close / Edit / Delete actions.
 - **Closed notes** — the archive. Closure reasons are shown beneath each row.

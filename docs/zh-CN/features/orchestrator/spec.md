@@ -1,12 +1,12 @@
 # Spec 模式
 
-Spec 是编排器的默认模式，也是其他模式的"基准"。它把工作流拆成一串 **阶段（Stage）**，每个阶段里若干 **节点（Node）** 串行或并行跑；阶段间严格串行，前一阶段所有节点都收工后才进入下一阶段。每个节点 = 一次 LLM 调用 + 一段 prompt 模板。最后一个阶段产出"作业说明"注入主模型，前面所有阶段都是为它做准备。
+Spec 是编排器的默认模式，也是其他模式的"基准"。它把工作流拆成一串 **阶段（Stage）**，每个阶段里若干 **节点（Node）** 串行或并行跑；阶段间严格串行，前一阶段所有节点均收工后才进入下一阶段。每个节点 = 一次 LLM 调用 + 一段 prompt 模板。最后一个阶段产出"作业说明"注入主模型，前面所有阶段均是在为它做准备。
 
 ::: tip 你已经在用了
 启用编排器时默认就是 Spec，而且自带一套能跑的工作流（distiller、规划、约束、审查、合成器...）。这份文档的目标是：**改默认工作流、写新工作流、理解为什么默认这样设计**。
 :::
 
-::: warning 99% 的人不该手搓
+::: warning 多数情况下不该手搓
 手搓 stage / node 之前先看一眼 [AI 迭代工作台](/zh-CN/features/orchestrator/iteration-studio)——一句话描述需求，AI 给方案，逐条审。手搓只在工作台搞不定的极致定制场景才用。
 :::
 
@@ -27,7 +27,7 @@ Spec 是编排器的默认模式，也是其他模式的"基准"。它把工作�
 
 ## 默认编排流程
 
-Spec 是一条固定流水线。默认 profile 自带 5 个 stage、7 个 worker —— `distiller` 读懂场景，接着 `lorebook_reader` + `anti_data_guard` 并行锁定硬约束，然后 `planner` + `recall_relevance` 并行规划下一拍，`critic` 评审（并可把上一阶段打回重做），最后 `synthesizer` 落笔写 capsule。
+Spec 是一条固定流水线。默认 profile 自带一组 stage 与 worker —— `distiller` 读懂场景，接着 `lorebook_reader` + `anti_data_guard` 并行锁定硬约束，然后 `planner` + `recall_relevance` 并行规划下一拍，`critic` 评审（并可把上一阶段打回重做），最后 `synthesizer` 产出 capsule。
 
 ```d2
 direction: right
@@ -74,7 +74,7 @@ s4: "Stage 4 · review(serial)" {
 
 s5: "Stage 5 · finalize(serial)" {
   style.fill: "#e1f5ff"
-  synthesizer: "synthesizer\n落笔写编排\n指引 capsule" {
+  synthesizer: "synthesizer\n产出编排\n指引 capsule" {
     style.fill: "#c8e6c9"
   }
 }
@@ -99,7 +99,7 @@ s5 -> out
 
 | Agent | 作用 | 简单示例（RP 场景） |
 |---|---|---|
-| `distiller` | 紧凑、有据可查的场景状态快照（用户意图、当前张力、可能的走向）；下游所有 worker 都读它。 | 返回「林晚自第 12 楼以来第一次问起洛阳；她在判断要不要把家族故事讲给你听」。 |
+| `distiller` | 紧凑、有据可查的场景状态快照（用户意图、当前张力、可能的走向）；下游所有 worker 均读它。 | 返回「林晚自第 12 楼以来第一次问起洛阳；她在判断要不要把家族故事讲给你听」。 |
 | `lorebook_reader` | 从激活的世界书里挑出**这一回合**必须遵守的硬约束（文风禁令、叙事边界、角色 / 禁忌规则、连续性锚点），写成可执行的写作指令。 | 返回「世界书：洛阳本季被围，林晚不可能轻松离开；不得打破围城紧张感」。 |
 | `anti_data_guard` | 拦截播报体、观察体、指标体、天气预报体的扁平叙述；违规一律标 BLOCKER 并给出具体改写指令。 | 抓到「林晚焦虑值：7/10」—— BLOCKER，改写指令：「把焦虑写进攥紧的指节里，不要给数字」。 |
 | `planner` | 提下一拍进程，讲清因果，保留角色独立性与世界自洽，不默认让世界围着用户转。 | 节拍：「林晚躲闪 → 用户追问 → 她漏出一个细节 → 主回复就停在那个细节」。 |
@@ -129,7 +129,7 @@ s5 -> out
 
 ### 审查节点
 
-审查节点检查上一个工作阶段的输出，通过两个专用工具调用与运行时交互：
+审查节点检查上一个工作阶段的输出，通过专用工具调用与运行时交互：
 
 | 工具 | 作用 |
 |---|---|
@@ -159,12 +159,12 @@ s5 -> out
 
 ## 看一次 Spec 跑
 
-[运行面板](/zh-CN/features/orchestrator/#step-4) 会实时显示每次 Spec 运行。每个 stage 是一张卡片，展开就能看到该 worker 的思考、流式输出和工具调用。Spec 模式可以重点关注：
+[运行面板](/zh-CN/features/orchestrator/#step-4) 会实时显示 Spec 运行。stage 以卡片展示，展开就能看到该 worker 的思考、流式输出和工具调用。Spec 模式可以重点关注：
 
 - **节点执行次数** —— 整条 DAG 里所有 worker 跑过的总次数。
 - **REVIEW 重跑次数** —— 审查节点驱动的重跑（默认上限 2 次，可在配置参考里调到 0 关闭或 20 上限）。某 stage 触发重跑时，对应 worker 会在面板里出现两次。
 - **各 stage 输出形态** —— 由节点的 prompt 模板决定。比如 distiller 通常输出一段 `summary` + 一段 `xml_guidance`（带 `<story_state>` / `<location>` / `<key_items>` 之类的标签），后续 stage 可以解析它取结构化字段。
-- **capsule** —— **最后一个** stage 的输出会打包注入主模型的上下文，前面所有 stage 都在为它做准备。
+- **capsule** —— **最后一个** stage 的输出会打包注入主模型的上下文，前面所有 stage 均在为它做准备。
 
 面板顶部的**导出**按钮把整次 run 下载为 JSON（便于回报问题）。
 
@@ -188,7 +188,7 @@ s5 -> out
 ## 相关页面
 
 - [编排器概览](/zh-CN/features/orchestrator/) — 通用配置 / 触发时机 / 角色卡绑定
-- [AI 迭代工作台](/zh-CN/features/orchestrator/iteration-studio) — AI 帮你改默认 Spec 流程（99% 场景下推荐）
+- [AI 迭代工作台](/zh-CN/features/orchestrator/iteration-studio) — AI 帮你改默认 Spec 流程（推荐）
 - [单 Agent 模式](/zh-CN/features/orchestrator/single) — 退化的 Spec，只跑一个节点
 - [Agenda 模式](/zh-CN/features/orchestrator/agenda) — Planner 动态调度版本
 - [Loop 模式](/zh-CN/features/orchestrator/loop) — 单 Agent 工具循环

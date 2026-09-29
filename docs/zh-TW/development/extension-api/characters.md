@@ -124,7 +124,7 @@ unshallowCharacter(characterId: number | string): Promise<void>
 unshallowGroupMembers(groupId: string): Promise<void>
 ```
 
-群組批次版——對群組中每個成員都呼叫一次 `unshallowCharacter`。
+群組批次版——對群組中每個成員均呼叫一次 `unshallowCharacter`。
 
 ## 寫入角色欄位
 
@@ -172,7 +172,7 @@ writeExtensionFieldBulk(
 ): Promise<{ updated: string[], skipped: string[], failed: string[] }>
 ```
 
-跨多個角色的單次批次寫入，每張卡都套用與 `writeExtensionField` 相同的替換語義。`avatars: null` 或 `[]` 表示作用於所有角色。當 `value` 是 `unset` 哨兵且未提供 `filterPath` 時，自動把 `filterPath` 預設為 `data.extensions.<key>`，從而跳過沒有該欄位的卡片。
+跨多個角色的單次批次寫入，每張卡均套用與 `writeExtensionField` 相同的替換語義。`avatars: null` 或 `[]` 表示作用於所有角色。當 `value` 是 `unset` 哨兵且未提供 `filterPath` 時，自動把 `filterPath` 預設為 `data.extensions.<key>`，從而跳過沒有該欄位的卡片。
 
 ### createCharacterData
 
@@ -234,7 +234,7 @@ HTTP 失敗時擲出例外。擴充資料**不會**走這條路徑——它有�
 persistCharacterDataDebounced(charId: number | string): void
 ```
 
-在標準 save-edit 超時上排程一次防抖的 `persistCharacterData(charId)` 呼叫（按 character 各自排程 — 同時寫兩張不同的卡不會被合併成單次錯誤目標的儲存）。視窗內的後續呼叫會被合併。
+在標準 save-edit 超時上排程一次防抖的 `persistCharacterData(charId)` 呼叫（按 character 各自排程 — 同時寫不同的卡不會被合併成單次錯誤目標的儲存）。視窗內的後續呼叫會被合併。
 
 ### `character_fields_updated` event
 
@@ -330,7 +330,7 @@ const state = await ctx.getCharacterState(character.avatar, 'my-plugin');
 ```
 
 ::: tip 角色狀態 vs 擴充欄位
-- 擴充欄位（`writeExtensionField` → `data.extensions.<key>`）是角色卡的一部分。隨卡匯出，任何擁有該角色卡的人都能看到。
+- 擴充欄位（`writeExtensionField` → `data.extensions.<key>`）是角色卡的一部分。隨卡匯出，任何擁有該角色卡的人均能看到。
 - 角色狀態（`get/setCharacterState`）是與卡放在一起的另一個檔案。**不會**隨卡匯出。
 :::
 
@@ -340,7 +340,7 @@ const state = await ctx.getCharacterState(character.avatar, 'my-plugin');
 
 ### 讀取
 
-兩條路徑都可以讀——Proxy 會解析到任何有資料的那條：
+任一路徑均可讀——Proxy 會解析到任何有資料的那條：
 
 ```js
 const character = ctx.characters[ctx.characterId];
@@ -396,10 +396,10 @@ character.fav === true;             // true——自動鏡像
 
 ### writeExtensionField 繞過 Proxy
 
-`writeExtensionField` 透過底層實時的 `characters` 參照寫入，所以即使目標是傳統欄位也不會觸發棄用 toast。任何持久化的擴充資料都應該優先用它。
+`writeExtensionField` 透過底層實時的 `characters` 參照寫入，所以即使目標是傳統欄位也不會觸發棄用 toast。任何持久化的擴充資料均應優先用它。
 
 ### 實務要點
 
-- 讀取任何欄位，根層級或巢狀 —— 都沒問題。
+- 讀取任何欄位，根層級或巢狀 —— 均沒問題。
 - 寫入**表單層**欄位 —— 用 `updateCharacterData`（或者，當你直接 mutate `data.*` 時，緊跟一個 `persistCharacterData`）。
 - 寫入**擴充資料** —— 用 `writeExtensionField` / `writeExtensionFieldBulk`。替換語義：呼叫方完整控制 `data.extensions.<key>` 的值；兄弟子鍵不會被保留。

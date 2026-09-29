@@ -1303,12 +1303,12 @@ async function openBackupManager(handle, callback) {
             // multi-GB concat is not instant). Retry once: the server-side
             // finalize is idempotent, so a transient network blip must not
             // throw away the whole upload.
-            updateProgressMessage(formatRestorePhase({ phase: 'assemble', current: 0, total: file.size })); // banned-words-allow
+            updateProgressMessage(formatRestorePhase({ phase: 'assemble', current: 0, total: file.size }));
             for (let attempt = 1; ; attempt += 1) {
                 try {
                     await finalizeRestoreUpload(uploadState.uploadId, {
                         headers: getRequestHeaders(),
-                        onProgress: ({ copied, total }) => updateProgressMessage(formatRestorePhase({ phase: 'assemble', current: copied, total })), // banned-words-allow
+                        onProgress: ({ copied, total }) => updateProgressMessage(formatRestorePhase({ phase: 'assemble', current: copied, total })),
                     });
                     break;
                 } catch (assembleError) {

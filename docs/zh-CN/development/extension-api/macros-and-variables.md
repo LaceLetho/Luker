@@ -71,7 +71,7 @@ ctx.macros.register('greet', {
 });
 ```
 
-注册后，<span v-pre>`{{myStatus}}`</span> 和 <span v-pre>`{{greet::Bob}}`</span> 都能工作。
+注册后，<span v-pre>`{{myStatus}}`</span> 和 <span v-pre>`{{greet::Bob}}`</span> 均能工作。
 
 ### macros.registry
 
@@ -168,7 +168,7 @@ const result = ctx.substituteParamsExtended(
 
 ## 变量
 
-有两种作用域可用：**本地**（按聊天，持久化在 `chat_metadata.variables`）和**全局**（跨聊天，持久化在 `extension_settings.variables.global`）。
+可用的作用域：**本地**（按聊天，持久化在 `chat_metadata.variables`）和**全局**（跨聊天，持久化在 `extension_settings.variables.global`）。
 
 ### 本地变量
 
@@ -188,14 +188,14 @@ context.variables.local.pop(name: string): string | undefined
 |------|------|
 | `get` | 读取变量。数字字符串自动强制为数字。不存在时返回 `''` |
 | `set` | 写入变量。返回值 |
-| `add` | 两者都是数字时执行加法。已有值是 JSON 数组时 push。否则按字符串拼接 |
+| `add` | 两者均为数字时执行加法。已有值是 JSON 数组时 push。否则按字符串拼接 |
 | `inc` / `dec` | `add(name, ±1)` 的快捷方式 |
 | `del` | 删除变量。返回 `''` |
 | `has` | 布尔型存在性检查 |
 | `push` | 把 `value` 推入 `name` 处的 JSON 数组。缺失时自动建为 `[]`。对应宏形式 <span v-pre>`{{pushvar::name::value}}`</span> |
 | `pop` | 从 `name` 处的 JSON 数组弹出最后一个元素。空或缺失时为无操作。对应宏形式 <span v-pre>`{{popvar::name}}`</span> |
 
-上述每个方法的 `name` 都接受点号路径（例如 `roster.alice.hp`），用于读写一个结构化变量内部的某片叶子。写入类方法直接就地修改 `chat_metadata.variables[root]`，跟宏侧的 <span v-pre>`{{setvar::roster.alice.hp::value}}`</span> 行为一致；中间节点按需自动建立。
+上述每个方法的 `name` 均接受点号路径（例如 `roster.alice.hp`），用于读写一个结构化变量内部的某片叶子。写入类方法直接就地修改 `chat_metadata.variables[root]`，跟宏侧的 <span v-pre>`{{setvar::roster.alice.hp::value}}`</span> 行为一致；中间节点按需自动建立。
 
 `get` / `set` 上的可选 `args` 参数支持：
 - `args.key`——备用变量名（覆盖 `name`）
@@ -243,7 +243,7 @@ ctx.variables.local.set('inventory', 'shield', { index: 1, as: 'string' });
 
 ### 楼层级写入
 
-`local` / `global` 七件套之外，luker 在顶层还导出一个 `setVariable`，支持把单次写入挂到某一楼——这是 <span v-pre>`{{setvar::name::value}}`</span> 在文本里写出来效果的代码版等价物。
+`local` / `global` CRUD 之外，luker 在顶层还导出一个 `setVariable`，支持把单次写入挂到某一楼——这是 <span v-pre>`{{setvar::name::value}}`</span> 在文本里写出来效果的代码版等价物。
 
 ```ts
 context.setVariable(
@@ -284,4 +284,4 @@ await ctx.setVariable('hp', 42, { floor: ctx.chat.length - 1 });
 | 提交日志 | variable-op-log（楼层 `extra.var_ops`） | 楼层结构化提交日志（`__floor_log`） |
 | 适合 | 跟 AI 写的 <span v-pre>`{{setvar}}`</span> 共享存储的可回滚标量 | CardApp / 插件自己管理的可回滚结构化状态 |
 
-两个机制走的是各自独立的提交日志，**同一个 key 不要两边都写**——重建顺序无保证，容易互相覆盖。
+这些机制各有独立的提交日志，**同一个 key 不要两边均写**——重建顺序无保证，容易互相覆盖。

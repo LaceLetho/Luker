@@ -57,7 +57,7 @@ REPLAY -> REBUILD
 - <code v-pre>{{pushvar::name::value}}</code>
 - <code v-pre>{{popvar::name}}</code>
 
-每一种被识别的 op 都接受点号路径名（<code v-pre>{{setvar::roster.alice.hp::50}}</code>）——见下文的 [结构化对象工作流](#structured-objects)。
+每一种被识别的 op 均接受点号路径名（<code v-pre>{{setvar::roster.alice.hp::50}}</code>）——见下文的 [结构化对象工作流](#structured-objects)。
 
 按出现顺序逐个处理：
 
@@ -75,7 +75,7 @@ REPLAY -> REBUILD
 {{setvar::a::1}} {{setvar::b::{{getvar::a}}}}
 ```
 
-提取完成后：`a = 1`，`b = 1`。每个宏都是先完整求值再 apply，再处理下一个。
+提取完成后：`a = 1`，`b = 1`。每个宏均先完整求值再 apply，再处理下一个。
 :::
 
 ::: info JSON 形态的 value
@@ -129,7 +129,7 @@ value 末尾是字面 `}` 的情形（典型 `{"x":1}` / `[1,2]` 类负载）会
 
 | 来源 | 行为 |
 |------|------|
-| 世界书 <code v-pre>{{setvar}}</code> | 走 SillyTavern 原生流程，prompt 组装时执行；缓存里这个 key 每轮都会被 WI 的值覆盖。如果想让 WI 充当「初始化」而不是「每轮覆盖」，把这类条目放在高 depth / prompt 最前。 |
+| 世界书 <code v-pre>{{setvar}}</code> | 走 SillyTavern 原生流程，prompt 组装时执行；缓存里这个 key 每轮均会被 WI 的值覆盖。如果想让 WI 充当「初始化」而不是「每轮覆盖」，把这类条目放在高 depth / prompt 最前。 |
 | 预设 <code v-pre>{{setvar}}</code> | 同世界书。 |
 | Slash 命令 `/setvar` | 直接写 `chat_metadata.variables`。下次重放扫到同名 key（即存活的 AI op 提到了这个 key）时会被覆盖。 |
 | Quick Reply 脚本 | 同 slash 命令。给 QR 管理的变量起一个 AI op 不会碰的名字。 |
@@ -145,7 +145,7 @@ value 末尾是字面 `}` 的情形（典型 `{"x":1}` / `[1,2]` 类负载）会
 
 ## 何时使用变量驱动 UI
 
-当某些字段需要随对话推进而变化、并被某种 UI 消费（CardApp 面板、世界书条目、自定义渲染器等）时，把它们建模成 chat 变量。生产端三种途径：
+当某些字段需要随对话推进而变化、并被某种 UI 消费（CardApp 面板、世界书条目、自定义渲染器等）时，把它们建模成 chat 变量。生产端途径：
 
 1. `first_mes` / alt greetings 里 setvar 兜底初始值
 2. 世界书条目里指引 AI 在 reply 中用 setvar 改写
@@ -192,7 +192,7 @@ chat[i] = {
 
 `op.key` 永远是顶层变量名（上例里是 `roster`），所以 tracked-keys／重放／swipe 还原逻辑把整个结构当成一个单位。删掉某个写过某片叶子的消息时，结构会从存活的 op 重建，那片叶子自然回退——`roster` 整体跟存活时间线保持一致。
 
-任何由 AI 跨轮维护的结构化集合都推荐这条路：NPC 名册、队伍物品、任务日志、关系图、地点状态等。逐叶粒度给删除／swipe／分支提供了最小的回滚单元，也能配合 <code v-pre>{{each::roster}}…{{/each}}</code> 直接从顶层 key 下挂的 JSON 对象渲染出来。
+任何由 AI 跨轮维护的结构化集合均推荐这条路：NPC 名册、队伍物品、任务日志、关系图、地点状态等。逐叶粒度给删除／swipe／分支提供了最小的回滚单元，也能配合 <code v-pre>{{each::roster}}…{{/each}}</code> 直接从顶层 key 下挂的 JSON 对象渲染出来。
 
 ## 渲染结构化变量 — `{{each}}` 与 `loop_value`
 

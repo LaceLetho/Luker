@@ -12,7 +12,7 @@ Luker's backend logging system automatically intercepts all console output from 
 
 - **Auto-interception**: On server startup, Luker automatically intercepts `console.log`, `console.warn`, `console.error`, and other outputs
 - **Ring buffer**: Logs are stored in a fixed-size memory buffer. When the buffer is full, the oldest logs are automatically discarded, ensuring memory usage stays bounded
-- **Timestamps and levels**: Each log entry records a precise timestamp and log level, making it easy to filter by time and severity
+- **Timestamps and levels**: Log entries record a precise timestamp and log level, making it easy to filter by time and severity
 
 ### Viewing and Management
 
@@ -30,7 +30,7 @@ Luker also includes a built-in log manager on the browser side for capturing var
 
 ### Console Interception
 
-The frontend log manager intercepts six levels of browser console output — `console.trace`, `console.debug`, `console.log`, `console.info`, `console.warn`, `console.error` — and writes them to an in-memory buffer (up to 3000 entries).
+The frontend log manager intercepts browser console output — `console.trace`, `console.debug`, `console.log`, `console.info`, `console.warn`, `console.error` — and writes it to an in-memory buffer (up to 3000 entries).
 
 ### Fetch Request Logs
 

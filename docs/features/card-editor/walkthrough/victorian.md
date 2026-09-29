@@ -83,8 +83,8 @@ Reply something like "all confirmed, go with this plan, don't check back, just b
 
 In one round it has done:
 
-- **`character_update_memory_graph_schema`** — write the four derived node types onto the card (this card only — no global pollution)
-- **`character_update_orchestrator`** — write the three-stage `draft / critique / revise` loop config onto the card (also character-scoped)
+- **`character_update_memory_graph_schema`** — write the derived node types onto the card (this card only — no global pollution)
+- **`character_update_orchestrator`** — write the `draft / critique / revise` loop config onto the card (also character-scoped)
 - **`worldinfo_create_chat_book`** + **`worldinfo_replace_entries`** — create the card-specific world book and write all entries in one shot (Victorian-London context, detective procedural rules, **state-injection entry** with <code v-pre>{{getvar::case_*}}</code> placeholders + macro instructions teaching the AI how to emit <code v-pre>{{setvar}}</code>, Scotland Yard culture, Whitechapel district lore, etc.)
 - **`character_update_fields`** — write description / personality / first_mes / scenario, and bind the `world` field to the new world book
 

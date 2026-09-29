@@ -4,7 +4,7 @@ layout: home
 hero:
   name: Luker
   text: Next-gen Roleplay Chat Platform
-  tagline: Characters who remember what happened, an agent team that plans each reply before it is written, and cards you edit through conversation with an AI
+  tagline: Early story details quoted accurately, an agent team that explores the context and drafts the reply, and cards you edit through conversation with an AI
   actions:
     - theme: brand
       text: Quick Start
@@ -16,16 +16,16 @@ hero:
 features:
   - icon: 🧠
     title: Memory Graph
-    details: Characters genuinely remember. Every scene is distilled into typed nodes — characters, places, events, plotlines — and before each reply a recall pass selects the most relevant ones and injects them into the context.
+    details: Chat content is distilled into typed nodes — characters, places, events, plotlines — and before a reply a recall pass selects the most relevant ones and injects them into the context. When the protagonist returns to a place they visited earlier, an early character who has long been off-stage is recalled.
   - icon: 🎭
     title: Multi-Agent Orchestrator
-    details: A team of agents plans every reply before it is written — distilling context, sketching the scene, reviewing the plan. Five execution modes, from a fixed pipeline to a full director team.
+    details: A team of agents explores the context and drafts the reply before it is written — distilling context, sketching the scene, reviewing the plan. Execution modes range from a fixed pipeline to a director team.
   - icon: 🧩
     title: Skills
     details: Reusable knowledge packs the agents read on demand, instead of one giant system prompt. Anthropic Claude Skills compatible, and they travel with your cards and presets.
   - icon: ✨
     title: Card Editor Assistant
-    details: Edit character cards and world info through conversation with an AI. Every batch of changes arrives as a diff you approve item by item; cards with a CardApp open in the full Studio.
+    details: Edit character cards and world info through conversation with an AI. Changes arrive as diffs you approve item by item; cards with a CardApp open in the full Studio.
   - icon: 🔍
     title: Search Tools
     details: Characters can look things up mid-conversation. DuckDuckGo, SearXNG, or Brave — as a tool the model calls when it needs one, or as a pre-request agent that writes findings into world info.

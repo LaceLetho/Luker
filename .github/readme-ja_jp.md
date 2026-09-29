@@ -20,7 +20,12 @@
 
 ---
 
-Luker は次世代のロールプレイチャットプラットフォームです。起きたことをちゃんと覚えているキャラクターとチャットでき、返信のたびにディレクター率いるエージェント集団が場面を組み立て、キャラクターカードは AI と話しながら編集でき、会話の途中でキャラクターが Web を検索することもできます。
+Luker は次世代のロールプレイチャットプラットフォームです。
+
+- 序盤の物語の細部を、必要な場面で正確に引用する
+- 複数のエージェントがコンテキストを探索し、メッセージ本文を執筆する
+- AI と対話してキャラクターカードを編集し、変更は diff で一つずつ承認する
+- ロールプレイ中に Web で二次創作資料や原作設定を調べる
 
 ## Luker とは
 
@@ -32,15 +37,15 @@ Luker は [SillyTavern](https://github.com/SillyTavern/SillyTavern) をベース
 
 ### Memory Graph — キャラクターが本当に覚えている
 
-知識グラフによる長期記憶です。あらゆる場面は、型付きのノード（キャラクター、場所、イベント、プロットライン）とそれらをつなぐリンクに抽出されます。返信のたびに想起パスがグラフをたどり、最も関連性の高い記憶を注入します。だからこそ、30 ターン後にユーザーが「廃神社への 3 番目のルート」について尋ねると、キャラクターは以前のやり取りを正確に引き出してきます。
+知識グラフによる長期記憶です。チャットの内容は、型付きのノード（キャラクター、場所、イベント、プロットライン）とそれらをつなぐリンクに抽出されます。返信の前に想起パスがグラフをたどり、最も関連性の高い記憶を注入します。主人公が以前訪れた場所に戻ると、長く登場していなかった序盤のキャラクターが想起されます。
 
 ![Memory Graph のデモ](https://raw.githubusercontent.com/funnycups/Luker/release/docs/public/images/branding/memory-graph-demo.gif)
 
 → [Memory Graph のドキュメント](https://luker.cups.moe/features/memory-graph)
 
-### Multi-Agent Orchestrator — ディレクター率いるエージェント集団がすべての返信を設計する
+### Multi-Agent Orchestrator — 複数のエージェントがコンテキストを探索し、メッセージ本文を執筆する
 
-書き手の LLM が話し始める前に、自由に構成できるエージェント集団が先に動きます。蒸留役が直近のコンテキストを圧縮し、プランナーが次の場面の下書きを作り、批評役がレビューします。最終的な返信には、いつでも確認できるランタイムトレースが付いてきます。実行モードは 5 つから選べます — Spec（固定パイプライン）、Single Agent、Agenda（進行に応じてエージェントを派遣）、Loop（単一のエージェントが完了するまでツール呼び出しを反復処理する）、Director（メインエージェントとサブエージェントチームがメッセージ本文を直接執筆）です。
+自由に構成できる複数のエージェントが先に動き、書き手の LLM が引き継ぎます。distiller が直近のコンテキストを圧縮し、planner が次の場面の下書きを作り、critic がレビューします。最終的な返信には、いつでも確認できるランタイムトレースが付いてきます。実行モードから選べます — Spec（固定パイプライン）、Single Agent、Agenda（進行に応じてエージェントを派遣）、Loop（単一のエージェントが完了するまでツール呼び出しを反復処理する）、Director（メインエージェントとサブエージェントチームがコンテキストを探索し、メッセージ本文を執筆する）です。
 
 ![Orchestrator のデモ](https://raw.githubusercontent.com/funnycups/Luker/release/docs/public/images/branding/orchestrator-demo.gif)
 
@@ -48,7 +53,7 @@ Luker は [SillyTavern](https://github.com/SillyTavern/SillyTavern) をベース
 
 ### Skills — 必要なときに読み込む再利用可能な知識パック
 
-エージェントが必要なときに読み込む、再利用可能な知識パックです。執筆ルール、口調の取り決め、決まり文句を避けるためのチェックリストなど。フォーマットは Anthropic の Claude Skills と互換性があり、Claude Code 向けに書かれたスキルはそのまま Luker へ移行でき、逆方向へも移行できます。オーケストレーターのデフォルト Director プロファイルには 24 個のスキルが同梱されており、スキルはキャラクターカードやプリセットに添えて配布することもできます。
+エージェントが必要なときに読み込む、再利用可能な知識パックです。執筆ルール、口調の取り決め、決まり文句を避けるためのチェックリストなど。フォーマットは Anthropic の Claude Skills と互換性があります。オーケストレーターのデフォルト Director プロファイルにはスキルが同梱されており、スキルはキャラクターカードやプリセットに添えて配布することもできます。
 
 <img alt="インストール済みスキルと同梱スキルを表示したスキルマネージャー" src="https://raw.githubusercontent.com/funnycups/Luker/release/docs/public/_screenshots/skills/manager-installed-tab.png" width="720">
 
@@ -56,7 +61,7 @@ Luker は [SillyTavern](https://github.com/SillyTavern/SillyTavern) をベース
 
 ### CardApp Studio と AI Card Editor — AI と話しながらカードを編集する
 
-CodeMirror-6 エディター、AI チャットパネル、そして変更のまとまりごとに diff で承認できる仕組みを備えた、キャラクターカード用のフル IDE です。通常のカードはポップアップエディターで開きますが、**CardApp**（カード内に埋め込まれたミニアプリ）を持つカードは、ファイルツリー、ライブプレビュー、履歴を備えたフル機能の Studio で開きます。
+CodeMirror-6 エディター、AI チャットパネル、そして変更を diff で一つずつ承認できる仕組みを備えた、キャラクターカード用のフル IDE です。通常のカードはポップアップエディターで開きますが、**CardApp**（カード内に埋め込まれたミニアプリ）を持つカードは、ファイルツリー、ライブプレビュー、履歴を備えたフル機能の Studio で開きます。
 
 ![CardApp Studio のデモ](https://raw.githubusercontent.com/funnycups/Luker/release/docs/public/images/branding/cardapp-studio-demo.gif)
 
@@ -64,7 +69,7 @@ CodeMirror-6 エディター、AI チャットパネル、そして変更のま�
 
 ### Preset Assistant — 説明からプリセットを構築する
 
-チャット補完プリセットに何をさせたいかをアシスタントに伝えてください。あとは 1 つずつ diff を重ねながら、納得のいくまであなたと一緒にプリセットを練り上げます — パラメータを読み、プロンプト項目を編集し、参照プリセットと比較しながら進みます。同じワークフローはオーケストレーターのプリセットにも使えます。
+チャット補完プリセットに何をさせたいかをアシスタントに伝えてください。あとは diff を重ねながら、納得のいくまであなたと一緒にプリセットを練り上げます — パラメータを読み、プロンプト項目を編集し、参照プリセットと比較しながら進みます。同じワークフローはオーケストレーターのプリセットにも使えます。
 
 <img alt="Preset Assistant" src="https://raw.githubusercontent.com/funnycups/Luker/release/docs/public/images/preset-assistant/cpa-overview.png" width="720">
 
@@ -92,7 +97,7 @@ Luker のバックエンドは Android アプリの*中*で動きます。APK �
 
 ### チャットの結合と分割
 
-長いチャットを任意のターンで分割したり、2 つのチャットを 1 つに結合したりできます。分岐履歴は一貫したまま保たれます。場面が収拾つかなくなって、残りを失わずに面白い部分だけを分岐させたいときに便利です。
+長いチャットを任意のターンで分割したり、チャットを結合したりできます。分岐履歴は一貫したまま保たれます。場面が収拾つかなくなって、残りを失わずに面白い部分だけを分岐させたいときに便利です。
 
 <img alt="チャットの結合と分割" src="https://raw.githubusercontent.com/funnycups/Luker/release/docs/public/screenshots/chat-merge-split/07-split-dialog-three-segments.png" width="720">
 
@@ -100,9 +105,9 @@ Luker のバックエンドは Android アプリの*中*で動きます。APK �
 
 ### TTS による NPC セリフの話者割り当て
 
-TTS を有効にすると、返信内の引用されたセリフを 1 行ずつ、それぞれの話者の声で再生できます。バックグラウンド処理がどのセリフを誰が話しているかを割り出します — 検出された NPC はボイスマップに自動で追加され、あらかじめ登録しておいた名前は最初の再生から認識されます。
+TTS を有効にすると、返信内の引用されたセリフをそれぞれの話者の声で再生できます。バックグラウンド処理がセリフの話者を割り出します — 検出された NPC はボイスマップに自動で追加され、あらかじめ登録しておいた名前は最初の再生から認識されます。
 
-<img alt="チャットメッセージ内のセリフごとの再生ボタン" src="https://raw.githubusercontent.com/funnycups/Luker/release/docs/public/screenshots/tts-npc-attribution/03-inline-buttons-zoom.png" width="678">
+<img alt="チャットメッセージ内のセリフの再生ボタン" src="https://raw.githubusercontent.com/funnycups/Luker/release/docs/public/screenshots/tts-npc-attribution/03-inline-buttons-zoom.png" width="678">
 
 → [TTS による NPC セリフの話者割り当て](https://luker.cups.moe/features/tts-npc-attribution)
 

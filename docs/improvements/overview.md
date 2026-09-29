@@ -34,15 +34,15 @@ This decoupling also lays the foundation for downstream features like card-bound
 
 ### Incremental Sync
 
-Traditional frontend-backend data sync uses full overwrites: every modification sends the complete object to the server. As objects grow in size (e.g., chat histories with many messages), this approach causes significant bandwidth waste and write conflict risks.
+Traditional frontend-backend data sync uses full overwrites: a modification sends the complete object to the server. As objects grow in size (e.g., chat histories with many messages), this approach causes significant bandwidth waste and write conflict risks.
 
-Luker introduces three incremental endpoints:
+Luker introduces incremental endpoints:
 
 - **`append`**: Appends new messages to the end of the `.jsonl` file instead of rewriting the entire file
 - **`patch`**: Patches specific lines by message index, updating only changed messages
 - **`patch-metadata`**: Uses deep merge to update chat metadata instead of replacing it
 
-After each write, the backend computes an integrity hash and returns it to the frontend; subsequent requests carry this value for verification, returning 409 Conflict on mismatch, fundamentally preventing concurrent write conflicts. Settings data also supports incremental patch saving with conflict detection and serialized writes. See [Incremental Sync](/improvements/incremental-sync) for details.
+After a write, the backend computes an integrity hash and returns it to the frontend; subsequent requests carry this value for verification, returning 409 Conflict on mismatch, fundamentally preventing concurrent write conflicts. Settings data also supports incremental patch saving with conflict detection and serialized writes. See [Incremental Sync](/improvements/incremental-sync) for details.
 
 ### Backend Real-Time Storage
 
@@ -63,12 +63,12 @@ See [Backend Real-Time Storage](/improvements/backend-storage) for details.
 
 ### Function Call Runtime
 
-Luker has a built-in unified Function Calling runtime that supports two operating modes:
+Luker has a built-in unified Function Calling runtime that supports multiple operating modes:
 
 - **Native mode**: Leverages the API provider's native tool calling capabilities (compatible with OpenAI, Claude, Gemini, and other formats), where the model directly outputs structured call instructions with streaming tool call normalization
 - **Plain-text mode**: Guides the model to output call intentions in plain text through prompts, which the runtime then parses and executes, supporting multi-tool calls and configurable error retries
 
-These two modes cover all scenarios from high-end commercial APIs to local small models. The plain-text function calling toggle and retry strategy can be configured independently per connection in the Connection Manager. See [Function Call Runtime](/improvements/function-call-runtime) for details.
+These modes cover all scenarios from high-end commercial APIs to local small models. The plain-text function calling toggle and retry strategy can be configured independently per connection in the Connection Manager. See [Function Call Runtime](/improvements/function-call-runtime) for details.
 
 ### Card-Bound Presets & Personas
 
@@ -82,9 +82,9 @@ When debugging AI conversations, users often need to know "what exactly was sent
 
 ### Skills
 
-Multi-agent orchestrator profiles tend to grow long system prompts — every reusable writing rule, every critic method, every workflow contract used to sit inline inside `systemPrompt`, often duplicated across several sub-agents. Luker introduces **skills**: Anthropic-compatible local knowledge packs (`SKILL.md` + frontmatter + optional sub-files) the agents read on demand. Skills are addressed by name (no scope prefix in references), live under three scopes (`global` / `preset` / `character`), and resolve with later-wins precedence at dispatch time.
+Multi-agent orchestrator profiles tend to grow long system prompts — reusable writing rules, critic methods, and workflow contracts used to sit inline inside `systemPrompt`, often duplicated across several sub-agents. Luker introduces **skills**: Anthropic-compatible local knowledge packs (`SKILL.md` + frontmatter + optional sub-files) the agents read on demand. Skills are addressed by name (no scope prefix in references), live under the `global` / `preset` / `character` scopes, and resolve with later-wins precedence at dispatch time.
 
-The orchestrator's default director profile ships with 24 bundled skills covering the shared writing rules, the main-agent workflow, and one method skill per sub-agent. The same format is portable both ways with Anthropic's Claude Code — skills round-trip without conversion. Skills can ride with character cards (PNG metadata) or presets (embedded payload), so distributing a card distributes the writing rules that make it work. The skill manager subpanel handles install, edit, scope migration, and embed export; the iter-studio AI can extract reusable rules from long `systemPrompt` text into skills via dedicated tools. See [Skills overview](/features/skills/) for the conceptual model and [Authoring skills](/features/skills/authoring) for the format.
+The orchestrator's default director profile ships with bundled skills covering the shared writing rules, the main-agent workflow, and method skills for the sub-agents. Skills can ride with character cards (PNG metadata) or presets (embedded payload), so distributing a card distributes the writing rules that make it work. The skill manager subpanel handles install, edit, scope migration, and embed export; the iter-studio AI can extract reusable rules from long `systemPrompt` text into skills via dedicated tools. See [Skills overview](/features/skills/) for the conceptual model and [Authoring skills](/features/skills/authoring) for the format.
 
 ## Infrastructure
 

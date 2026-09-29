@@ -4,7 +4,7 @@
 
 ![提示词分组](/images/presets/prompt-groups.png)
 
-上图展示了三个分组（角色设定、对话历史区、尾部破限）展开后的状态，每个分组 header 带成员数量标签和批量启用开关，下方未分组的提示词条目（Main Prompt、World Info before）保持在顶层。
+上图展示了分组（角色设定、对话历史区、尾部破限）展开后的状态，每个分组 header 带成员数量标签和批量启用开关，下方未分组的提示词条目（Main Prompt、World Info before）保持在顶层。
 
 ## 数据模型
 

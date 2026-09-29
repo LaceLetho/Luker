@@ -2,7 +2,7 @@
 
 `context.skills.*` 是用於安裝、讀取、編輯、打包 Skills 的 JavaScript 介面。擴充透過 `Luker.getContext()` 拿到它；CardApp 在自己的 `ctx.skills` 上拿到同樣的形狀。
 
-Skill 是編排器使用的[知識包](/zh-TW/features/skills/)；這套 API 是支撐 Skill 管理子面板、內嵌編輯器、迭代工作台 17 個 Skill 工具的讀寫傳輸層。
+Skill 是編排器使用的[知識包](/zh-TW/features/skills/)；這套 API 是支撐 Skill 管理子面板、內嵌編輯器、迭代工作台 Skill 工具的讀寫傳輸層。
 
 ::: tip 請先讀使用者文件
 關於概念模型 —— 作用域、可見性策略、嵌入生命週期 —— 從 [Skills 概覽](/zh-TW/features/skills/) 開始。本頁是 API 參考。
@@ -24,7 +24,7 @@ CardApp ctx 介面是底層同一組函式的薄包裝 —— 呼叫簽名與返
 
 ## scope 形狀
 
-每個 Skill 操作都接受一個 `scope`。三種形狀：
+每個 Skill 操作均接受一個 `scope`。形狀如下：
 
 ```ts
 type SkillScope =
@@ -56,7 +56,7 @@ list(opts?: {
 | `description` | `string` | frontmatter 的 `description`。 |
 | `license` | `string \| null` | frontmatter 的 `license`（若有）。 |
 | `metadata` | `object` | Anthropic 標準的自由格式 metadata。 |
-| `installedHash` | `string` | 完整檔案樹的 sha256。讀期間穩定；每次寫入都會變。 |
+| `installedHash` | `string` | 完整檔案樹的 sha256。讀期間穩定；每次寫入均會變。 |
 | `fileCount` | `number` | Skill 目錄裡的檔案總數。 |
 | `totalBytes` | `number` | 檔案大小總和。 |
 | `hasScripts` | `boolean` | Skill 攜帶 `scripts/` 目錄時為 true。 |
@@ -225,7 +225,7 @@ install(opts: {
 }>
 ```
 
-`SkillInstallPayload` 為以下兩種之一：
+`SkillInstallPayload` 為以下之一：
 
 ```ts
 // 內聯檔案（推薦給純文字 Skill，≤ 10 檔案，每個 ≤ 64 KB）
@@ -291,12 +291,12 @@ importBundled(): Promise<{
 ```
 
 ::: warning 破壞性
-這是 Skill 版的 `git reset --hard` —— 它把每個同名全域 Skill 都覆蓋成出廠版本。先備份本地修改。
+這是 Skill 版的 `git reset --hard` —— 它把每個同名全域 Skill 均覆蓋成出廠版本。先備份本地修改。
 :::
 
 ### `listBundledManifest()`
 
-列出 `default/skills/global/` 下出廠的 Skill，每個都附帶匯入後會生成的 install 雜湊。**瀏覽出廠** tab 用這個來跟本地安裝對比，無需重跑 install。
+列出 `default/skills/global/` 下出廠的 Skill，每個均附帶匯入後會生成的 install 雜湊。**瀏覽出廠** tab 用這個來跟本地安裝對比，無需重跑 install。
 
 ```ts
 listBundledManifest(): Promise<Array<{
@@ -439,7 +439,7 @@ async function init(ctx) {
 
 ## 相關
 
-- [Skills 概覽](/zh-TW/features/skills/) —— 什麼是 Skill、三種作用域
+- [Skills 概覽](/zh-TW/features/skills/) —— 什麼是 Skill、作用域
 - [創作 Skill](/zh-TW/features/skills/authoring) —— frontmatter + 正文約定
 - [Skill 管理](/zh-TW/features/skills/management) —— 同等操作的 UI 介面
 - [編排器整合](/zh-TW/features/skills/orchestrator-integration) —— 執行時如何按 `skills.visible` / `deny` 過濾

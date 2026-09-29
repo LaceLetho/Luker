@@ -47,7 +47,7 @@ NPC rows (tagged rows that are not chat participants) can be removed with the âœ
 
 Whole-message narration benefits too: from the second playback on, each line uses its own speaker's voice. The first playback of a fresh message may still use the author's voice â€” the background pass may not have finished yet.
 
-When the built-in **Different voices for quotes and text inside asterisks** option is on, an attributed NPC gets the same three slots (quotes / asterisk text / other). Set the NPC's quoted-dialogue slot to give its spoken lines a different voice from its narration.
+When the built-in **Different voices for quotes and text inside asterisks** option is on, an attributed NPC gets the same slots (quotes / asterisk text / other). Set the NPC's quoted-dialogue slot to give its spoken lines a different voice from its narration.
 
 ## FAQ
 

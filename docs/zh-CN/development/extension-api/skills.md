@@ -2,7 +2,7 @@
 
 `context.skills.*` 是用于安装、读取、编辑、打包 Skills 的 JavaScript 接口。扩展通过 `Luker.getContext()` 拿到它；CardApp 在自己的 `ctx.skills` 上拿到同样的形状。
 
-Skill 是编排器使用的[知识包](/zh-CN/features/skills/)；这套 API 是支撑 Skill 管理子面板、内嵌编辑器、迭代工作台 17 个 Skill 工具的读写传输层。
+Skill 是编排器使用的[知识包](/zh-CN/features/skills/)；这套 API 是支撑 Skill 管理子面板、内嵌编辑器、迭代工作台 Skill 工具的读写传输层。
 
 ::: tip 请先读用户文档
 关于概念模型 —— 作用域、可见性策略、嵌入生命周期 —— 从 [Skills 概览](/zh-CN/features/skills/) 开始。本页是 API 参考。
@@ -24,7 +24,7 @@ CardApp ctx 接口是底层同一组函数的薄包装 —— 调用签名与返
 
 ## scope 形状
 
-每个 Skill 操作都接受一个 `scope`。三种形状：
+每个 Skill 操作均接受一个 `scope`。形状如下：
 
 ```ts
 type SkillScope =
@@ -56,7 +56,7 @@ list(opts?: {
 | `description` | `string` | frontmatter 的 `description`。 |
 | `license` | `string \| null` | frontmatter 的 `license`（若有）。 |
 | `metadata` | `object` | Anthropic 标准的自由格式 metadata。 |
-| `installedHash` | `string` | 完整文件树的 sha256。读期间稳定；每次写入都会变。 |
+| `installedHash` | `string` | 完整文件树的 sha256。读期间稳定；每次写入均会变。 |
 | `fileCount` | `number` | Skill 目录里的文件总数。 |
 | `totalBytes` | `number` | 文件大小总和。 |
 | `hasScripts` | `boolean` | Skill 携带 `scripts/` 目录时为 true。 |
@@ -225,7 +225,7 @@ install(opts: {
 }>
 ```
 
-`SkillInstallPayload` 为以下两种之一：
+`SkillInstallPayload` 为以下之一：
 
 ```ts
 // 内联文件（推荐给纯文本 Skill，≤ 10 文件，每个 ≤ 64 KB）
@@ -291,12 +291,12 @@ importBundled(): Promise<{
 ```
 
 ::: warning 破坏性
-这是 Skill 版的 `git reset --hard` —— 它把每个同名全局 Skill 都覆盖成出厂版本。先备份本地修改。
+这是 Skill 版的 `git reset --hard` —— 它把每个同名全局 Skill 均覆盖成出厂版本。先备份本地修改。
 :::
 
 ### `listBundledManifest()`
 
-列出 `default/skills/global/` 下出厂的 Skill，每个都附带导入后会生成的 install 哈希。**浏览出厂** tab 用这个来跟本地安装对比，无需重跑 install。
+列出 `default/skills/global/` 下出厂的 Skill，每个均附带导入后会生成的 install 哈希。**浏览出厂** tab 用这个来跟本地安装对比，无需重跑 install。
 
 ```ts
 listBundledManifest(): Promise<Array<{
@@ -439,7 +439,7 @@ async function init(ctx) {
 
 ## 相关
 
-- [Skills 概览](/zh-CN/features/skills/) —— 什么是 Skill、三种作用域
+- [Skills 概览](/zh-CN/features/skills/) —— 什么是 Skill、作用域
 - [创作 Skill](/zh-CN/features/skills/authoring) —— frontmatter + 正文约定
 - [Skill 管理](/zh-CN/features/skills/management) —— 同等操作的 UI 接口
 - [编排器集成](/zh-CN/features/skills/orchestrator-integration) —— 运行时如何按 `skills.visible` / `deny` 过滤

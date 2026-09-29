@@ -4,7 +4,7 @@ When the orchestrator dispatches an agent, that agent only sees the skills you'v
 
 For what a skill actually is and how to write one, see [the Skills overview](/features/skills/).
 
-## Two ways to attach a skill
+## Ways to attach a skill
 
 **Have the Studio attach it for you (recommended).** When you ask the AI Iteration Studio to author or edit a skill, tell it where you want the skill applied — "so every agent in director mode sees it", "only for voice_critic", etc. — and it'll wire the skill into the right place during the same approval round. You don't have to think about layering. See the [recipe](/recipes/rp-skills-walkthrough) and the [Studio docs](/features/orchestrator/iteration-studio#authoring-skills-via-iter-studio).
 

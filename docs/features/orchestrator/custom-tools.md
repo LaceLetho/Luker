@@ -1,6 +1,6 @@
 # Custom Tools
 
-Custom tools let you give orchestrator agents new capabilities — beyond the builtin chat / lorebook / note / memory tools that ship with Luker. Three channels are supported, and all four orchestration modes (loop / spec / agenda / director) see them the same way.
+Custom tools let you give orchestrator agents new capabilities — beyond the builtin chat / lorebook / note / memory tools that ship with Luker. Multiple channels are supported, and every orchestration mode (loop / spec / agenda / director) sees them the same way.
 
 ## Where custom tools come from
 
@@ -8,7 +8,7 @@ Custom tools let you give orchestrator agents new capabilities — beyond the bu
 
 **From SillyTavern.** SillyTavern has a function-tool system that other plugins use. To make those visible to orchestrator agents, open the orchestration editor and click **Bridge SillyTavern tools…** — pick which ones you want, choose a read/write mode per tool, save. They appear under **Custom tools → From SillyTavern**.
 
-**Handwritten in this profile.** For one-off needs the other two channels don't cover, you can write a tool inline. Open the orchestration editor's **Custom tools** section and click **Add custom tool**. Tools defined this way travel with the profile — globally if you author them on the global profile, or with the character card if you author them on a character override.
+**Handwritten in this profile.** For one-off needs the other channels don't cover, you can write a tool inline. Open the orchestration editor's **Custom tools** section and click **Add custom tool**. Tools defined this way travel with the profile — globally if you author them on the global profile, or with the character card if you author them on a character override.
 
 ## The Add custom tool dialog
 
@@ -106,7 +106,7 @@ Write tools (stage a proposal on the iter-studio's ProposalBus; nothing reaches 
 - `luker_orch_patch_custom_tool_schema` — replace only the parameters JSON-Schema. Body unchanged.
 - `luker_orch_remove_custom_tool` — delete one entry by name. The card shows the body that will be deleted so you can confirm.
 
-For every accepted `set` proposal, the iter-studio also flips the mode-appropriate enable flag (`tools.custom.<name>` for loop / director, `defaultTools.custom.<name>` for agenda, `spec.defaultTools.custom.<name>` for spec) to `true` so the new tool is immediately offered to the runtime agent.
+When a `set` proposal is accepted, the iter-studio also flips the mode-appropriate enable flag (`tools.custom.<name>` for loop / director, `defaultTools.custom.<name>` for agenda, `spec.defaultTools.custom.<name>` for spec) to `true` so the new tool is immediately offered to the runtime agent.
 
 Layer-2 tools registered by other extensions cannot be authored from the Studio — their definitions live in the registering extension. Only their enable flags are reachable here.
 

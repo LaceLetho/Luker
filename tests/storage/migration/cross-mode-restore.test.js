@@ -154,7 +154,7 @@ describe('crossModeRestore — happy path sqlite→fs', () => {
 
         // Progress events include the convert stages.
         const convertStages = events
-            .filter(e => e.phase === 'convert') // banned-words-allow
+            .filter(e => e.phase === 'convert')
             .map(e => e.stage);
         for (const expected of ['settings-copied', 'worlds-copied', 'chats-copied', 'done']) {
             expect(convertStages).toContain(expected);

@@ -8,7 +8,7 @@ CardApp Studio 是角色卡編輯助手的完整開發環境，專為內嵌了 [
 
 ## 開啟方式
 
-兩條路徑都會進入 Studio:
+兩條路徑均會進入 Studio:
 
 1. **擴充功能面板 → 角色卡編輯助手 → 「&lt;/&gt; CardApp Studio」按鈕**
 2. 當前角色含 CardApp 時，**「開啟編輯器」也會自動進入 Studio**（而非[普通彈窗](/zh-TW/features/card-editor/popup)）
@@ -25,7 +25,7 @@ Studio 採用三欄佈局，覆蓋在 Luker 主介面之上：
 
 ### 左側：AI 對話與會話
 
-左側是 Studio 的 AI 助手對話區。所有對 CardApp 的修改都從這裡發起：
+左側是 Studio 的 AI 助手對話區。所有對 CardApp 的修改均從這裡發起：
 
 ![Studio AI 助手對話區](/images/cardapp-studio/studio-ai-chat.png)
 
@@ -53,7 +53,7 @@ Studio 採用三欄佈局，覆蓋在 Luker 主介面之上：
 
 ## 支援的操作
 
-Studio 中的 AI 擁有比普通彈窗更豐富的工具集，分七大類：
+Studio 中的 AI 擁有比普通彈窗更豐富的工具集，分為以下類別：
 
 **CardApp 檔案操作：**
 - 列出所有檔案
@@ -82,7 +82,7 @@ Studio 中的 AI 擁有比普通彈窗更豐富的工具集，分七大類：
 **發現 / 文件查詢** — `slashcmd_list` + `slashcmd_help` 查斜線指令，`luker_context_list_keys` + `luker_context_describe` 查執行時 API，`list_luker_docs` + `read_luker_doc` 直接讀 Markdown 文件（和本站同源）。Studio AI 用這些工具在生成程式碼前核對名稱和簽名，而不是憑記憶猜。
 
 ::: tip CardApp 創作約定
-按 Luker 的 CardApp 創作約定，所有 AI 可見內容都應放在透過 `extensions.world` 繫結的世界書裡，而非角色卡的 `system_prompt` / `post_history_instructions` 欄位。Studio 預設遵守這一約定。詳見[角色卡開發者指南](/zh-TW/development/card-developers)。
+按 Luker 的 CardApp 創作約定，所有 AI 可見內容均應放在透過 `extensions.world` 繫結的世界書裡，而非角色卡的 `system_prompt` / `post_history_instructions` 欄位。Studio 預設遵守這一約定。詳見[角色卡開發者指南](/zh-TW/development/card-developers)。
 :::
 
 ## 程式碼編輯器細節
@@ -96,7 +96,7 @@ Studio 中的 AI 擁有比普通彈窗更豐富的工具集，分七大類：
 
 ## 檔案變更審批
 
-AI 對檔案的每次修改都需要審批，與普通彈窗相同的 diff 體驗：完整檔案 diff、逐行 side-by-side 對比、單項 / 批次批准。批准後變更才落到磁碟。
+AI 對檔案的每次修改均需要審批，與普通彈窗相同的 diff 體驗：完整檔案 diff、逐行 side-by-side 對比、單項 / 批次批准。批准後變更才落到磁碟。
 
 ## 會話管理
 

@@ -571,10 +571,10 @@ export function registerLocaleData() {
         'Recall query recent assistant turns help body': '构造召回查询时拿最近多少条 assistant 消息拼成 query（LLM recall 和 RAG 都用同一个 bundle）。',
         'About Extract Table Fill Prompt': '关于生成图表格填充 prompt',
         'Extract Table Fill Prompt help body': '生成图 LLM 的 system prompt。定义"你是生成器、看到 dialogue_batch、按 schema 输出工具调用"的角色和规则。',
-        'About Recall Stage 1 Prompt': '关于召回第一阶段 prompt', // banned-words-allow
-        'Recall Stage 1 Prompt help body': 'LLM Recall 第一阶段（Route/Drill）的 system prompt——模型看到候选节点 brief，决定 finalize 还是 expand 深挖。', // banned-words-allow
-        'About Recall Stage 2 Prompt': '关于召回第二阶段 prompt', // banned-words-allow
-        'Recall Stage 2 Prompt help body': 'LLM Recall 第二阶段（Finalize）的 system prompt——模型根据 Route/Drill 累积的候选做最终选择。', // banned-words-allow
+        'About Recall Stage 1 Prompt': '关于召回第一阶段 prompt',
+        'Recall Stage 1 Prompt help body': 'LLM Recall 第一阶段（Route/Drill）的 system prompt——模型看到候选节点 brief，决定 finalize 还是 expand 深挖。',
+        'About Recall Stage 2 Prompt': '关于召回第二阶段 prompt',
+        'Recall Stage 2 Prompt help body': 'LLM Recall 第二阶段（Finalize）的 system prompt——模型根据 Route/Drill 累积的候选做最终选择。',
         'About Query rewrite system prompt': '关于 query rewrite system prompt',
         'Query rewrite system prompt help body': 'RAG query rewrite 用的 system prompt——教模型把"最近对话上下文"改写成一个向量检索友好的单句 query。',
         'Memory Graph Studio': '记忆图工作台',
@@ -1163,10 +1163,10 @@ export function registerLocaleData() {
         'Recall query recent assistant turns help body': '構造召回查詢時拿最近多少條 assistant 訊息拼成 query（LLM recall 和 RAG 都用同一個 bundle）。',
         'About Extract Table Fill Prompt': '關於生成圖表格填充 prompt',
         'Extract Table Fill Prompt help body': '生成圖 LLM 的 system prompt。定義「你是生成器、看到 dialogue_batch、按 schema 輸出工具呼叫」的角色和規則。',
-        'About Recall Stage 1 Prompt': '關於召回第一階段 prompt', // banned-words-allow
-        'Recall Stage 1 Prompt help body': 'LLM Recall 第一階段（Route/Drill）的 system prompt——模型看到候選節點 brief，決定 finalize 還是 expand 深挖。', // banned-words-allow
-        'About Recall Stage 2 Prompt': '關於召回第二階段 prompt', // banned-words-allow
-        'Recall Stage 2 Prompt help body': 'LLM Recall 第二階段（Finalize）的 system prompt——模型根據 Route/Drill 累積的候選做最終選擇。', // banned-words-allow
+        'About Recall Stage 1 Prompt': '關於召回第一階段 prompt',
+        'Recall Stage 1 Prompt help body': 'LLM Recall 第一階段（Route/Drill）的 system prompt——模型看到候選節點 brief，決定 finalize 還是 expand 深挖。',
+        'About Recall Stage 2 Prompt': '關於召回第二階段 prompt',
+        'Recall Stage 2 Prompt help body': 'LLM Recall 第二階段（Finalize）的 system prompt——模型根據 Route/Drill 累積的候選做最終選擇。',
         'About Query rewrite system prompt': '關於 query rewrite system prompt',
         'Query rewrite system prompt help body': 'RAG query rewrite 用的 system prompt——教模型把「最近對話上下文」改寫成一個向量檢索友好的單句 query。',
         'Memory Graph Studio': '記憶圖工作台',

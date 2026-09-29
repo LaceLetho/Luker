@@ -3,7 +3,7 @@
 ::: tip What this doc solves
 Luker's [multi-agent orchestrator](/features/orchestrator/), [memory graph](/features/memory-graph), and [search tools](/features/search-tools) each work independently, but coordinating them into a single flow (an agent team that extracts memories, retrieves canon, and drafts the prose) requires several configuration steps performed in order.
 
-This doc starts from an empty configuration and guides you through preset → Director → memory → search end to end. It does not assume that you have read the three deep-dive docs above. By the end, you will have a working default setup that you can continue tuning in the Iteration Studio.
+This doc starts from an empty configuration and guides you through preset → Director → memory → search end to end. It does not assume that you have read the deep-dive docs above. By the end, you will have a working default setup that you can continue tuning in the Iteration Studio.
 :::
 
 ## What you get
@@ -29,7 +29,7 @@ orch: "Director main agent takes over" {
   style.fill: "#e1f5ff"
   scouts: "Pre-draft scouts\nmemory_scout · chat_scout ·\nlorebook_scout · canon_scout (web, when relevant)"
   brain: "Mid-stage brainstorming\nplot_brainstormer\nstructural sketches across angles"
-  draft: "Main agent writes the body"
+  draft: "Main agent drafts the body"
   curate: "Post-draft housekeeping\nmemory_curator writes new facts back"
 }
 
@@ -47,20 +47,20 @@ The memory graph's own "Auto extraction / Auto compression" no longer triggers �
 
 ## Step 1 — Pick a starting preset
 
-Any RP preset you normally use is suitable. This step only confirms that you have a writing preset as a starting point; the next step derives from it the two preset variants Director requires.
+Any RP preset you normally use is suitable. This step only confirms that you have a writing preset as a starting point; the next step derives from it the preset variants Director requires.
 
-## Step 2 — Configure the Preset Assistant and derive the two presets Director needs
+## Step 2 — Configure the Preset Assistant and derive the presets Director needs
 
-LLM calls made by Luker's plugins fall into **two broad categories** with very different preset needs. One is **plugins producing RP content** — Director's agent team drafting the body, critic sub-agents reviewing, and so on — which requires a full RP preset with jailbreak / style / anti-cliché guidance. The other is the **iteration AI** that powers various plugins — the Preset Assistant, the Memory Graph schema studio, CardApp Studio, Director's Iteration Studio, and so on — which uses tool calls to edit configs or extract structured data; any RP instructions leaking in will interfere with the model executing the plugin's instructions, so these slots require a **stripped-down preset that retains only jailbreak**.
+LLM calls made by Luker's plugins fall into **distinct categories** with very different preset needs. One is **plugins producing RP content** — Director's agent team drafting the body, critic sub-agents reviewing, and so on — which requires a full RP preset with jailbreak / style / anti-cliché guidance. The other is the **iteration AI** that powers various plugins — the Preset Assistant, the Memory Graph schema studio, CardApp Studio, Director's Iteration Studio, and so on — which uses tool calls to edit configs or extract structured data; any RP instructions leaking in will interfere with the model executing the plugin's instructions, so these slots require a **stripped-down preset that retains only jailbreak**.
 
-Director's flow touches both categories at once:
+Director's flow touches these categories at once:
 
 | Path | Who uses it | Preset shape |
 |---|---|---|
 | **Agent path** — main agent + sub-agents producing the body | The actual drafters; their output ends up in the chat | A standard RP preset, tuned for tool calling: keeps jailbreak + style + anti-cliché, but drops placeholders / hard schemas that conflict with the orchestrator |
-| **Iteration Studio path** — the AI you talk to inside the studio when tuning your config | A tool-using config editor; never writes story prose | A **stripped-down preset with only jailbreak left** — no style guidance, no NSFW writing rules, no narrative meta-rules |
+| **Iteration Studio path** — the AI you talk to inside the studio when tuning your config | A tool-using config editor; never drafts story prose | A **stripped-down preset with only jailbreak left** — no style guidance, no NSFW writing rules, no narrative meta-rules |
 
-::: tip Why a single preset cannot serve both paths
+::: tip Why the paths cannot share a single preset
 RP presets assume that "one LLM writes the entire reply by itself." When those instructions are placed into an agent tool loop, they:
 
 - Compete with the agent's system prompt for attention
@@ -74,7 +74,7 @@ The Iteration Studio is even more sensitive — it does not write story prose at
 
 The Preset Assistant is the tool used in 2b to derive the agent preset, but **it is itself an LLM-driven tool** — it requires its own iteration AI preset and API profile before it can be opened.
 
-Open the Extensions drawer (`#extensions_settings2` — the same drawer that holds the Orchestrator, Memory, and Search Tools panels). Locate the **Completion Preset Assistant** panel and configure the following two fields:
+Open the Extensions drawer (`#extensions_settings2` — the same drawer that holds the Orchestrator, Memory, and Search Tools panels). Locate the **Completion Preset Assistant** panel and configure the following fields:
 
 - **Iteration AI prompt preset (params + prompt)** — click the **?** button next to this field
 - **Iteration AI API preset (Connection profile)** — select any working API profile
@@ -105,12 +105,12 @@ By default it **derives a new preset** (original name + `-orchestrator` suffix) 
 Review its diff and approve each entry.
 
 ::: tip Refine the preset further in the same session
-Adapt for orchestrator is one of the assistant's three **Editing modes**. Switch the toolbar's **Editing mode** back to the default **General editing**, start a new session, and the same assistant becomes a general-purpose preset editor — for example: "add an anti-cliché directive backed by a few negative examples", "tone the prose-style guidance down from purple to restrained close-detail", or "merge these three rules that express the same requirement". See [Preset Assistant](/features/preset-assistant) for the full details.
+Adapt for orchestrator is one of the assistant's **Editing modes**. Switch the toolbar's **Editing mode** back to the default **General editing**, start a new session, and the same assistant becomes a general-purpose preset editor — for example: "add an anti-cliché directive backed by a few negative examples", "tone the prose-style guidance down from purple to restrained close-detail", or "merge these three rules that express the same requirement". See [Preset Assistant](/features/preset-assistant) for the full details.
 
-The Adapt-for-orchestrator pass also **proactively scans your preset entries for reusable style / format / writing-discipline rules** and proposes lifting them into shareable skills (verbatim, at this preset's scope, with a pointer left in the original entry). Each proposal is reviewed independently — approve, reject, or ignore it and the rest of the adaptation still applies. See [Authoring skills from preset content](/features/preset-assistant#authoring-skills-from-preset-content-agent-orchestration-mode) for the rationale and the safeguards (one-off tweaks never trigger the scan).
+The Adapt-for-orchestrator pass also **proactively scans your preset entries for reusable style / format / writing-discipline rules** and proposes lifting them into shareable skills (verbatim, at this preset's scope, with a pointer left in the original entry). Proposals are reviewed independently — approve, reject, or ignore one and the rest of the adaptation still applies. See [Authoring skills from preset content](/features/preset-assistant#authoring-skills-from-preset-content-agent-orchestration-mode) for the rationale and the safeguards (one-off tweaks never trigger the scan).
 :::
 
-## Step 3 — Switch to Director mode and configure the two presets
+## Step 3 — Switch to Director mode and configure the presets
 
 Open the **Orchestrator** panel in the Extensions drawer:
 
@@ -143,10 +143,10 @@ Open the **Search Tools** panel in the Extensions drawer. **Search provider** de
 
 ![Search engine picker](/images/recipes/agent-onboarding/step-05-search-provider.png)
 
-::: info How the two top toggles relate to this flow
-**Expose tools to main model** and **Run pre-request search agent** are the search tool's two **independent** working modes, unrelated to Director — this flow uses Director's own search sub-agent, and neither of those toggles **needs to be enabled**.
+::: info How the top toggles relate to this flow
+**Expose tools to main model** and **Run pre-request search agent** are the search tool's **independent** working modes, unrelated to Director — this flow uses Director's own search sub-agent, and neither of those toggles **needs to be enabled**.
 
-If you are not running Director and still want search, see the search tool's [two working modes](/features/search-tools) instead.
+If you are not running Director and still want search, see the search tool's [working modes](/features/search-tools) instead.
 :::
 
 ## Step 6 — Making changes in the Iteration Studio {#step-6}
@@ -201,20 +201,20 @@ Send a message in the main chat and expand the reasoning fold to see the agent t
 
 ![Agent team output in a Director turn](/images/orchestrator/director-takeover/director-real-final-body.png)
 
-- **Pre-draft scouts**: each surfaces ~5 `Item / Source / Why` items — characters, events, world info entries that matter to the current beat
+- **Pre-draft scouts**: each surfaces `Item / Source / Why` items — characters, events, world info entries that matter to the current beat
 - **Mid-stage brainstorming**: a few structural sketches in parallel from different angles for the main agent to select from
 - **Post-draft critics**: sub-agents critique the main agent's draft; the main agent decides which critiques to accept
 - **Housekeeping**: writes the turn's new facts back to the memory graph
 
-Need a closer look — each agent's actual reasoning, every tool call's request and response? Click **Show Run Panel** beside the chat (or the bottom drawer on narrow screens) and expand any round.
+Need a closer look — agent model reasoning, tool call requests and responses? Click **Show Run Panel** beside the chat (or the bottom drawer on narrow screens) and expand any round.
 
 Not satisfied with the result? That reasoning fold is the full agent execution log — use it to pinpoint where the problem occurred, then return to the [AI Iteration Studio](/features/orchestrator/iteration-studio) and describe in natural language what you want changed.
 
 ## Where to go next
 
-- [Multi-Agent Orchestrator overview](/features/orchestrator/) — triggering, capsule injection, the five execution modes
-- [Director mode](/features/orchestrator/director) — the 12 default sub-agents and their roles
+- [Multi-Agent Orchestrator overview](/features/orchestrator/) — triggering, capsule injection, the execution modes
+- [Director mode](/features/orchestrator/director) — the default sub-agents and their roles
 - [AI Iteration Studio](/features/orchestrator/iteration-studio) — natural-language tuning of your config
 - [Memory Graph](/features/memory-graph) — node types, recall algorithms, schema customization
 - [Search Tools](/features/search-tools) — engine differences + the standalone working modes
-- [Preset Assistant](/features/preset-assistant) — the other two session modes beyond "Adapt for orchestrator"
+- [Preset Assistant](/features/preset-assistant) — the other session modes beyond "Adapt for orchestrator"

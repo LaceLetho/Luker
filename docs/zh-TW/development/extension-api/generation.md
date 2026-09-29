@@ -4,10 +4,10 @@
 
 ## 發送 LLM 請求
 
-推薦使用 `context.generateTask` —— 一次呼叫同時處理 profile 解析、世界書啟用、prompt 組裝、分派與回應正規化。Luker 內建的 search-tools、completion-preset-assistant、character-editor-assistant、記憶圖、orchestrator 都透過它發起 LLM 請求。第三方外掛也應該用這個 API，而不是自己拼裝 `sendOpenAIRequest` + `buildPresetAwarePromptMessages` + `connectionProfiles.resolve`。
+推薦使用 `context.generateTask` —— 一次呼叫同時處理 profile 解析、世界書啟用、prompt 組裝、分派與回應正規化。Luker 內建的 search-tools、completion-preset-assistant、character-editor-assistant、記憶圖、orchestrator 均透過它發起 LLM 請求。第三方外掛也應該用這個 API，而不是自己拼裝 `sendOpenAIRequest` + `buildPresetAwarePromptMessages` + `connectionProfiles.resolve`。
 
 ::: info 為什麼要統一成一個 API
-手動拼裝意味著每個外掛都得自己重做 profile 解析、世界書啟用、家族分派（openai vs kobold/novel/textgen）、回應解析。`generateTask` 把這些都收斂到一處，無論底層 API 家族是哪一種，都回傳正規化的結果結構。
+手動拼裝意味著每個外掛均得自行實現 profile 解析、世界書啟用、家族分派（openai vs kobold/novel/textgen）、回應解析。`generateTask` 把這些均收斂到一處，無論底層 API 家族是哪一種，均回傳正規化的結果結構。
 :::
 
 ### 快速開始
@@ -75,7 +75,7 @@ context.generateTask({
 
 `substituteMacros` 預設為 `true`，`generateTask` 會在組裝前對每條 task 訊息的字串 `content` 跑一遍 `substituteParams`。這樣外掛請求裡也能解析跟主聊天路徑一致的 <span v-pre>`{{...}}`</span> 巨集 —— 包括 Luker 內建巨集（<span v-pre>`{{user}}`</span>、<span v-pre>`{{char}}`</span>、<span v-pre>`{{persona}}`</span>、<span v-pre>`{{datetime}}`</span>、<span v-pre>`{{random:a,b}}`</span> 等）和經由同一引擎註冊的擴充巨集（例如 MagVarUpdate 的 <span v-pre>`{{getvar::}}`</span> 系列）。
 
-帶副作用的巨集（<span v-pre>`{{setvar::}}`</span>、<span v-pre>`{{addvar::}}`</span>、<span v-pre>`{{incvar::}}`</span>、<span v-pre>`{{decvar::}}`</span>、<span v-pre>`{{deletevar::}}`</span>）會經由 `skipSideEffects: true` 直接剝除，否則外掛每次請求都會重新觸發這些寫入，並污染 `chat_metadata.variables`。
+帶副作用的巨集（<span v-pre>`{{setvar::}}`</span>、<span v-pre>`{{addvar::}}`</span>、<span v-pre>`{{incvar::}}`</span>、<span v-pre>`{{decvar::}}`</span>、<span v-pre>`{{deletevar::}}`</span>）會經由 `skipSideEffects: true` 直接剝除，否則外掛每次請求均會重新觸發這些寫入，並污染 `chat_metadata.variables`。
 
 #### 何時應該關閉
 
@@ -173,7 +173,7 @@ console.log(result.jsonData);  // { name: 'Alice', age: 32, occupation: 'softwar
 
 ### 錯誤處理
 
-所有失敗都會擲出 `GenerateTaskError`，在 `context.GenerateTaskError` 暴露：
+所有失敗均會擲出 `GenerateTaskError`，在 `context.GenerateTaskError` 暴露：
 
 ```js
 try {
@@ -243,13 +243,13 @@ return {
 - 命名的 `llmPresetName`（留空時回退到目前選中的 chat completion 預設）`stream_openai: true` → SSE 傳輸。慢速上游用得到，避免 HTTP 連線逾時；伺服端逐幀累積後拼成完整終態，呼叫方仍然只看到 `Promise<terminal>`。
 - `stream_openai: false` → 一次性 POST。整個回應在一個 body 裡回傳。
 
-兩種走法回傳形態完全一致。**呼叫方不需要設傳輸開關**，使用者在預設裡的選擇就是真相來源。非 OpenAI 族（kobold / koboldhorde / novel / textgenerationwebui）始終走一次性 POST。
+無論走哪種方式，回傳形態完全一致。**呼叫方不需要設傳輸開關**，使用者在預設裡的選擇就是真相來源。非 OpenAI 族（kobold / koboldhorde / novel / textgenerationwebui）始終走一次性 POST。
 
 如果你需要**即時渲染 token**，那是另一回事——和傳輸無關，要走下一節的 `generateTaskStream`。
 
 ### 串流回應
 
-`generateTask` 不管走哪種傳輸都會回傳終態結果。如果互動式場景需要在模型生成過程中即時渲染 token，請使用 `context.generateTaskStream`——它會回傳一對 split-stream：一個用於消費 delta 增量的 `AsyncIterable`，以及一個 `Promise` 取得與 `generateTask` 相同形態的終態結果。它始終走 OpenAI 族的串流 sender，不再讀預設的 `stream_openai` 欄位，因為「消費 chunk」本身就是呼叫方明確表達的訴求。
+`generateTask` 不管走哪種傳輸均回傳終態結果。如果互動式場景需要在模型生成過程中即時渲染 token，請使用 `context.generateTaskStream`——它會回傳一對 split-stream：一個用於消費 delta 增量的 `AsyncIterable`，以及一個 `Promise` 取得與 `generateTask` 相同形態的終態結果。它始終走 OpenAI 族的串流 sender，不再讀預設的 `stream_openai` 欄位，因為「消費 chunk」本身就是呼叫方明確表達的訴求。
 
 ```js
 const { stream, result } = context.generateTaskStream({
@@ -455,7 +455,7 @@ context.unregisterFunctionTool('my_plugin_tool');
 
 ### 連線設定 （Connection Profile） 解析
 
-Connection profile 是 Luker 連線管理員管理的一組**連線設定**（API 類型、模型、金鑰、代理等），與 chat completion preset 是**兩個獨立的東西**——前者描述「連到哪」，後者描述「按什麼參數生成」，可自由組合。
+Connection profile 是 Luker 連線管理員管理的一組**連線設定**（API 類型、模型、金鑰、代理等），與 chat completion preset **相互獨立**——前者描述「連到哪」，後者描述「按什麼參數生成」，可自由組合。
 
 當外掛需要讓使用者從 connection profile 中挑一個發請求時（例如自帶「使用哪個 API 設定」的下拉選單），用 `context.connectionProfiles.list()` 填充 UI:
 
@@ -469,7 +469,7 @@ context.connectionProfiles.list(): ConnectionProfile[]
 
 ### sendOpenAIRequest
 
-底層 LLM dispatcher。`generateTask` 內部對 OpenAI 家族的請求會呼叫它，前提是 envelope 組裝、世界書啟用、profile 解析都已經在外層完成。
+底層 LLM dispatcher。`generateTask` 內部對 OpenAI 家族的請求會呼叫它，前提是 envelope 組裝、世界書啟用、profile 解析已經在外層完成。
 
 ```js
 import { sendOpenAIRequest } from '../../../openai.js';
@@ -616,7 +616,7 @@ context.streamingProcessor: StreamingProcessor | null
 
 ## Service 類別
 
-三個 class-as-namespace 輔助類別暴露不經 `Generate` 的請求生命週期。需要對 chat-completion 或 text-completion 後端做直接控制（例如自訂重試邏輯、自訂 token 計算）時使用。
+class-as-namespace 輔助類別暴露不經 `Generate` 的請求生命週期。需要對 chat-completion 或 text-completion 後端做直接控制（例如自訂重試邏輯、自訂 token 計算）時使用。
 
 ### ChatCompletionService
 
@@ -659,7 +659,7 @@ ConnectionManagerRequestService.getProfileIcon(profileId?): string
 ConnectionManagerRequestService.getAllowedTypes(): { openai, textgenerationwebui }
 ```
 
-不論 UI 中當前激活的是哪個 profile，都按 id 透過某個 Connection Manager profile 發送一次生成。Connection Manager 擴充功能停用時擲出 `'Connection Manager is not available'`。
+不論 UI 中當前激活的是哪個 profile，均按 id 透過某個 Connection Manager profile 發送一次生成。Connection Manager 擴充功能停用時擲出 `'Connection Manager is not available'`。
 
 ```js
 const ctx = Luker.getContext();

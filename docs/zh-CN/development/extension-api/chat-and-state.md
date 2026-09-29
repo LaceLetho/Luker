@@ -23,7 +23,7 @@
 自行驱动 LLM 请求的插件（多智能体编排、记忆图整理、迭代重建等）需要把聊天历史变成 prompt 消息。不要自行遍历 `context.chat`：
 
 - **深度计算很容易出错。** 带 `minDepth` / `maxDepth` 的正则脚本期望的深度是从可用聊天的末尾起算（跳过系统楼层）。自行编写的遍历通常用数组位置当深度——那是另一个数字。
-- **裸 `.mes` 会漏掉正则。** 主生成管线在文本进入模型前会把每个楼层都过一遍用户的正则脚本。自行编写的遍历会把原始文本提供给 agent，而主聊天里看到的是改写后的文本。
+- **裸 `.mes` 会漏掉正则。** 主生成管线在文本进入模型前会把每个楼层均过一遍用户的正则脚本。自行编写的遍历会把原始文本提供给 agent，而主聊天里看到的是改写后的文本。
 
 ### readPluginFloors
 
@@ -37,7 +37,7 @@ context.readPluginFloors(options?: {
 }): FloorRecord[]
 ```
 
-把当前聊天读成可直接进 prompt 的楼层记录。只遍历 `context.chat` 一次，每个楼层都携带真实的「距末尾深度」经过一次插件正则通道——脚本上的 `maxDepth` 在这里和在主管线里含义一致。
+把当前聊天读成可直接进 prompt 的楼层记录。只遍历 `context.chat` 一次，每个楼层均携带真实的「距末尾深度」经过一次插件正则通道——脚本上的 `maxDepth` 在这里和在主管线里含义一致。
 
 过滤器决定返回哪些记录；返回的每条记录始终带有下面表格里的全部字段。默认角色白名单会排除系统楼层，与主管线对它们的处理一致。传 `roles: ['user', 'assistant', 'system']` 可以把它们加回来——这类记录的 `depth` 为 `undefined`，因为系统楼层不在深度编号之内。
 
@@ -81,13 +81,13 @@ const result = await ctx.generateTask({ taskMessages });
 
 转换后消息上的 `sourceFloorIndex` 是一个来源标记：它告诉派发层这段文本已经由 `readPluginFloors` 完成正则处理，自身的正则 pass 会跳过这条消息，避免脚本被套用第二次。
 
-这份契约分三部分：
+这份契约涵盖：
 
 - 读 API 为其产出的每条消息盖上标记——调用方永远不需要自行计算或维护这个字段
 - 派发层识别标记，原样放行带标记消息，并在任何内容发往网络之前剥掉标记
 - 插件代码只负责传递带标记的消息（重排、过滤、嵌入更大的 payload）；标记在常规对象操作中自动保留
 
-因此，无论数组被派发多少次，每个楼层都只会经过一次正则处理。
+因此，无论数组被派发多少次，每个楼层均只会经过一次正则处理。
 
 ### tool 载荷豁免
 
@@ -97,16 +97,16 @@ const result = await ctx.generateTask({ taskMessages });
 
 ### 哪些正则规则在哪条通道生效
 
-规则的生效范围在两条通道之间划分得很干净：
+规则的生效范围在不同通道之间划分得很干净：
 
 - `promptOnly` 规则绝不会出现在插件请求中——它们只在主生成管线内生效
 - `pluginOnly` 规则**只**出现在插件请求中——主管线看不到它们
 
-两个标记都没勾的规则对哪条通道都不生效——它改写的是存储的聊天历史本身，在消息编辑或保存时套用。
+标记均未勾选的规则对哪条通道均不生效——它改写的是存储的聊天历史本身，在消息编辑或保存时套用。
 
 ## 消息 API
 
-Luker 提供了统一的高层消息操作 API。每个操作都是完整的一条龙流程：内存更新 + DOM 渲染 + 事件触发 + 持久化。
+Luker 提供了统一的高层消息操作 API。每个操作均为完整的一条龙流程：内存更新 + DOM 渲染 + 事件触发 + 持久化。
 
 ### addMessages
 
@@ -320,7 +320,7 @@ deleteChatState(
 
 ### 错误原因
 
-每次写入失败都会返回 `{ok: false, reason, hint}`。`reason` 字段是以下九个值之一：
+每次写入失败均会返回 `{ok: false, reason, hint}`。可能的 `reason` 值：
 
 | Reason | 触发时机 | 建议处理 |
 |---|---|---|
@@ -361,18 +361,18 @@ if (!result.ok) {
 
 ## 楼层状态
 
-楼层状态在聊天状态之上加了一层薄封装：每次写入都会附带聊天尾部的位置（楼层索引 + swipe 编号）记到日志里，聊天结构变化时自动重放幸存提交。需要让状态跟着 swipe、删消息、切换聊天而无需手动对账的插件或 CardApp，应该使用这套 API 而不是直接调用 `updateChatState`。
+楼层状态在聊天状态之上加了一层薄封装：每次写入均会附带聊天尾部的位置（楼层索引 + swipe 编号）记到日志里，聊天结构变化时自动重放幸存提交。需要让状态跟着 swipe、删消息、切换聊天而无需手动对账的插件或 CardApp，应该使用这套 API 而不是直接调用 `updateChatState`。
 
 ### 工作方式
 
-一个楼层状态实例独占一个聊天状态命名空间（`<ns>`）以及一份私有提交日志（`<ns>__floor_log`）。所有写入都通过实例的 `update` 方法进入：它读取当前状态、运行你的 reducer、计算差异、把差异写入业务命名空间并追加一条提交。每个实例创建时会注册到 `floor-state.js` 内部的实例表；聊天结构发生变化时，core 代码会先把所有已注册实例同步推平到对应的处理器，**然后**才触发对应的 `eventSource` 事件通知插件订阅者——任何插件在监听器里读取楼层状态都能看到已经 settle 完的数据。四种结构性转换是：
+一个楼层状态实例独占一个聊天状态命名空间（`<ns>`）以及一份私有提交日志（`<ns>__floor_log`）。所有写入均通过实例的 `update` 方法进入：它读取当前状态、运行你的 reducer、计算差异、把差异写入业务命名空间并追加一条提交。每个实例创建时会注册到 `floor-state.js` 内部的实例表；聊天结构发生变化时，core 代码会先把所有已注册实例同步推平到对应的处理器，**然后**才触发对应的 `eventSource` 事件通知插件订阅者——任何插件在监听器里读取楼层状态均能看到已经 settle 完的数据。结构性转换包括：
 
 - `CHAT_CHANGED`——切换到新聊天，按这份聊天的日志重建数据
 - `MESSAGE_SWIPED`——用户切换 swipe，按新的活动 swipe 重建数据
 - `MESSAGE_DELETED`——聊天截短，丢弃楼层超出新长度的提交后重建
 - `MESSAGE_SWIPE_DELETED`——聊天尾部某个 swipe 被删除，相关楼层的提交重新编号后重建
 
-每条提交存的是「提交时刻 materialized 状态 → 下一份状态」的增量 diff。重建按写入顺序遍历所有提交，丢弃 `(floor, swipeId)` 已不在当前活动 swipe 上的提交，然后把幸存的 patch 依次应用在 `{}` 上。删除事件都只发生在尾部——`MESSAGE_DELETED` 只截尾部、`MESSAGE_SWIPE_DELETED` 也只在聊天尾部触发——所以活动路径上的幸存提交始终是连续的链，增量 patch 正确组合。
+每条提交存的是「提交时刻 materialized 状态 → 下一份状态」的增量 diff。重建按写入顺序遍历所有提交，丢弃 `(floor, swipeId)` 已不在当前活动 swipe 上的提交，然后把幸存的 patch 依次应用在 `{}` 上。删除事件均只发生在尾部——`MESSAGE_DELETED` 只截尾部、`MESSAGE_SWIPE_DELETED` 也只在聊天尾部触发——所以活动路径上的幸存提交始终是连续的链，增量 patch 正确组合。
 
 ### createFloorState
 
@@ -382,7 +382,7 @@ createFloorState(options: { namespace: string }): Promise<FloorStateInstance>
 
 在插件或 CardApp 里使用 `getContext().createFloorState({ namespace })`。每个实例绑定一个命名空间；如果业务状态分多块，请创建多个实例。
 
-所有执行写入的实例方法（`update`、`patch`、`reset`、`destroy({ purge: true })`）和读取方法（`get`）都返回一个 envelope —— 它们永不抛出。检查 `result.ok` 并根据 `result.reason` 切换处理失败模式，见[错误原因](#错误原因-1)。
+所有执行写入的实例方法（`update`、`patch`、`reset`、`destroy({ purge: true })`）和读取方法（`get`）均返回一个 envelope —— 它们永不抛出。检查 `result.ok` 并根据 `result.reason` 切换处理失败模式，见[错误原因](#错误原因-1)。
 
 ```js
 const ctx = SillyTavern.getContext();
@@ -424,7 +424,7 @@ reducer 必须返回普通对象。返回数组、基础类型、`null`、`undef
 
 ### 整盘替换日志（导入 / 重建）
 
-`update` 和 `patch` 都是 append-only——每次调用都在现有历史末尾追加一条提交。当你要整盘替换历史（导入备份、从聊天重建、重置到已知基线）时，请用 `reset(commits)`：
+`update` 和 `patch` 均为 append-only——每次调用均在现有历史末尾追加一条提交。当你要整盘替换历史（导入备份、从聊天重建、重置到已知基线）时，请用 `reset(commits)`：
 
 ```js
 // 用这组提交原子性替换整段日志。
@@ -442,7 +442,7 @@ if (!result.ok) {
 await fs.reset([]);
 ```
 
-每条提交都按 `patch` 同样的结构校验（`floor` 与 `swipeId` 是非负整数、`patches` 是非空数组），外加 `floor < chat.length` 的范围检查。任意一条不合规就整批拒绝——日志绝不会落到「半合规」状态。没有独立的 data 命名空间要同步：下一次 `get()` 会按新日志重新重放，进程内 cache 自动失效。
+每条提交均按 `patch` 同样的结构校验（`floor` 与 `swipeId` 是非负整数、`patches` 是非空数组），外加 `floor < chat.length` 的范围检查。任意一条不合规就整批拒绝——日志绝不会落到「半合规」状态。没有独立的 data 命名空间要同步：下一次 `get()` 会按新日志重新重放，进程内 cache 自动失效。
 
 ### 把状态挂到非尾部的楼层
 
@@ -459,7 +459,7 @@ await fs.update(
 await fs.update((current) => nextState, { floor: targetFloor, swipeId: 0 });
 ```
 
-不传 `options` 时按聊天尾部推断。`floor` 必须是当前 `chat` 的有效索引（`0 <= floor < chat.length`），越界、负数、非整数、负 `swipeId` 都会被拒绝并返回 `{ok: false, reason: 'VALIDATION_COMMIT', hint}`，避免悄无声息地把状态错挂到不存在的楼层。
+不传 `options` 时按聊天尾部推断。`floor` 必须是当前 `chat` 的有效索引（`0 <= floor < chat.length`），越界、负数、非整数、负 `swipeId` 均会被拒绝并返回 `{ok: false, reason: 'VALIDATION_COMMIT', hint}`，避免悄无声息地把状态错挂到不存在的楼层。
 
 ::: tip
 覆写只影响这条提交在日志里的标签——`MESSAGE_DELETED` 仍按 floor 截断，`MESSAGE_SWIPE_DELETED` 仍按 （floor， swipeId） 重编号。重建顺序由日志的写入顺序决定，指定较小的 `floor` 不会让该提交提前执行。
@@ -485,7 +485,7 @@ context.buildObjectPatchOperationsAsync(
 
 ### 何时要 `await ready()`
 
-四种结构性转换由 core 在对应 `eventSource` 事件触发**之前**同步推平。所以插件在 `MESSAGE_DELETED` / `MESSAGE_SWIPED` / `MESSAGE_SWIPE_DELETED` / `CHAT_CHANGED` / `CHAT_BRANCH_CREATED` 监听器里读楼层状态时，看到的一定是已 settle 完的数据，**不需要** `ready()`。
+结构性转换由 core 在对应 `eventSource` 事件触发**之前**同步推平。所以插件在 `MESSAGE_DELETED` / `MESSAGE_SWIPED` / `MESSAGE_SWIPE_DELETED` / `CHAT_CHANGED` / `CHAT_BRANCH_CREATED` 监听器里读楼层状态时，看到的一定是已 settle 完的数据，**不需要** `ready()`。
 
 `ready()` 现在主要用于跟可能并发的 `update` / `patch` in-flight 写入串行化。没有重建或写入在进行时，这个 Promise 立即解决，开销可以忽略。
 
@@ -500,14 +500,14 @@ context.buildObjectPatchOperationsAsync(
 - `createFloorState({ namespace })`——异步工厂，返回冻结的实例。
 - `instance.update(reducer, options?): Promise<{ok: true, updated: boolean} | {ok: false, reason, hint}>`——读—改—写；reducer 收到当前状态、返回下一份状态，差异自动计算并提交。可选的 `options = { floor, swipeId? }` 把提交挂到指定楼层而非聊天尾部。**这是推荐的写入 API。**
 - `instance.patch(operations, options?): Promise<{ok: true, updated: boolean} | {ok: false, reason, hint}>`——进阶：追加一条「已自行计算好 patch」的提交。operations 必须是相对 `await instance.get()` 的增量 RFC 6902 diff（`buildObjectPatchOperationsAsync(prev, next)`），不能是整盘覆写式 snapshot。`options` 与 `update` 相同。
-- `instance.reset(commits): Promise<{ok: true} | {ok: false, reason, hint}>`——原子性整盘替换日志为给定提交列表。用于导入 / 重建 / 重置类工作流。每条提交都会被校验，任意一条结构非法或 `floor` 越界，整批拒绝。
+- `instance.reset(commits): Promise<{ok: true} | {ok: false, reason, hint}>`——原子性整盘替换日志为给定提交列表。用于导入 / 重建 / 重置类工作流。每条提交均会被校验，任意一条结构非法或 `floor` 越界，整批拒绝。
 - `instance.get(): Promise<{ok: true, state} | {ok: false, state: null, reason, hint}>`——读取当前 materialized 状态。按需对日志做重放（以当前 swipe map 为准），不读独立的 data 命名空间。
 - `instance.ready(): Promise<void>`——所有在飞写入完成时解决。
 - `instance.destroy(options?): Promise<{ok: true} | {ok: false, reason, hint}>`——从注册表移除实例。传 `{ purge: true }` 时同时把该命名空间的状态从磁盘抹除（用于永久重置 / 抹除场景）。不带 `purge` 调用时，同步的注销路径也返回 envelope 以保持一致。
 
 ### 错误原因
 
-每次写入失败都会返回 `{ok: false, reason, hint}`。`reason` 字段是以下九个值之一：
+每次写入失败均会返回 `{ok: false, reason, hint}`。可能的 `reason` 值：
 
 | Reason | 触发时机 | 建议处理 |
 |---|---|---|
@@ -613,7 +613,7 @@ setCharacterState(
 >
 ```
 
-以整份覆盖的方式写入指定命名空间下的角色状态。传入 `null` 作为 `data` 可以删除该命名空间的状态。非平凡负载请优先用 `updateCharacterState` —— `setCharacterState` 每次都会传输整份文档。成功时返回 `{ok: true, state}` 回显存储的值；失败时返回 `{ok: false, reason, hint}`。
+以整份覆盖的方式写入指定命名空间下的角色状态。传入 `null` 作为 `data` 可以删除该命名空间的状态。非平凡负载请优先用 `updateCharacterState` —— `setCharacterState` 每次均会传输整份文档。成功时返回 `{ok: true, state}` 回显存储的值；失败时返回 `{ok: false, reason, hint}`。
 
 | 参数 | 说明 |
 |------|------|
@@ -666,7 +666,7 @@ deleteCharacterState(
 
 ### 错误原因
 
-每次写入失败都会返回 `{ok: false, reason, hint}`。`reason` 字段是以下九个值之一：
+每次写入失败均会返回 `{ok: false, reason, hint}`。可能的 `reason` 值：
 
 | Reason | 触发时机 | 建议处理 |
 |---|---|---|
@@ -809,7 +809,7 @@ saveChat(): Promise<void>
 saveChatDebounced(): void
 ```
 
-安排一次聊天保存，触发后等 1 秒空档再真正落盘；窗口内重复调用会合并成一次保存。适合连续编辑的场景批量持久化，例如一条消息陆续插入多张生成图片时，每张图都调一次也只会落盘一次。同步返回，实际保存在后台经由 [`saveChat`](#savechat) 执行。
+安排一次聊天保存，触发后等 1 秒空档再真正落盘；窗口内重复调用会合并成一次保存。适合连续编辑的场景批量持久化，例如一条消息陆续插入多张生成图片时，每张图均调一次也只会落盘一次。同步返回，实际保存在后台经由 [`saveChat`](#savechat) 执行。
 
 ### printMessages
 
@@ -841,7 +841,7 @@ ctx.sendSystemMessage('GENERIC', 'Plugin loaded successfully.');
 
 ## 扩展 Prompt（深度注入）
 
-扩展 prompt 让插件能在 prompt 的特定位置和深度注入文本。它们在 prompt 组装阶段被求值，对每次生成请求都生效。
+扩展 prompt 让插件能在 prompt 的特定位置和深度注入文本。它们在 prompt 组装阶段被求值，对每次生成请求均生效。
 
 ### setExtensionPrompt
 

@@ -118,7 +118,7 @@ Third-party extensions can register custom tools via `context.registerFunctionTo
 
 ## Under the Hood
 
-For developers curious about the internal implementation, the function calling system is composed of three core modules:
+For developers curious about the internal implementation, the function calling system is composed of core modules:
 
 | Module | File | Responsibility |
 |--------|------|---------------|

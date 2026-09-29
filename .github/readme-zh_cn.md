@@ -20,27 +20,32 @@
 
 ---
 
-Luker 是一款下一代角色扮演聊天平台。和真正记得住剧情的角色对话，让一整支导演带队的 agent 团在每次回复前先把这场戏排好，通过和 AI 聊天来修改角色卡，让角色能在对话中途实时联网检索。
+Luker 是一款下一代角色扮演聊天平台。
+
+- 早期剧情的细节，回复时准确引用
+- 多 agent 探索上下文信息、创作正文
+- 与 AI 对话修改角色卡，改动以 diff 逐条批准
+- 扮演中联网查询同人资料、原作设定
 
 ## Luker 是什么
 
-Luker 是一个为大语言模型角色扮演场景专门打造的平台。开箱即用，不需要装第三方扩展，内置了：基于知识图谱的长期记忆、自带可复用技能库的多智能体场景编排、AI 辅助的角色卡编辑工作台、聊天补全预设助手、局域网同步，以及一个可在手机上运行完整后端的原生 Android 应用。
+Luker 是一个为大语言模型角色扮演场景专门打造的平台。开箱即用，不需要装第三方扩展，内置了：基于知识图谱的长期记忆、自带可复用技能库的多智能体场景编排、AI 辅助的角色卡编辑工作台、聊天补全预设助手、局域网同步，以及可在手机上运行完整后端的原生 Android 应用。
 
-Luker 基于 [SillyTavern](https://github.com/SillyTavern/SillyTavern) 深度重构而来，与其保持**双向 100% 数据兼容**。角色卡、世界书、预设、聊天记录都可以在两者之间无损搬迁，零迁移成本。
+Luker 基于 [SillyTavern](https://github.com/SillyTavern/SillyTavern) 深度重构而来，与其保持**双向 100% 数据兼容**。角色卡、世界书、预设、聊天记录均可以在两者之间无损搬迁，零迁移成本。
 
 ## 核心亮点
 
 ### 记忆图 —— 让角色真的记得住
 
-一套基于知识图谱的长期记忆。每一场戏都会被提取成带类型的节点（角色、地点、事件、剧情线），节点之间互相连边。每次回复前，召回环节会在图上游走，把最相关的记忆注入上下文——所以三十轮之后用户随口问一句「通往废弃神殿的第三条路径呢」，角色能准确翻出之前的那次对话。
+一套基于知识图谱的长期记忆。聊天内容会被提取成带类型的节点（角色、地点、事件、剧情线），节点之间互相连边。回复前，召回环节会在图上游走，把最相关的记忆注入上下文——主角返回先前到访的地点时，长期没有登场的早期角色会被回忆起来。
 
 ![记忆图演示](https://raw.githubusercontent.com/funnycups/Luker/release/docs/public/images/branding/memory-graph-demo.gif)
 
 → [记忆图文档](https://luker.cups.moe/zh-CN/features/memory-graph)
 
-### 多智能体编排 —— 一整支导演队伍替你把每场戏排好
+### 多智能体编排 —— 多 agent 探索上下文信息、创作正文
 
-在写作 LLM 开口之前，一支可自由配置的 agent 队伍先行执行：蒸馏器压缩最近上下文，规划师草拟下一场戏，评审员做最后审校。最终回复出来的同时，附带一份可展开检查的运行时 trace。五种执行模式任选：Spec（固定流水线）、单 Agent、Agenda（流程动态派发 agent）、Loop（单一 agent 进行循环迭代）、Director（主 agent 带一支子 agent 团队直接写正文）。
+可自由配置的多 agent 先行执行，写作 LLM 随后接手：distiller 压缩最近上下文，planner 草拟接下来的剧情，critic 做最后审校。最终回复出来的同时，附带可展开检查的运行时 trace。执行模式任选：Spec（固定流水线）、单 Agent、Agenda（流程动态派发 agent）、Loop（单一 agent 进行循环迭代）、Director（主 agent 与子 agent 团队探索上下文信息、创作正文）。
 
 ![多智能体编排演示](https://raw.githubusercontent.com/funnycups/Luker/release/docs/public/images/branding/orchestrator-demo.gif)
 
@@ -48,7 +53,7 @@ Luker 基于 [SillyTavern](https://github.com/SillyTavern/SillyTavern) 深度重
 
 ### 技能 —— 按需读取的可复用知识包
 
-agent 按需读取的可复用知识包：写作规则、口吻约定、反八股清单。格式兼容 Anthropic Claude Skills，为 Claude Code 编写的技能可原样迁移至 Luker，也可迁移回去。编排器默认的 Director profile 自带 24 个内置技能，技能还可以随角色卡或预设一起分发。
+agent 按需读取的可复用知识包：写作规则、口吻约定、反八股清单。格式兼容 Anthropic Claude Skills。编排器默认的 Director profile 自带内置技能，技能还可以随角色卡或预设一起分发。
 
 <img alt="技能管理器：已安装与内置技能" src="https://raw.githubusercontent.com/funnycups/Luker/release/docs/public/_screenshots/skills/manager-installed-tab.png" width="720">
 
@@ -56,7 +61,7 @@ agent 按需读取的可复用知识包：写作规则、口吻约定、反八�
 
 ### CardApp Studio 与角色卡编辑助手 —— 通过和 AI 对话来编辑角色卡
 
-一整套针对角色卡的编辑环境：CodeMirror 6 代码编辑器、AI 聊天面板、每批改动都以 diff 形式让你逐条批准。普通角色卡使用轻量弹窗版编辑助手；带 **CardApp**（内嵌在角色卡里的迷你应用）的卡片则进入功能完整的 Studio，内含文件树、实时预览、历史记录。
+一整套针对角色卡的编辑环境：CodeMirror 6 代码编辑器、AI 聊天面板、改动以 diff 形式供你逐条批准。普通角色卡使用轻量弹窗版编辑助手；带 **CardApp**（内嵌在角色卡里的迷你应用）的卡片则进入功能完整的 Studio，内含文件树、实时预览、历史记录。
 
 ![CardApp Studio 演示](https://raw.githubusercontent.com/funnycups/Luker/release/docs/public/images/branding/cardapp-studio-demo.gif)
 
@@ -64,7 +69,7 @@ agent 按需读取的可复用知识包：写作规则、口吻约定、反八�
 
 ### 聊天补全预设助手 —— 通过描述构建预设
 
-告诉助手你想让某个聊天补全预设做什么，它会与你逐轮迭代，每次改动都以 diff 形式供你审阅，直至符合预期——读取参数、编辑提示词条目、并与参考预设对比。同一套工作流也覆盖多智能体编排的预设。
+告诉助手你想让某个聊天补全预设做什么，它会与你迭代改进，改动以 diff 形式供你审阅，直至符合预期——读取参数、编辑提示词条目、并与参考预设对比。同一套工作流也覆盖多智能体编排的预设。
 
 <img alt="聊天补全预设助手" src="https://raw.githubusercontent.com/funnycups/Luker/release/docs/public/images/preset-assistant/cpa-overview.png" width="720">
 
@@ -92,7 +97,7 @@ Luker 的后端**内嵌于** Android 应用运行。安装 APK 并打开，即�
 
 ### 聊天合并与拆分
 
-任意位置拆分长聊天，或将两段聊天合并成一条；分支历史保持一致。适用于剧情失控、希望保留精彩片段并拆分另开分支的场景。
+任意位置拆分长聊天，或将聊天合并；分支历史保持一致。适用于剧情失控、希望保留精彩片段并拆分另开分支的场景。
 
 <img alt="聊天合并与拆分" src="https://raw.githubusercontent.com/funnycups/Luker/release/docs/public/screenshots/chat-merge-split/07-split-dialog-three-segments.png" width="720">
 
@@ -100,9 +105,9 @@ Luker 的后端**内嵌于** Android 应用运行。安装 APK 并打开，即�
 
 ### TTS NPC 对白归属
 
-开启 TTS 之后，一条回复里每一句引号台词都可以用说话者自己的声音念出来。后台会有一个 AI 环节判断每句台词是谁说的——它发现的 NPC 会自动出现在语音映射里；你事先手动加进去的名字，从第一次播放起就能被识别。
+开启 TTS 之后，回复里的引号台词均可以用说话者自己的声音念出来。后台会有一个 AI 环节判断台词归属——它发现的 NPC 会自动出现在语音映射里；你事先手动加进去的名字，从首次播放起就能被识别。
 
-<img alt="消息里每句台词旁的播放按钮" src="https://raw.githubusercontent.com/funnycups/Luker/release/docs/public/screenshots/tts-npc-attribution/03-inline-buttons-zoom.png" width="678">
+<img alt="消息里台词旁的播放按钮" src="https://raw.githubusercontent.com/funnycups/Luker/release/docs/public/screenshots/tts-npc-attribution/03-inline-buttons-zoom.png" width="678">
 
 → [TTS NPC 对白归属](https://luker.cups.moe/zh-CN/features/tts-npc-attribution)
 

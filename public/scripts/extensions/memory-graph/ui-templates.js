@@ -289,10 +289,10 @@ function buildAdvancedTabHtml(deps) {
             <label>${escapeHtml(i18n('Extract Table Fill Prompt'))}${fh('About Extract Table Fill Prompt', 'Extract Table Fill Prompt help body')}
                 <textarea id="luker_rpg_memory_advanced_extract_system_prompt" class="text_pole textarea_compact" rows="8"></textarea>
             </label>
-            <label id="luker_rpg_memory_advanced_recall_route_prompt_row">${escapeHtml(i18n('Recall Stage 1 Prompt (Route/Drill)'))}${fh('About Recall Stage 1 Prompt', 'Recall Stage 1 Prompt help body')} <!-- banned-words-allow -->
+            <label id="luker_rpg_memory_advanced_recall_route_prompt_row">${escapeHtml(i18n('Recall Stage 1 Prompt (Route/Drill)'))}${fh('About Recall Stage 1 Prompt', 'Recall Stage 1 Prompt help body')}
                 <textarea id="luker_rpg_memory_advanced_recall_route_prompt" class="text_pole textarea_compact" rows="8"></textarea>
             </label>
-            <label id="luker_rpg_memory_advanced_recall_finalize_prompt_row">${escapeHtml(i18n('Recall Stage 2 Prompt (Finalize)'))}${fh('About Recall Stage 2 Prompt', 'Recall Stage 2 Prompt help body')} <!-- banned-words-allow -->
+            <label id="luker_rpg_memory_advanced_recall_finalize_prompt_row">${escapeHtml(i18n('Recall Stage 2 Prompt (Finalize)'))}${fh('About Recall Stage 2 Prompt', 'Recall Stage 2 Prompt help body')}
                 <textarea id="luker_rpg_memory_advanced_recall_finalize_prompt" class="text_pole textarea_compact" rows="8"></textarea>
             </label>
             <div id="luker_rpg_memory_advanced_rag_rewrite_prompt_block" style="display:none">

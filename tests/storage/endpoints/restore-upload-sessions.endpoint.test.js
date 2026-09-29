@@ -128,7 +128,7 @@ describe('restore upload session endpoints', () => {
             .send({});
         expect(res.status).toBe(200);
         const lines = res.body.trim().split('\n').map((line) => JSON.parse(line));
-        expect(lines.some((line) => line.type === 'progress' && line.phase === 'assemble')).toBe(true); // banned-words-allow
+        expect(lines.some((line) => line.type === 'progress' && line.phase === 'assemble')).toBe(true);
         const result = lines.find((line) => line.type === 'result');
         expect(result.size).toBe(ZIP_BYTES.length);
     });

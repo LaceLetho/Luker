@@ -22,9 +22,9 @@ Luker exposes two complementary storage inspectors — one for the server-side p
 
 **Entry:** User Settings → Account → **Browser Storage**
 
-**What it shows:** Five categories of storage that browsers give each origin: `localStorage`, `sessionStorage`, `IndexedDB` (databases and object stores), `Cache Storage` (Service Worker caches), and Storage Quota (the browser's estimate of used and available bytes for this origin). Drill into any category to see per-item detail: individual localStorage keys, individual databases and their stores, individual caches.
+**What it shows:** The storage categories browsers give each origin: `localStorage`, `sessionStorage`, `IndexedDB` (databases and object stores), `Cache Storage` (Service Worker caches), and Storage Quota (the browser's estimate of used and available bytes for this origin). Drill into any category to see per-item detail: individual localStorage keys, individual databases and their stores, individual caches.
 
-**What you can delete:** Delete a single `localStorage` or `sessionStorage` key, clear an `IndexedDB` object store, delete an entire `IndexedDB` database, or delete a Cache Storage entry. Every deletion asks for confirmation first and cannot be undone. The Storage Quota view is informational and cannot be deleted.
+**What you can delete:** Delete a single `localStorage` or `sessionStorage` key, clear an `IndexedDB` object store, delete an entire `IndexedDB` database, or delete a Cache Storage entry. Deletions ask for confirmation first and cannot be undone. The Storage Quota view is informational and cannot be deleted.
 
 **What it does NOT do:** It never touches your account data on the server. It only affects the browser you are currently using — other devices signed into the same account keep their own separate browser storage.
 

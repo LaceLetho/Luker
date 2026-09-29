@@ -68,7 +68,7 @@ presets.resolve(
 
 綁定到預設的外掛執行時/會話資料。預設狀態與預設檔案並排存放，**不會隨預設一起匯出**，僅供外掛側執行時使用（例如編排器的「按預設記憶 agent 覆寫」、預設助手的「上次使用的範本」）。不要把外掛資料寫入預設 body，應使用 `presets.state.*`。
 
-所有方法都接受 `options.target`（`PresetRef`）和 `options.collection` 做跨預設讀寫；兩者預設指向當前選中的預設。
+所有方法均接受 `options.target`（`PresetRef`）和 `options.collection` 做跨預設讀寫；兩者預設指向當前選中的預設。
 
 ::: warning 行為變更（2026-06-28）
 預設狀態的讀寫 API（`get`、`getBatch`、`update`、`patch`、`delete`、`deleteAll`）在 HTTP 失敗時不再拋出例外，改為回傳 `{ok, ...}` envelope（與聊天狀態一致）。如果你的外掛原本寫了 `try { await ctx.presets.state.get(...) } catch (e) { ... }`，請改用 `if (!result.ok) { ... }`。

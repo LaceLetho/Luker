@@ -77,7 +77,7 @@ plugins/
 
 ### CommonJS 与 ESM
 
-两种模块格式都支持：
+两种模块格式均支持：
 
 **CommonJS**（使用 `module.exports`）：
 

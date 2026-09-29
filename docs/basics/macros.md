@@ -94,7 +94,7 @@ The backslash is stripped during post-processing and the raw <span v-pre>`{{...}
 
 ### Legacy tags
 
-Five non-curly tags from very old SillyTavern character cards are auto-rewritten to their macro equivalents before resolution:
+Non-curly tags from very old SillyTavern character cards are auto-rewritten to their macro equivalents before resolution:
 
 | Legacy | Modern equivalent |
 |---|---|
@@ -179,7 +179,7 @@ Only the chosen branch resolves its nested macros. <span v-pre>`{{if .casting}}{
 {{/each}}
 ```
 
-`collection` accepts three forms:
+`collection` accepts the following forms:
 
 1. An inline JSON literal — <span v-pre>`{{each::["sword","shield"]}}`</span> or <span v-pre>`{{each::{"a":1,"b":2}}}`</span>.
 2. A variable name — <span v-pre>`{{each::npcs}}`</span> reads the local variable `npcs` (and falls back to global) and parses its JSON.
@@ -281,7 +281,7 @@ Intermediate nodes are created on demand. A pure-numeric path segment creates an
 
 Path lookups against non-JSON values fall back to a literal flat-key lookup, so a variable literally named `a.b` still works.
 
-This pairs naturally with <span v-pre>`{{each}}`</span>: an NPC roster, an inventory dict, or a quest journal can live in a single variable and be rendered into the prompt or a world book entry on each pass.
+This pairs naturally with <span v-pre>`{{each}}`</span>: an NPC roster, an inventory dict, or a quest journal can live in a single variable and be rendered into the prompt or a world book entry when the prompt is assembled.
 
 ```text
 {{each::npcs}}
@@ -336,7 +336,7 @@ Luker fixes this with **per-message variable extraction**. When a message (AI re
 
 When you delete a message, switch swipes, regenerate, or edit, Luker **replays the surviving op log** so your variables stay consistent with the visible timeline.
 
-This is what the **Per-Message Variables** UI surfaces — a flask icon on every message with extracted ops, opening an editor where you can inspect, edit, delete, or add ops. The result is that the AI can own and mutate state directly through its replies, and that state survives all the chat-structure operations users routinely perform.
+This is what the **Per-Message Variables** UI surfaces — a flask icon on messages with extracted ops, opening an editor where you can inspect, edit, delete, or add ops. The result is that the AI can own and mutate state directly through its replies, and that state survives all the chat-structure operations users routinely perform.
 
 See [Per-Message Variables](/features/variable-op-log) for the full feature page (replay semantics, swipe lifecycle, the op editor, and recommended authoring patterns).
 
@@ -680,7 +680,7 @@ Once rolled, the choice stays fixed for that chat at that macro position — use
 {{/if}}{{/each}}
 ```
 
-The AI maintains `quests` with <span v-pre>`{{setvar::quests::…}}`</span> in its replies; the world book entry above lays them out on each turn.
+The AI maintains `quests` with <span v-pre>`{{setvar::quests::…}}`</span> in its replies; the world book entry above lays them out when the prompt is assembled.
 
 ### Author's note that adapts to a flag
 

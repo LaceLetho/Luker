@@ -10,7 +10,7 @@ SillyTavern is an excellent roleplay frontend with an active community and a ric
 
 ### More Efficient Data Transfer
 
-Most save operations in SillyTavern use full-payload transfers — every message edit, settings toggle, or world info change sends the complete data to the backend. For cloud-deployed users, this means significant bandwidth consumption.
+Most save operations in SillyTavern use full-payload transfers — a message edit, settings toggle, or world info change sends the complete data to the backend. For cloud-deployed users, this means significant bandwidth consumption.
 
 Luker introduces an incremental sync mechanism that uniformly uses patch endpoints compliant with the [RFC 6902](https://datatracker.ietf.org/doc/html/rfc6902) standard. Toggling a plugin setting that previously transferred 3 MB of data now takes less than 200 bytes. Save operations also support debounced triggering and conflict detection, fundamentally preventing data corruption caused by concurrent writes.
 
@@ -26,37 +26,37 @@ Luker ships with several professional tools designed for roleplay scenarios — 
 
 ### Memory Graph
 
-A character memory system built on a knowledge graph. Events, characters, locations, and plotlines from roleplay sessions are distilled into typed nodes connected to each other. Before a reply is written, a recall pass finds the nodes most relevant to the current scene and injects them into the creative context. Two recall methods are available: **LLM Recall** (the default — the model selects relevant nodes from the store, with multi-round exploration) and **RAG Recall** (vector retrieval over an embedded store, with optional cross-encoder rerank and optional LLM query rewrite). Extraction runs on its own after each reply, either through the built-in pipeline or through an orchestrator sub-agent.
+A character memory system built on a knowledge graph. Events, characters, locations, and plotlines from roleplay sessions are distilled into typed nodes connected to each other. Before a reply is written, a recall pass finds the nodes most relevant to the current scene and injects them into the creative context — when the protagonist returns to a place they visited earlier, an early character who has long been off-stage is recalled. Recall methods include: **LLM Recall** (the default — the model selects relevant nodes from the store, with multi-round exploration) and **RAG Recall** (vector retrieval over an embedded store, with optional cross-encoder rerank and optional LLM query rewrite). Extraction runs on its own after a reply, either through the built-in pipeline or through an orchestrator sub-agent.
 
 → [Memory Graph Documentation](/features/memory-graph)
 
 ### Orchestrator
 
-Before the creative LLM generates a response, a team of agents plans the scene: one distills the recent context, another drafts what this turn should accomplish, a reviewer checks the plan, and the result is packaged into a short briefing for the writer. Five execution modes are available: **Spec** (a fixed Stage → Node pipeline, the default), **Single Agent**, **Agenda** (a planner dispatches agents through tool calls), **Loop** (one agent runs an iterative tool loop until it finalizes), and **Director** (a main agent plus a sub-agent team writes the message body directly). All agent actions are retained as a runtime trace you can inspect. Orchestration configurations can be bound to character cards and imported/exported along with them.
+Before the creative LLM generates a response, a team of agents plans the scene: one distills the recent context, another drafts what this turn should accomplish, a reviewer checks the plan, and the result is packaged into a short briefing for the writer. Execution modes are available: **Spec** (a fixed Stage → Node pipeline, the default), **Single Agent**, **Agenda** (a planner dispatches agents through tool calls), **Loop** (one agent runs an iterative tool loop until it finalizes), and **Director** (a main agent and a sub-agent team explore the context and draft the message body). All agent actions are retained as a runtime trace you can inspect. Orchestration configurations can be bound to character cards and imported/exported along with them.
 
 → [Orchestrator Documentation](/features/orchestrator/)
 
 ### Skills
 
-Reusable knowledge packs that agents read on demand, instead of one giant system prompt. Skills support the Anthropic Claude Skills format and round-trip with Claude Code without conversion. The default Director profile ships with 24 bundled skills, and skills can travel with a character card or a preset, so distributing a card distributes the writing rules that make it work.
+Reusable knowledge packs that agents read on demand, instead of one giant system prompt. Skills support the Anthropic Claude Skills format. The default Director profile ships with bundled skills, and skills can travel with a character card or a preset, so distributing a card distributes the writing rules that make it work.
 
 → [Skills Documentation](/features/skills/)
 
 ### Character Card Editing Assistant (CEA / CardApp Studio)
 
-An AI-assisted character card editing tool with an integrated CodeMirror 6 code editor. It edits character cards, world info, and CardApp code through natural language conversation, committing real changes via structured tool calls, with diff-based approval for every batch — rejected changes never take effect. When you replace or update a card, it detects world info changes and offers to import the new book, keep the old one, or merge them with AI help. Regular cards use the popup editor; cards with an embedded CardApp open in the more capable Studio.
+An AI-assisted character card editing tool with an integrated CodeMirror 6 code editor. It edits character cards, world info, and CardApp code through natural language conversation, committing real changes via structured tool calls, with diff-based approval — rejected changes never take effect. When you replace or update a card, it detects world info changes and offers to import the new book, keep the old one, or merge them with AI help. Regular cards use the popup editor; cards with an embedded CardApp open in the more capable Studio.
 
 → [CEA Overview](/features/card-editor/)　·　[Popup](/features/card-editor/popup)　·　[CardApp Studio](/features/card-editor/studio)
 
 ### Preset Assistant
 
-An AI assistant for chat completion presets. It reads the current preset's real values, explains what each parameter does, edits prompt entries as well as sampling values, and compares against a reference preset — returning every change as a diff you approve. The same workflow covers presets whose downstream consumer is the orchestrator.
+An AI assistant for chat completion presets. It reads the current preset's real values, explains what each parameter does, edits prompt entries as well as sampling values, and compares against a reference preset — returning changes as diffs you approve. The same workflow covers presets whose downstream consumer is the orchestrator.
 
 → [Preset Assistant Documentation](/features/preset-assistant)
 
 ### Search Tools
 
-Provides web search capabilities for AI, supporting search engine backends like DuckDuckGo, SearXNG, and Brave Search. Two operating modes are available: as a callable tool for the creative LLM, or as a pre-request agent that automatically searches before generation and writes results into world info.
+Provides web search capabilities for AI, supporting search engine backends like DuckDuckGo, SearXNG, and Brave Search. It works as a callable tool for the creative LLM, or as a pre-request agent that automatically searches before generation and writes results into world info.
 
 → [Search Tools Documentation](/features/search-tools)
 
@@ -98,7 +98,7 @@ Generation runs on the backend and streams to the UI, and saves happen on the ba
 
 ### Function Call Runtime
 
-A unified function call / tool call runtime supporting two modes:
+A unified function call / tool call runtime supporting these modes:
 
 - **Native tool calls**: Compatible with native tool call formats from OpenAI, Claude, Gemini, and other APIs
 - **Plain-text function calls**: Implements tool calls through a text protocol, suitable for models that don't support native tool calls

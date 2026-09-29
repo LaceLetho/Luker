@@ -12,7 +12,7 @@ When to reach for Agenda over Spec:
 Spec wins on predictability, prompt-cache friendliness, and debug ergonomics. The fixed DAG is enough for the vast majority of RP scenarios; Agenda is for cases that genuinely need dynamic dispatch.
 :::
 
-::: warning 99% of the time, don't hand-edit
+::: warning Most of the time, don't hand-edit
 Before you hand-write a Planner prompt, check the [AI Iteration Studio](/features/orchestrator/iteration-studio) — describe what you want in one sentence, the AI returns a Planner + agent pool proposal, you approve change-by-change.
 :::
 
@@ -38,9 +38,9 @@ The Planner is Agenda's core. It does several things:
 
 Each Agenda Agent is similar to a Spec Node: own System Prompt, User Prompt Template, optional API / Chat Completion preset overrides. The difference: an Agent isn't bolted to a stage. **When and how often it's invoked — or whether it's invoked at all — is the Planner's call.**
 
-### Three runtime bounds
+### Runtime bounds
 
-Agenda is dynamic dispatch, so runaway is easy. Three guards:
+Agenda is dynamic dispatch, so runaway is easy. Guards:
 
 - **Planner Max Rounds** — how many scheduling rounds the Planner gets
 - **Max Concurrent Agents** — concurrency cap on parallel agent runs (passed to `Promise.all`)
@@ -50,7 +50,7 @@ Hitting any one forces the run to wrap up.
 
 ## Default orchestration flow
 
-Agenda hands the wheel to a Planner agent that schedules a pool of workers per turn. The default profile ships the Planner plus five workers — `distiller`, `lorebook_reader`, `planner`, `critic`, and `finalizer`. Each round the Planner picks one or more workers from the pool, reads their results back, and replans if needed; once the board is resolved, `finalizer` writes the capsule.
+Agenda hands the wheel to a Planner agent that schedules a pool of workers per turn. The default profile ships the Planner plus a worker pool — `distiller`, `lorebook_reader`, `planner`, `critic`, and `finalizer`. The Planner picks workers from the pool, reads their results back, and replans as needed; once the board is resolved, `finalizer` produces the capsule.
 
 ```d2
 direction: down
@@ -105,7 +105,7 @@ The default agents at a glance:
 
 | Agent | Purpose | Concrete RP example |
 |---|---|---|
-| `Planner` *(loop driver, not a worker)* | Reads the chat and user message, maintains the todo board (`add` / `set_status` / `drop`), picks one or more workers from the pool each round to dispatch, reads their results, and decides whether to keep planning or hand off to `finalizer`. | Round 1: dispatches `distiller` + `lorebook_reader` in parallel. Round 2: outputs read; decides the scene also needs `planner` + `critic`. Round 3: hands off to `finalizer`. |
+| `Planner` *(loop driver, not a worker)* | Reads the chat and user message, maintains the todo board (`add` / `set_status` / `drop`), picks workers from the pool to dispatch, reads their results, and decides whether to keep planning or hand off to `finalizer`. | Dispatches `distiller` + `lorebook_reader` in parallel; reads their output and decides the scene also needs `planner` + `critic`; hands off to `finalizer`. |
 | `distiller` | Compact, evidence-grounded scene-state read (user intent, active tensions, immediate direction); written for the Planner and downstream agents, not for the player-facing reply. | "Lin Wan probing user's stance on the Luoyang topic; will change subject completely if user redirects." |
 | `lorebook_reader` | Extracts only the lorebook / world-info constraints that materially matter this turn — phrased as practical writing / behaviour constraints, not lorebook summary. | "Luoyan is besieged — Lin Wan cannot have left. Style: archaic register; she'd say '不知怎的' not 'somehow'." |
 | `planner` | Scene-progression analyst — proposes what next-step beats or decision points matter, with causality preserved and the world not bent around the user. | Beats: "user presses → she deflects → he tries a different angle → she lets one Luoyang detail slip → reply ends there". |
@@ -132,12 +132,12 @@ Agenda's Planner dispatch is implemented via OpenAI tool calls and depends on Lu
 
 ## Watching an Agenda run
 
-The [Run Panel](/features/orchestrator/#step-4) shows every Agenda run live. Each Planner round is a card; each dispatched worker is a sub-card under that round, expandable to see its full reasoning and output. Agenda-specific things to look for:
+The [Run Panel](/features/orchestrator/#step-4) shows Agenda runs live. Planner rounds are cards; dispatched workers are sub-cards under the round, expandable to see its full reasoning and output. Agenda-specific things to look for:
 
-- **Planner output per round** — the `todo_ops` list (`set_status` / `add` / `set_goal` and friends), expanded inline. When the Planner sends to the wrong agent, skips a step, or falls into a loop, cross-reference these ops with the worker outputs to find the root cause.
+- **Planner output** — the `todo_ops` list (`set_status` / `add` / `set_goal` and friends), expanded inline. When the Planner sends to the wrong agent, skips a step, or falls into a loop, cross-reference these ops with the worker outputs to find the root cause.
 - **Worker dispatches** — every worker the Planner runs in a round appears under that round's card. Expand to inspect inputs and outputs.
 - **Final Agent output** — the run's last worker (default `finalizer`) produces the capsule actually injected into the main model. The configuration reference shows how to swap it for a different agent id.
-- **Event density** — Agenda runs typically produce 20+ events because Planner rounds and every dispatch are recorded; expect a busier panel than Spec.
+- **Event density** — Agenda runs produce a busy event log because Planner rounds and dispatches are recorded; expect a busier panel than Spec.
 
 Use **Export** at the top of the panel to download the run as JSON (handy for bug reports).
 

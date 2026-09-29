@@ -74,7 +74,7 @@ if (api) {
 
 擴充功能間通訊最常見的場景是解耦：一個擴充功能提供能力，另一個擴充功能消費能力，而不需要硬編碼依賴。例如，CardApp Studio透過`registerExtensionApi`將自身的編輯器API暴露出來，其他擴充功能可以在Studio就緒後直接呼叫。
 
-編排器擴充遵循同樣的約定 —— 它發布 `'orchestrator'`，帶 `registerOrchestrationTool` / `unregisterOrchestrationTool` / `listExtensionTools`（以及 SillyTavern 橋接相關的輔助函式），讓任何其他擴充都能貢獻工具，由編排 agent 呼叫。詳見 [編排器工具 API](./orchestrator-tools.md)。
+編排器擴充遵循同樣的約定 —— 它發布 `'orchestrator'`，帶 `registerOrchestrationTool` / `unregisterOrchestrationTool` / `listExtensionTools`（以及 SillyTavern 橋接相關的輔助函式），讓任何其他擴充均能貢獻工具，由編排 agent 呼叫。詳見 [編排器工具 API](./orchestrator-tools.md)。
 
 ## 事件系統
 
@@ -208,7 +208,7 @@ context.saveSettingsDebounced(): void
 context.saveSettings(loopCounter?: number, options?: object): Promise<void>
 ```
 
-`saveSettingsDebounced` 的可 await 版本。繞過防抖佇列，網路往返完成後才解析。僅當後續邏輯依賴「設定已落盤」時才用（少見——絕大多數呼叫點都應優先選防抖版）。
+`saveSettingsDebounced` 的可 await 版本。繞過防抖佇列，網路往返完成後才解析。僅當後續邏輯依賴「設定已落盤」時才用（少見——絕大多數呼叫點均應優先選防抖版）。
 
 ### saveMetadataDebounced
 

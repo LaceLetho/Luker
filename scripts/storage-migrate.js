@@ -623,7 +623,7 @@ export async function runFromZip({ args, dataRoot, getAllUserHandles, getUserDir
                 dataRoot,
                 currentEngine,
                 onProgress: (event) => {
-                    if (event?.phase === 'convert' && event.stage) { // banned-words-allow
+                    if (event?.phase === 'convert' && event.stage) {
                         console.log(`  convert: ${event.stage}`);
                     }
                 },

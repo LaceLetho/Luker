@@ -1,6 +1,6 @@
 # 自定义工具
 
-自定义工具让你给编排器的 agent 加新能力——超出 Luker 内置的 chat / lorebook / note / memory 工具范围。一共支持三条来源通道，四种编排模式（loop / spec / agenda / director）看到它们的方式完全一致。
+自定义工具让你给编排器的 agent 加新能力——超出 Luker 内置的 chat / lorebook / note / memory 工具范围。支持多条来源通道，各编排模式（loop / spec / agenda / director）看到它们的方式完全一致。
 
 ## 自定义工具的来源
 
@@ -8,7 +8,7 @@
 
 **来自 SillyTavern。** SillyTavern 自身也有 function tool 系统，其他插件会用它注册工具。要把这些工具暴露给编排器 agent，打开编排编辑器，点「桥接 SillyTavern 工具……」——挑你想要的工具，给每个工具选「读」或「写」模式，保存。它们会出现在「自定义工具 → 来自 SillyTavern」分组里。
 
-**在本编排里手写。** 上面两条通道都覆盖不到的一次性需求，你可以现写一个工具。在编排编辑器的「自定义工具」区点「添加自定义工具」。这种方式定义的工具会跟着编排走——全局编排里写的就全局生效，角色卡覆写里写的就会随角色卡一起导出。
+**在本编排里手写。** 上面通道均覆盖不到的一次性需求，你可以现写一个工具。在编排编辑器的「自定义工具」区点「添加自定义工具」。这种方式定义的工具会跟着编排走——全局编排里写的就全局生效，角色卡覆写里写的就会随角色卡一起导出。
 
 ## 「添加自定义工具」对话框
 
@@ -44,7 +44,7 @@
 
 - `ctx.__lukerRun` —— 本次 run 的运行时状态。子字段：
     - `ctx.__lukerRun.activatedEntryKeys` 是一个 `Set`，键的形式是 `${world}.${uid}`，标记本轮已经被注入主上下文的 World Info 条目（你的工具若要再呈现 lorebook 内容可据此去重）。
-    - `ctx.__lukerRun.wiFinalizedPayload` 是**可变引用**，指向 `script.js` 即将拼成 `<world_info>` 通道字符串的那一份 `wiFinalizedPayload`。**在你的工具调用执行期间** push 到 `wiFinalizedPayload.worldInfoBeforeEntries` / `.worldInfoAfterEntries` / `.worldInfoDepth[i].entries` 里的内容，会被当作本轮 `<world_info>` 通道的一部分一同送进主模型，跟自然激活的条目完全没法区分。绕过世界书 token 预算，也不会触发递归 key 扫描。Loop / Spec / Agenda 可用（它们都在 `GENERATION_WORLD_INFO_FINALIZED` 同一帧内跑）；**Director 下为 undefined**（主代理跑的时候 WI 已经焊死在 prompt 里）。Layer-1 的 `lorebook_force_activate` builtin 是这个机制的官方包装——优先用它，不要自己手写 push。
+    - `ctx.__lukerRun.wiFinalizedPayload` 是**可变引用**，指向 `script.js` 即将拼成 `<world_info>` 通道字符串的那一份 `wiFinalizedPayload`。**在你的工具调用执行期间** push 到 `wiFinalizedPayload.worldInfoBeforeEntries` / `.worldInfoAfterEntries` / `.worldInfoDepth[i].entries` 里的内容，会被当作本轮 `<world_info>` 通道的一部分一同送进主模型，跟自然激活的条目完全没法区分。绕过世界书 token 预算，也不会触发递归 key 扫描。Loop / Spec / Agenda 可用（它们均在 `GENERATION_WORLD_INFO_FINALIZED` 同一帧内跑）；**Director 下为 undefined**（主代理跑的时候 WI 已经焊死在 prompt 里）。Layer-1 的 `lorebook_force_activate` builtin 是这个机制的官方包装——优先用它，不要自己手写 push。
     - `ctx.__lukerRun.abortSignal` 是本次 run 的协作式取消信号——长耗时工具里要定期检查 `.aborted`。
 - `ctx.__floorStateForNotes` —— `note_open` / `note_close` 工具底层用的 floor-state 实例。想跟笔记系统协作的工具可以读它。
 - `ctx.__customToolRegistry` —— 你的工具被编译进的那个 per-run Layer-3 注册表。大多数工具用不到，留给少数高级场景（例如反向枚举本编排里的其他手写工具）。
@@ -75,7 +75,7 @@ if (ctx.__lukerRun?.abortSignal?.aborted) {
 
 函数体跑在页面 context 里，权限和任何 Luker 模块一样大。它可以发起任意 URL 请求、改全局状态、读你的私聊内容。**只粘贴你信任的代码。**
 
-当你正在导入的角色卡带了自定义工具，Luker 会先弹一个审查对话框，把每个工具的名字、描述、模式、完整代码都列出来再问你要不要导入。你可以点「导入并应用工具」全盘接收，「导入但不应用工具」只导入角色卡本身丢掉这些工具，或者展开每一项先把代码看一遍。
+当你正在导入的角色卡带了自定义工具，Luker 会先弹一个审查对话框，把每个工具的名字、描述、模式、完整代码均列出来再问你要不要导入。你可以点「导入并应用工具」全盘接收，「导入但不应用工具」只导入角色卡本身丢掉这些工具，或者展开每一项先把代码看一遍。
 
 ## 启用与禁用
 
@@ -106,7 +106,7 @@ AI 迭代工作台直接在工作 profile 上读写自定义工具的 Layer-3 �
 - `luker_orch_patch_custom_tool_schema` —— 只替换参数 JSON-Schema，函数体保持不变。
 - `luker_orch_remove_custom_tool` —— 按名字删除一条工具。审阅 card 会把即将被删的函数体显示出来，方便你确认。
 
-每次 `set` 提案被你接受后，迭代工作台会同时把模式对应的启用开关（loop / director 是 `tools.custom.<name>`，agenda 是 `defaultTools.custom.<name>`，spec 是 `spec.defaultTools.custom.<name>`）切到 `true`，这样新工具立刻就会喂给运行时 agent。
+`set` 提案被接受后，迭代工作台会同时把模式对应的启用开关（loop / director 是 `tools.custom.<name>`，agenda 是 `defaultTools.custom.<name>`，spec 是 `spec.defaultTools.custom.<name>`）切到 `true`，这样新工具立刻就会喂给运行时 agent。
 
 来自其他扩展（Layer-2）的工具定义不能在工作台里改——那些定义在注册它们的扩展里，工作台只能切它们的启用开关。
 
@@ -115,5 +115,5 @@ AI 迭代工作台直接在工作 profile 上读写自定义工具的 Layer-3 �
 - [编排器概览](./) —— 通用配置 / 触发时机 / 角色卡绑定
 - [AI 迭代工作台](./iteration-studio.md) —— 让 AI 帮你决定工具开关
 - [Loop 模式](./loop.md) —— 单 agent 工具循环，是自定义工具最能发挥的地方
-- [Director 模式](./director.md) —— 主代理 + 子代理，全部都能调自定义工具
+- [Director 模式](./director.md) —— 主代理 + 子代理，全部均能调自定义工具
 - [编排器工具 API](/zh-CN/development/extension-api/orchestrator-tools) —— 想从自己的扩展注册工具的插件开发者看这里
