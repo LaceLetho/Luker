@@ -28,6 +28,21 @@ describe('media attribution target normalization', () => {
             groupId: 'Group..One',
         });
     });
+
+    test('strips .jsonl suffixes so list-endpoint file names resolve to Repo keys', () => {
+        expect(normalizeAttributionTarget({ char_dir: 'Alice', chat_name: 'main.jsonl' })).toEqual({
+            charDir: 'Alice',
+            chatName: 'main',
+            isGroup: false,
+            groupId: undefined,
+        });
+        expect(normalizeAttributionTarget({ is_group: true, chat_name: 'g1.jsonl.jsonl' })).toEqual({
+            charDir: '',
+            chatName: 'g1',
+            isGroup: true,
+            groupId: 'g1',
+        });
+    });
 });
 
 function upload(harness, { filename, sha, attribution }) {
@@ -85,6 +100,15 @@ describe.each(ENDPOINT_HARNESSES)('media attribution on $name', ({ mode }) => {
         await upload(harness, { filename: 'two', attribution: { char_dir: 'Alice', chat_name: 'ghost' } }).expect(200);
         const ghost = await getChatRepo().getState(harness.handle, 'Alice', 'ghost', MEDIA_ATTRIBUTION_NAMESPACE);
         expect(ghost).toBeNull();
+    });
+
+    test('accepts a .jsonl-suffixed chat_name from list-endpoint file names', async () => {
+        await getChatRepo().save(harness.handle, 'Alice', 'main', HEADER, MESSAGES, null);
+        await upload(harness, { filename: 'sfx', attribution: { char_dir: 'Alice', chat_name: 'main.jsonl' } }).expect(200);
+
+        const doc = await getChatRepo().getState(harness.handle, 'Alice', 'main', MEDIA_ATTRIBUTION_NAMESPACE);
+        expect(doc.entries).toHaveLength(1);
+        expect(await getChatRepo().getState(harness.handle, 'Alice', 'main.jsonl', MEDIA_ATTRIBUTION_NAMESPACE)).toBeNull();
     });
 
     test('records uploaded images for a group chat under the group key', async () => {

@@ -938,7 +938,6 @@ export async function renameGroupMember(oldAvatar, newAvatar, newName) {
                                 integrity: messages?.[0]?.chat_metadata?.integrity,
                             }),
                         });
-                        const saveChatResponse = await fetch('/api/chats/group/save', saveChatRequest);
 
                         if (!patchResponse.ok) {
                             throw new Error('Group member could not be renamed');

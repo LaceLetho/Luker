@@ -5,6 +5,7 @@ import express from 'express';
 import sanitize from 'sanitize-filename';
 
 import { getChatRepo } from '../storage/index.js';
+import { stripJsonlExt } from '../storage/name-validation.js';
 import { clientRelativePath, isPathUnderParent } from '../util.js';
 import { extractLocalMediaPaths, resolveUserImagePath } from '../media-references.js';
 import { readCharacterFolderName, isCharacterFolderNameShared } from '../character-assets.js';
@@ -157,7 +158,7 @@ router.post('/deletion-candidates', async (request, response) => {
             if (!rawChatName) {
                 return response.status(400).send({ error: 'chat_name is required' });
             }
-            const chatName = sanitize(rawChatName);
+            const chatName = sanitize(stripJsonlExt(rawChatName));
             const charDir = isGroup ? '' : sanitize(rawCharDir);
             const target = { charDir, chatName, isGroup, groupId: isGroup ? chatName : undefined };
             const clientPaths = await collectChatReferencedClientPaths(request.user.profile.handle, target);

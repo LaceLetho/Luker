@@ -3,6 +3,7 @@ import { existsSync } from 'node:fs';
 import sanitize from 'sanitize-filename';
 
 import { getChatRepo } from '../storage/index.js';
+import { stripJsonlExt } from '../storage/name-validation.js';
 import { resolveUserImagePath } from '../media-references.js';
 
 export const MEDIA_ATTRIBUTION_NAMESPACE = 'media-attribution';
@@ -26,7 +27,7 @@ export function normalizeAttributionTarget(raw) {
     if (!raw || typeof raw !== 'object') {
         return null;
     }
-    const chatName = sanitize(String(raw.chat_name ?? '').trim());
+    const chatName = sanitize(stripJsonlExt(String(raw.chat_name ?? '').trim()));
     if (!chatName) {
         return null;
     }

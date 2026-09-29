@@ -60,6 +60,21 @@ describe.each(ENDPOINT_HARNESSES)('media deletion candidates on $name', ({ mode 
         expect(response.body.notes).toEqual([]);
     });
 
+    test('chat scope strips .jsonl from chat_name forwarded by list endpoints', async () => {
+        await getChatRepo().save(harness.handle, 'Ash', 'main', HEADER, [
+            { name: 'Ash', mes: 'see <img src="/user/images/Ash/body.png">' },
+        ], null);
+        writeImage(harness.dirs.root, '/user/images/Ash/body.png');
+
+        const response = await request(harness.app)
+            .post('/api/media/deletion-candidates')
+            .send({ scope: 'chat', char_dir: 'Ash', chat_name: 'main.jsonl' })
+            .expect(200);
+
+        const paths = response.body.groups.flatMap(group => group.items.map(item => item.path));
+        expect(paths).toEqual(['/user/images/Ash/body.png']);
+    });
+
     test('chat scope resolves group chat references', async () => {
         const groupId = 'group-nightly';
         await getChatRepo().save(harness.handle, '', groupId, HEADER, [

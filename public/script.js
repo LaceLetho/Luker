@@ -3227,13 +3227,13 @@ async function deleteCharacterChatInternal(characterId, fileName, { mediaPrompt 
 
     const rawChatSnapshot = await getRawCharacterChatSnapshot(characterId, fileName);
     const previousSelectedChat = String(character.chat || '');
-    const deletedCurrentChat = previousSelectedChat === fileName;
+    const deletedCurrentChat = previousSelectedChat.replace(/\.jsonl$/i, '') === String(fileName).replace(/\.jsonl$/i, '');
 
     const response = await fetch('/api/chats/delete', {
         method: 'POST',
         headers: getRequestHeaders(),
         body: JSON.stringify({
-            chatfile: `${fileName}.jsonl`,
+            chatfile: `${String(fileName).replace(/\.jsonl$/i, '')}.jsonl`,
             avatar_url: character.avatar,
         }),
     });
@@ -19135,8 +19135,8 @@ export async function renameGroupOrCharacterChat({ characterId, groupId, oldFile
     const body = {
         is_group: !!groupId,
         avatar_url: characters[characterId]?.avatar,
-        original_file: `${oldFileName}.jsonl`,
-        renamed_file: `${newFileName.trim()}.jsonl`,
+        original_file: `${String(oldFileName).replace(/\.jsonl$/i, '')}.jsonl`,
+        renamed_file: `${String(newFileName).trim().replace(/\.jsonl$/i, '')}.jsonl`,
     };
 
     if (body.original_file === body.renamed_file) {
@@ -19178,7 +19178,8 @@ export async function renameGroupOrCharacterChat({ characterId, groupId, oldFile
 
         if (groupId) {
             await renameGroupChat(groupId, oldFileName, newFileName);
-        } else if (characterId !== undefined && String(characterId) === String(this_chid) && characters[characterId]?.chat === oldFileName) {
+        } else if (characterId !== undefined && String(characterId) === String(this_chid)
+            && String(characters[characterId]?.chat || '').replace(/\.jsonl$/i, '') === String(oldFileName).replace(/\.jsonl$/i, '')) {
             characters[characterId].chat = newFileName;
             $('#selected_chat_pole').val(characters[characterId].chat);
             await updateRemoteChatName(characterId, newFileName);
