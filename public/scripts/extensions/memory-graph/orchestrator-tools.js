@@ -472,8 +472,13 @@ async function execMemoryNodeDelete(args, context) {
     return { ok: false, error: result.error || { code: 'OP_FAILED', message: 'delete produced no change.' } };
 }
 
-async function execMemoryLinkUpsert(args, context) {
-    const session = requireSession('memory_link_upsert', context);
+// Shared by exec and simulate so the dry-run rejects exactly what the
+// write rejects. The schema no longer advertises `source_ref` /
+// `target_ref` (a standalone call has no same-batch ref index), but the
+// guards stay: older prompts and model hallucination still route refs
+// through here, and silently dropping the endpoints would corrupt the
+// graph.
+function parseMemoryLinkUpsertArgs(args) {
     const links = Array.isArray(args?.links) ? args.links : null;
     if (!links || links.length === 0) {
         throw new ToolError(
@@ -496,7 +501,7 @@ async function execMemoryLinkUpsert(args, context) {
             throw new ToolError(
                 'memory_link_upsert: link entries must be objects.',
                 'MEMORY_LINK_UPSERT_BAD_ARGS',
-                'Each link is { target_node_id|target_ref, relation, direction? }.',
+                'Each link is { target_node_id, relation, direction? }.',
             );
         }
         requireNonEmptyString(link.relation, 'MEMORY_LINK_UPSERT_BAD_ARGS', 'link.relation is required');
@@ -519,6 +524,12 @@ async function execMemoryLinkUpsert(args, context) {
         }
         targetIds.push(targetId);
     }
+    return { links, sourceId, targetIds };
+}
+
+async function execMemoryLinkUpsert(args, context) {
+    const session = requireSession('memory_link_upsert', context);
+    const { links, sourceId, targetIds } = parseMemoryLinkUpsertArgs(args);
     requireSemanticNode(session, sourceId, 'MEMORY_LINK_UPSERT_NODE_NOT_FOUND');
     for (const targetId of targetIds) {
         requireSemanticNode(session, targetId, 'MEMORY_LINK_UPSERT_NODE_NOT_FOUND');
@@ -637,47 +648,11 @@ async function simulateMemoryNodeDelete(args, context) {
 }
 
 async function simulateMemoryLinkUpsert(args, context) {
-    const links = Array.isArray(args?.links) ? args.links : null;
-    if (!links || links.length === 0) {
-        throw new ToolError(
-            'memory_link_upsert: links must be a non-empty array.',
-            'MEMORY_LINK_UPSERT_BAD_ARGS',
-            'Provide at least one link entry with relation + target.',
-        );
-    }
-    const sourceId = typeof args?.source_node_id === 'string' ? args.source_node_id.trim() : '';
-    const sourceRef = typeof args?.source_ref === 'string' ? args.source_ref.trim() : '';
-    if (!sourceId && !sourceRef) {
-        throw new ToolError(
-            'memory_link_upsert: source_node_id or source_ref is required.',
-            'MEMORY_LINK_UPSERT_BAD_ARGS',
-            'Specify the source node by id, or by ref if it was created in the same call.',
-        );
-    }
-    for (const link of links) {
-        if (!link || typeof link !== 'object') {
-            throw new ToolError(
-                'memory_link_upsert: link entries must be objects.',
-                'MEMORY_LINK_UPSERT_BAD_ARGS',
-                'Each link is { target_node_id|target_ref, relation, direction? }.',
-            );
-        }
-        requireNonEmptyString(link.relation, 'MEMORY_LINK_UPSERT_BAD_ARGS', 'link.relation is required');
-        const targetId = typeof link.target_node_id === 'string' ? link.target_node_id.trim() : '';
-        const targetRef = typeof link.target_ref === 'string' ? link.target_ref.trim() : '';
-        if (!targetId && !targetRef) {
-            throw new ToolError(
-                'memory_link_upsert: each link needs target_node_id or target_ref.',
-                'MEMORY_LINK_UPSERT_BAD_ARGS',
-                'Specify the target by id, or by ref if it was created in the same call.',
-            );
-        }
-    }
+    const { links, sourceId, targetIds } = parseMemoryLinkUpsertArgs(args);
     const session = loadSession(context);
-    if (sourceId) requireNodeExists(session, sourceId, 'MEMORY_LINK_UPSERT_NODE_NOT_FOUND');
-    for (const link of links) {
-        const targetId = typeof link.target_node_id === 'string' ? link.target_node_id.trim() : '';
-        if (targetId) requireNodeExists(session, targetId, 'MEMORY_LINK_UPSERT_NODE_NOT_FOUND');
+    requireSemanticNode(session, sourceId, 'MEMORY_LINK_UPSERT_NODE_NOT_FOUND');
+    for (const targetId of targetIds) {
+        requireSemanticNode(session, targetId, 'MEMORY_LINK_UPSERT_NODE_NOT_FOUND');
     }
     return { ok: true, simulated: true, applied: links.length };
 }
@@ -984,22 +959,21 @@ const SCHEMAS = [
             type: 'object',
             properties: {
                 source_node_id: { type: 'string' },
-                source_ref: { type: 'string', description: 'Alternative to source_node_id; references a same-call create.' },
                 links: {
                     type: 'array',
                     items: {
                         type: 'object',
                         properties: {
                             target_node_id: { type: 'string' },
-                            target_ref: { type: 'string' },
                             relation: { type: 'string' },
                             direction: { type: 'string', enum: ['outgoing', 'incoming', 'bidirectional'] },
                         },
+                        required: ['target_node_id', 'relation'],
                         additionalProperties: false,
                     },
                 },
             },
-            required: ['links'],
+            required: ['source_node_id', 'links'],
             additionalProperties: false,
         },
     },

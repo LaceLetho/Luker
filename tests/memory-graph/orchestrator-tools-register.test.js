@@ -292,6 +292,97 @@ describe('memory-graph orchestrator tools', () => {
         expect(out).toEqual({ ok: false, applied: 0, error });
     });
 
+    test('memory_link_upsert schema advertises only node-id endpoints', async () => {
+        await registerMemoryGraphOrchestrationTools();
+        const reg = __getExtensionRegistryForTest();
+        const params = reg.get('memory_link_upsert')?.schema?.function?.parameters;
+        expect(params).toBeTruthy();
+        expect(params.properties.source_node_id).toBeDefined();
+        expect(params.properties.source_ref).toBeUndefined();
+        expect(params.required).toEqual(expect.arrayContaining(['source_node_id', 'links']));
+        const linkItem = params.properties.links.items;
+        expect(linkItem.properties.target_node_id).toBeDefined();
+        expect(linkItem.properties.target_ref).toBeUndefined();
+        expect(linkItem.additionalProperties).toBe(false);
+    });
+
+    test('memory_link_upsert simulate rejects a source_ref-only payload like exec', async () => {
+        await registerMemoryGraphOrchestrationTools();
+        const reg = __getExtensionRegistryForTest();
+        const entry = reg.get('memory_link_upsert');
+        const ctx = {};
+        const { __setSessionForTest } = await import('../../public/scripts/extensions/memory-graph/orchestrator-tools.js');
+        __setSessionForTest(ctx, {
+            upsertLinks: async () => ({ applied: 1 }),
+            getNodeBrief: (id) => ({ id, level: 'semantic' }),
+        });
+        await expect(entry.simulate({
+            source_ref: 'ref-1',
+            links: [{ target_node_id: 'n2', relation: 'knows' }],
+        }, ctx)).rejects.toMatchObject({
+            name: 'ToolError',
+            code: 'MEMORY_LINK_UPSERT_SOURCE_UNRESOLVED',
+            message: expect.stringContaining('source_ref'),
+        });
+    });
+
+    test('memory_link_upsert simulate rejects a target_ref-only payload like exec', async () => {
+        await registerMemoryGraphOrchestrationTools();
+        const reg = __getExtensionRegistryForTest();
+        const entry = reg.get('memory_link_upsert');
+        const ctx = {};
+        const { __setSessionForTest } = await import('../../public/scripts/extensions/memory-graph/orchestrator-tools.js');
+        __setSessionForTest(ctx, {
+            upsertLinks: async () => ({ applied: 1 }),
+            getNodeBrief: (id) => ({ id, level: 'semantic' }),
+        });
+        await expect(entry.simulate({
+            source_node_id: 'n1',
+            links: [{ target_ref: 'ref-2', relation: 'knows' }],
+        }, ctx)).rejects.toMatchObject({
+            name: 'ToolError',
+            code: 'MEMORY_LINK_UPSERT_TARGET_UNRESOLVED',
+            message: expect.stringContaining('target_ref'),
+        });
+    });
+
+    test('memory_link_upsert simulate rejects a self-link like exec', async () => {
+        await registerMemoryGraphOrchestrationTools();
+        const reg = __getExtensionRegistryForTest();
+        const entry = reg.get('memory_link_upsert');
+        const ctx = {};
+        const { __setSessionForTest } = await import('../../public/scripts/extensions/memory-graph/orchestrator-tools.js');
+        __setSessionForTest(ctx, {
+            upsertLinks: async () => ({ applied: 1 }),
+            getNodeBrief: (id) => ({ id, level: 'semantic' }),
+        });
+        await expect(entry.simulate({
+            source_node_id: 'n1',
+            links: [{ target_node_id: 'n1', relation: 'knows' }],
+        }, ctx)).rejects.toMatchObject({
+            name: 'ToolError',
+            code: 'MEMORY_LINK_UPSERT_BAD_ARGS',
+            message: expect.stringContaining('self-link'),
+        });
+    });
+
+    test('memory_link_upsert simulate reports the link count for resolvable endpoints', async () => {
+        await registerMemoryGraphOrchestrationTools();
+        const reg = __getExtensionRegistryForTest();
+        const entry = reg.get('memory_link_upsert');
+        const ctx = {};
+        const { __setSessionForTest } = await import('../../public/scripts/extensions/memory-graph/orchestrator-tools.js');
+        __setSessionForTest(ctx, {
+            upsertLinks: async () => ({ applied: 1 }),
+            getNodeBrief: (id) => ({ id, level: 'semantic' }),
+        });
+        const out = await entry.simulate({
+            source_node_id: 'n1',
+            links: [{ target_node_id: 'n2', relation: 'knows' }],
+        }, ctx);
+        expect(out).toEqual({ ok: true, simulated: true, applied: 1 });
+    });
+
     test('memory_link_upsert reports the applied edge count', async () => {
         await registerMemoryGraphOrchestrationTools();
         const reg = __getExtensionRegistryForTest();

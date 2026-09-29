@@ -49,7 +49,21 @@ function normalizeLinkList(links) {
     return links.map(normalizeLinkSpec);
 }
 
-export function getMemoryGraphWriteApi(store, context = null, { onCommit = null, settings = null } = {}) {
+// `useInFlightAnchor: false` keeps every op's `maxSeq` at the store's own
+// `seqCounter` instead of bumping it to the turn currently being generated.
+// Session writers (orchestrator director / loop sub-agents) WANT the bump:
+// their commit lands on the in-flight turn's floor. The graph-iteration
+// studio must NOT take it: approvals commit through `commitGraphUiMutation`
+// at the store's covered watermark, so an edit that raised a node's `seqTo`
+// past coverage would make `seqToFloor(covered)` unresolvable and park the
+// approval as a conflict.
+//
+// `preserveSeqOnEdit: true` keeps an edit from moving the node's `seqTo` at
+// all — manual-edit parity. The graph-iteration studio approves corrective
+// edits, not conversation turns, so the diff must not claim a timeline move
+// (`Field updated: seqTo`) the user never asked for; extraction and session
+// writers keep the default bump.
+export function getMemoryGraphWriteApi(store, context = null, { onCommit = null, settings = null, useInFlightAnchor = true, preserveSeqOnEdit = false } = {}) {
     function resolveStore() {
         return (store && typeof store === 'object') ? store : null;
     }
@@ -64,12 +78,14 @@ export function getMemoryGraphWriteApi(store, context = null, { onCommit = null,
         return resolved;
     }
 
-    function applyOne(method, op) {
+    function applyOne(method, op, maxSeqOverride = null) {
         const resolved = requireStore(method);
-        const anchor = resolveInFlightAnchor(context);
-        const maxSeq = anchor !== null
-            ? anchor.turnSeq
-            : Number(resolved.seqCounter || 0);
+        const anchor = useInFlightAnchor ? resolveInFlightAnchor(context) : null;
+        const maxSeq = Number.isFinite(maxSeqOverride)
+            ? maxSeqOverride
+            : anchor !== null
+                ? anchor.turnSeq
+                : Number(resolved.seqCounter || 0);
         const result = applyExtractionOpsImpl(resolved, [op], {
             maxSeq,
             context,
@@ -141,7 +157,7 @@ export function getMemoryGraphWriteApi(store, context = null, { onCommit = null,
         if (target && !target.archived && !wouldEditChange(target, op)) {
             return { ok: true, changed: false, note: 'values already match' };
         }
-        const { result } = applyOne('editNode', op);
+        const { result } = applyOne('editNode', op, preserveSeqOnEdit ? 0 : null);
         const ok = result.applied.length > 0;
         if (ok) {
             await flushCommit();
@@ -198,7 +214,7 @@ export function getMemoryGraphWriteApi(store, context = null, { onCommit = null,
             direction: direction || 'bidirectional',
         };
         const resolved = requireStore('deleteLinks');
-        const anchor = resolveInFlightAnchor(context);
+        const anchor = useInFlightAnchor ? resolveInFlightAnchor(context) : null;
         const maxSeq = anchor !== null
             ? anchor.turnSeq
             : Number(resolved.seqCounter || 0);
