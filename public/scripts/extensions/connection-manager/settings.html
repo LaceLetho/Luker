@@ -70,6 +70,13 @@
                     <br>
                     <small class="opacity50p" data-i18n="Whitelist accepts comma-separated HTTP status codes and ranges (100–599). Examples: 429, 500-599, or 429, 500-504. Leave empty to retry the default set (429 and any 5xx). When non-empty, only listed codes are retried.">Whitelist accepts comma-separated HTTP status codes and ranges (100–599). Examples: 429, 500-599, or 429, 500-504. Leave empty to retry the default set (429 and any 5xx). When non-empty, only listed codes are retried.</small>
                 </div>
+                <div id="connection_profile_request_timeout_block" class="flex-container alignItemsCenter gap10 marginTop10">
+                    <label for="connection_profile_request_timeout" data-i18n="Request timeout (seconds, 0 = disabled)">Request timeout (seconds, 0 = disabled)</label>
+                    <input id="connection_profile_request_timeout" class="text_pole widthUnset" type="number" min="0" step="1" value="0" />
+                </div>
+                <div id="connection_profile_request_timeout_hint_block" class="marginTop5">
+                    <small class="opacity50p" data-i18n="Streaming: maximum silence between chunks. Non-streaming: maximum wait for the reply. Timed-out requests are cancelled.">Streaming: maximum silence between chunks. Non-streaming: maximum wait for the reply. Timed-out requests are cancelled.</small>
+                </div>
                 <div id="connection_profile_auto_continue_truncated_block" class="marginTop10">
                     <label class="checkbox_label" for="connection_profile_auto_continue_on_truncated">
                         <input id="connection_profile_auto_continue_on_truncated" type="checkbox" />

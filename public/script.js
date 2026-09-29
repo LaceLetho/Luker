@@ -248,6 +248,7 @@ import { registerPromptManagerMigration } from './scripts/PromptManager.js';
 import { getRegexedString, regex_placement } from './scripts/extensions/regex/engine.js';
 import { getAutoContinueOnTruncated, isTruncatedFinishReason } from './scripts/extensions/connection-manager/auto-continue-truncated.js';
 import { withProfileRetry } from './scripts/extensions/connection-manager/profile-retry.js';
+import { getRequestTimeoutMs } from './scripts/extensions/connection-manager/request-timeout.js';
 import { initLogprobs, saveLogprobsForActiveMessage } from './scripts/logprobs.js';
 import { FILTER_STATES, FILTER_TYPES, FilterHelper, isFilterState } from './scripts/filters.js';
 import { getCfgPrompt, getGuidanceScale, initCfg } from './scripts/cfg-scale.js';
@@ -10352,9 +10353,19 @@ export async function sendGenerationRequest(type, data, options = {}) {
     const lukerGenerationOptions = shouldTrackLukerGenerationState
         ? buildLukerGenerationRequestOptions(type, main_api)
         : null;
-    const requestData = lukerGenerationOptions
+    const requestTimeoutMs = main_api === 'textgenerationwebui' ? getRequestTimeoutMs() : 0;
+    let requestData = lukerGenerationOptions
         ? { ...data, luker_generation: lukerGenerationOptions }
         : data;
+    if (requestTimeoutMs > 0) {
+        requestData = {
+            ...requestData,
+            luker_generation: {
+                ...(requestData.luker_generation || {}),
+                request_timeout_ms: requestTimeoutMs,
+            },
+        };
+    }
 
     // Non-streaming fallback for text-completion backends (textgenerationwebui /
     // kobold / novel). Openai / koboldhorde branch off above through their own

@@ -57,6 +57,7 @@ import { SECRET_KEYS, secret_state, writeSecret } from './secrets.js';
 import { extension_settings } from './extensions.js';
 import { acquire as acquireRequestSlot } from './extensions/connection-manager/request-throttler.js';
 import { getMaxRequestRetries } from './extensions/connection-manager/max-retries.js';
+import { getRequestTimeoutMs } from './extensions/connection-manager/request-timeout.js';
 import { withProfileRetry } from './extensions/connection-manager/profile-retry.js';
 import { normalizeStreamingFinishReason } from './extensions/connection-manager/auto-continue-truncated.js';
 
@@ -4304,10 +4305,21 @@ async function postChatCompletionGenerateRequest(requestBody, signal, { quietErr
     // consumer and must not have their body pre-read.
     const shouldDetectEmpty = !isStreamRequest && getMaxRequestRetries(apiPresetName) > 0;
 
+    const requestTimeoutMs = getRequestTimeoutMs(apiPresetName);
+    const requestBodyWithTimeout = requestTimeoutMs > 0
+        ? {
+            ...requestBody,
+            luker_generation: {
+                ...(requestBody?.luker_generation || {}),
+                request_timeout_ms: requestTimeoutMs,
+            },
+        }
+        : requestBody;
+
     const response = await withProfileRetry(async () => {
         const r = await fetch('/api/backends/chat-completions/generate', {
             method: 'POST',
-            body: JSON.stringify(unescapeMacroBracesInRequestData(requestBody)),
+            body: JSON.stringify(unescapeMacroBracesInRequestData(requestBodyWithTimeout)),
             headers: getRequestHeaders(),
             signal,
         });
