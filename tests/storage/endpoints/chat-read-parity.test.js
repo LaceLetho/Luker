@@ -18,7 +18,7 @@ import request from 'supertest';
 import { ENDPOINT_HARNESSES, makeEndpointHarness } from '../harness/endpoint-harness.js';
 import { router as chatsRouter } from '../../../src/endpoints/chats.js';
 import { router as charactersRouter } from '../../../src/endpoints/characters.js';
-import { getChatRepo } from '../../../src/storage/index.js';
+import { getChatRepo, getGroupRepo } from '../../../src/storage/index.js';
 
 const SAMPLE_HEADER = {
     user_name: 'tester',
@@ -177,6 +177,31 @@ describe.each(ENDPOINT_HARNESSES)('chat read endpoints on $name', ({ mode }) => 
         const ids = res.body.map((r) => r.file_name);
         expect(ids).toContain('topic-elephants.jsonl');
         expect(ids).not.toContain('topic-tigers.jsonl');
+    });
+
+    test('REGRESSION: /api/chats/search resolves a group\'s chats through the group doc', async () => {
+        await getChatRepo().save(harness.handle, '', 'gchat-reef', SAMPLE_HEADER, [
+            { name: 'User', mes: 'tell me about the reef' },
+        ], null, { isGroup: true, groupId: 'gchat-reef' });
+        await getChatRepo().save(harness.handle, '', 'gchat-harbor', SAMPLE_HEADER, [
+            { name: 'User', mes: 'tell me about the reef' },
+        ], null, { isGroup: true, groupId: 'gchat-harbor' });
+        await getGroupRepo().save(harness.handle, 'grp-reef', {
+            id: 'grp-reef',
+            name: 'Reef Watch',
+            members: [],
+            chats: ['gchat-reef'],
+            chat_id: 'gchat-reef',
+        });
+
+        const res = await request(harness.app)
+            .post('/api/chats/search')
+            .send({ query: '', avatar_url: null, group_id: 'grp-reef' })
+            .expect(200);
+        expect(Array.isArray(res.body)).toBe(true);
+        const ids = res.body.map((r) => r.file_name);
+        expect(ids).toContain('gchat-reef.jsonl');
+        expect(ids.includes('gchat-harbor.jsonl')).toBe(false);
     });
 
     // --- /api/chats/recent ---

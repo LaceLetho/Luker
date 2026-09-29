@@ -16686,16 +16686,25 @@ async function displayChats(searchQuery, currentChat, displayName, avatarImg, se
 
         filteredData.sort((a, b) => sortMoments(timestampToMoment(a.last_mes), timestampToMoment(b.last_mes)));
 
+        // The search endpoint returns `file_name` with the `.jsonl`
+        // extension (same shape as the other chat list endpoints), while the
+        // open chat pointer (`characters[].chat` / `group.chat_id`) is an
+        // extensionless id. Normalize at the render boundary so highlight,
+        // open and delete rows all speak the id form.
+        const trimExtension = (fileName) => String(fileName ?? '').replace(/\.jsonl$/i, '');
+        const normalizedCurrentChat = trimExtension(currentChat);
+
         for (const chat of filteredData) {
-            const isSelected = currentChat === chat.file_name;
+            const chatId = trimExtension(chat.file_name);
+            const isSelected = normalizedCurrentChat === chatId;
             const template = $('#past_chat_template .select_chat_block_wrapper').clone();
-            template.find('.select_chat_block').attr('file_name', chat.file_name);
+            template.find('.select_chat_block').attr('file_name', chatId);
             template.find('.avatar img').attr('src', avatarImg);
             template.find('.select_chat_block_filename').text(chat.file_name);
             template.find('.chat_file_size').text(`(${chat.file_size},`);
             template.find('.chat_messages_num').text(`${chat.message_count} 💬)`);
             template.find('.select_chat_block_mes').text(chat.preview_message);
-            template.find('.PastChat_cross').attr('file_name', chat.file_name);
+            template.find('.PastChat_cross').attr('file_name', chatId);
             template.find('.chat_messages_date').text(timestampToMoment(chat.last_mes).format('lll'));
 
             if (isSelected) {
@@ -16704,7 +16713,7 @@ async function displayChats(searchQuery, currentChat, displayName, avatarImg, se
 
             $('#select_chat_div').append(template);
 
-            if (Array.isArray(highlightNames) && highlightNames.includes(chat.file_name)) {
+            if (Array.isArray(highlightNames) && highlightNames.some(name => trimExtension(name) === chatId)) {
                 const templateOffset = template.offset().top - template.parent().offset().top;
                 $('#select_chat_div').scrollTop(templateOffset);
                 flashHighlight(template, debounce_timeout.extended);

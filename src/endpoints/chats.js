@@ -4040,8 +4040,15 @@ router.post('/search', validateAvatarUrlMiddleware, async function (request, res
         // Find candidate chats based on the scope (group id or character).
         let candidates = [];
         if (group_id) {
-            // Group chats live in ChatRepo too; let the engine filter by groupId.
-            candidates = await repo.listForGroup(handle, String(group_id), { orderBy: 'updatedAt' });
+            // Group chats are keyed by their own chat id in the Repo; the
+            // association with a parent group only lives in the group doc's
+            // `chats` array. Resolve membership through GroupRepo.
+            const group = await getGroupRepo().get(handle, String(group_id));
+            const groupChatIds = new Set(Array.isArray(group?.chats) ? group.chats.map(String) : []);
+            if (groupChatIds.size > 0) {
+                const allGroupChats = await repo.listAllGroupChats(handle, { orderBy: 'updatedAt' });
+                candidates = allGroupChats.filter((entry) => groupChatIds.has(String(entry.key.name)));
+            }
         } else if (avatar_url) {
             const charDir = String(avatar_url).replace('.png', '');
             candidates = await repo.listForCharacter(handle, charDir, { orderBy: 'updatedAt' });
