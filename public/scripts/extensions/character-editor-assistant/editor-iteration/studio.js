@@ -78,7 +78,7 @@ import {
 import {
     buildEditToolResultPayload,
     buildPayloadForOutcome,
-} from '../../orchestrator/iter-studio/edit-tool-result-envelope.js';
+} from '../../../iteration-library/edit-tool-result-envelope.js';
 import {
     commitCharacterEditorOperations,
     commitLorebookOperations,
