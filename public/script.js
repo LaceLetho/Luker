@@ -129,6 +129,7 @@ import {
 
 import { openManageBoundPresetsDialog } from './scripts/character/manage-bound-presets-dialog.js';
 import { handlePostReplaceBindings } from './scripts/character/card-binding-preservation.js';
+import { handlePostReplaceWorldBook } from './scripts/character/post-replace-actions.js';
 
 import {
     generateNovelWithStreaming,
@@ -22059,6 +22060,12 @@ jQuery(async function () {
                             characterId: replacedIndexFinal,
                             previousCharacter,
                             newCharacter: characters[replacedIndexFinal] || replacedCharacter,
+                        });
+                        await handlePostReplaceWorldBook({
+                            characterId: replacedIndexFinal,
+                            previousCharacter,
+                            newCharacter: characters[replacedIndexFinal] || replacedCharacter,
+                            previousLorebookSnapshot,
                         });
                         await eventSource.emit(event_types.CHARACTER_REPLACED, {
                             detail: {

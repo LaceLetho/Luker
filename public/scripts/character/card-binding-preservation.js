@@ -18,7 +18,7 @@
  * Registration is open: core registers its own slots at the bottom of this
  * module, plugins register theirs from their init. A disabled plugin never
  * registers, so its binding is not preserved — documented in the developer
- * reference at docs/development/extension-api/card-binding-registry.md.
+ * reference at docs/development/extension-api/character-replace-flow.md.
  */
 
 import { lodash } from '../../lib.js';
