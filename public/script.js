@@ -288,6 +288,7 @@ import { evaluateMacros, getLastMessageId, initMacros } from './scripts/macros.j
 import { initVariableOpLog, extractMessageById, pushFloorVarOp } from './scripts/variable-op-log/index.js';
 import { extractFromText as extractSideEffectMacrosFromText } from './scripts/variable-op-log/extractor.js';
 import { initVarOpsPanelHandler } from './scripts/variable-op-log/panel.js';
+import { fetchMediaDeletionCandidates, deleteMediaFiles, promptMediaDeletion, notifyMediaDeleteResult } from './scripts/media-deletion-dialog.js';
 import { installFrontendLogCapture, setFrontendConsoleDebugLoggingEnabled } from './scripts/frontend-log-manager.js';
 import { initDebugExportButton } from './scripts/debug-export.js';
 import { initAndroidDebugTrail } from './scripts/luker-android-debug-trail.js';
@@ -3185,7 +3186,7 @@ async function refreshVisibleDeletedChatViews(fileName = '') {
     }
 }
 
-async function deleteCharacterChatInternal(characterId, fileName) {
+async function deleteCharacterChatInternal(characterId, fileName, { mediaPrompt = true } = {}) {
     await unshallowCharacter(characterId);
 
     /** @type {Character} */
@@ -3193,6 +3194,35 @@ async function deleteCharacterChatInternal(characterId, fileName) {
     if (!character) {
         console.warn(`Character with ID ${characterId} not found.`);
         return false;
+    }
+
+    // Offer the associated media preview before the chat goes away; the
+    // chat file itself is still the source of truth for the scan.
+    let mediaPathsToDelete = null;
+    if (mediaPrompt) {
+        try {
+            const candidates = await fetchMediaDeletionCandidates({
+                scope: 'chat',
+                char_dir: String(character.avatar || '').replace(/\.png$/i, ''),
+                chat_name: String(fileName),
+            });
+            const items = (candidates.groups || []).flatMap(group => group.items || []);
+            if (items.length > 0) {
+                const decision = await promptMediaDeletion({
+                    groups: [{ kind: 'image', title: t`Images`, items }],
+                    confirmLabel: t`Delete chat and selected images`,
+                    skipLabel: t`Delete chat only`,
+                });
+                if (decision.action === 'cancel') {
+                    return false;
+                }
+                if (decision.action === 'delete') {
+                    mediaPathsToDelete = decision.paths;
+                }
+            }
+        } catch (error) {
+            console.warn('Media candidate lookup failed; continuing without the media prompt.', error);
+        }
     }
 
     const rawChatSnapshot = await getRawCharacterChatSnapshot(characterId, fileName);
@@ -3211,6 +3241,15 @@ async function deleteCharacterChatInternal(characterId, fileName) {
     if (!response.ok) {
         console.error('Failed to delete chat for character.');
         return false;
+    }
+
+    if (mediaPathsToDelete && mediaPathsToDelete.length > 0) {
+        try {
+            notifyMediaDeleteResult(await deleteMediaFiles(mediaPathsToDelete));
+        } catch (error) {
+            console.warn('Failed to delete selected media files.', error);
+            toastr.error(t`Some files could not be deleted.`, t`Media cleanup`);
+        }
     }
 
     if (deletedCurrentChat) {
@@ -3273,10 +3312,12 @@ async function delChat(chatfile) {
  * Deletes a character chat by its name.
  * @param {string} characterId Character ID to delete chat for
  * @param {string} fileName Name of the chat file to delete (without .jsonl extension)
+ * @param {object} [options={}] Options for the deletion.
+ * @param {boolean} [options.mediaPrompt=true] Whether to offer associated media for deletion.
  * @returns {Promise<void>} A promise that resolves when the chat is deleted.
  */
-export async function deleteCharacterChatByName(characterId, fileName) {
-    return await deleteCharacterChatInternal(String(characterId), fileName);
+export async function deleteCharacterChatByName(characterId, fileName, options = {}) {
+    return await deleteCharacterChatInternal(String(characterId), fileName, options);
 }
 
 export async function replaceCurrentChat() {
@@ -19252,9 +19293,10 @@ export async function handleDeleteCharacter(this_chid, delete_chats) {
  * @param {string|string[]} characterKey - The key (avatar) of the character to be deleted
  * @param {Object} [options] - Optional parameters for the deletion
  * @param {boolean} [options.deleteChats=true] - Whether to delete associated chats or not
+ * @param {boolean} [options.mediaPrompt=true] - Whether to offer associated media for deletion
  * @return {Promise<boolean>} - A promise that resolves when the character is successfully deleted
  */
-export async function deleteCharacter(characterKey, { deleteChats = true } = {}) {
+export async function deleteCharacter(characterKey, { deleteChats = true, mediaPrompt = true } = {}) {
     if (!Array.isArray(characterKey)) {
         characterKey = [characterKey];
     }
@@ -19270,6 +19312,52 @@ export async function deleteCharacter(characterKey, { deleteChats = true } = {})
         );
         if (!confirmClose) {
             return false;
+        }
+    }
+
+    // Aggregate associated media for every target card and ask once, before
+    // the first card is touched. Cancel aborts the whole deletion.
+    let mediaPathsToDelete = [];
+    const mediaByAvatar = new Map();
+    let mediaResolved = false;
+    if (mediaPrompt) {
+        try {
+            const groups = [];
+            let notes = [];
+            for (const key of uniqueCharacterKeys) {
+                const candidates = await fetchMediaDeletionCandidates({ scope: 'character', avatar: String(key) });
+                mediaResolved = true;
+                const candidatePaths = new Set();
+                for (const group of candidates.groups || []) {
+                    groups.push(group);
+                    for (const item of group.items || []) {
+                        candidatePaths.add(item.path);
+                    }
+                }
+                mediaByAvatar.set(String(key), candidatePaths);
+                notes = [...new Set([...notes, ...(candidates.notes || [])])];
+            }
+            const items = groups.flatMap(group => group.items || []);
+            if (items.length > 0) {
+                const decision = await promptMediaDeletion({
+                    groups: groups.map(group => ({ ...group, title: group.kind === 'sprite' ? t`Sprites` : t`Images` })),
+                    notes: notes
+                        .map(note => note === 'same_name_shared_folder_skipped'
+                            ? t`Another character shares this name — shared folders were skipped.`
+                            : null)
+                        .filter(Boolean),
+                    confirmLabel: t`Delete character and selected images`,
+                    skipLabel: t`Delete character only`,
+                });
+                if (decision.action === 'cancel') {
+                    return false;
+                }
+                if (decision.action === 'delete') {
+                    mediaPathsToDelete = decision.paths;
+                }
+            }
+        } catch (error) {
+            console.warn('Media candidate lookup failed; continuing without the media prompt.', error);
         }
     }
 
@@ -19314,6 +19402,7 @@ export async function deleteCharacter(characterKey, { deleteChats = true } = {})
 
         const pendingCharacterUndoByAvatar = new Map(pendingCharacterUndos.map(snapshot => [snapshot.avatarUrl, snapshot]));
 
+        const deletedAvatars = new Set();
         for (const key of uniqueCharacterKeys) {
             const character = characters.find(x => x.avatar == key);
             if (!character) {
@@ -19348,7 +19437,7 @@ export async function deleteCharacter(characterKey, { deleteChats = true } = {})
                 promptedLorebooks.add(importedLorebookResult.lorebookName);
             }
 
-            const msg = { avatar_url: character.avatar, delete_chats: deleteChats };
+            const msg = { avatar_url: character.avatar, delete_chats: deleteChats, skip_asset_cascade: mediaPrompt && mediaResolved };
 
             const response = await fetch('/api/characters/delete', {
                 method: 'POST',
@@ -19362,6 +19451,7 @@ export async function deleteCharacter(characterKey, { deleteChats = true } = {})
                 continue;
             }
 
+            deletedAvatars.add(String(key));
             accountStorage.removeItem(`AlertWI_${character.avatar}`);
             accountStorage.removeItem(`AlertRegex_${character.avatar}`);
             accountStorage.removeItem(`mediaWarningShown:${character.avatar}`);
@@ -19398,6 +19488,27 @@ export async function deleteCharacter(characterKey, { deleteChats = true } = {})
         }
 
         await removeCharacterFromUI();
+
+        if (mediaPathsToDelete.length > 0) {
+            // Only unlink media that belongs to cards whose deletion actually
+            // succeeded; failed cards keep their files. The Set also dedupes
+            // paths reported by more than one card.
+            const deletableMediaPaths = new Set();
+            for (const avatar of deletedAvatars) {
+                for (const candidatePath of mediaByAvatar.get(avatar) || []) {
+                    deletableMediaPaths.add(candidatePath);
+                }
+            }
+            const pathsToDelete = [...new Set(mediaPathsToDelete.filter(path => deletableMediaPaths.has(path)))];
+            if (pathsToDelete.length > 0) {
+                try {
+                    notifyMediaDeleteResult(await deleteMediaFiles(pathsToDelete));
+                } catch (error) {
+                    console.warn('Failed to delete selected media files.', error);
+                    toastr.error(t`Some files could not be deleted.`, t`Media cleanup`);
+                }
+            }
+        }
 
         if (pendingCharacterUndos.length > 0) {
             const deletedCharacterCount = pendingCharacterUndos.length;

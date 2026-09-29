@@ -114,6 +114,10 @@ test.describe('#23 — Delete character via UI — embedded skill cascade + WI b
         // ── DELETE VIA UI: click trash icon → tick "Also delete the
         //    chat files" checkbox → click OK. ────────────────────────
         await deleteSelectedCharacter(page);
+        // The media preview dialog opens after the confirm popup; both
+        // planted assets are pre-selected, confirm them.
+        await page.locator('.mediaDeletionConfirm').click();
+        await expect(page.locator('.mediaDeletionDialog')).not.toBeVisible();
         // The shared helper handles the checkbox + OK click. Wait for
         // CHARACTER_DELETED to propagate.
         await page.waitForFunction((wantAvatar) => {
@@ -132,10 +136,10 @@ test.describe('#23 — Delete character via UI — embedded skill cascade + WI b
         const serverDeleted = !listCharacters({ dataRoot: server.dataRoot }).includes(avatar);
         expect(serverDeleted, 'avatar file gone from disk after delete').toBe(true);
 
-        // Character-owned asset folders (chat images + expression sprites)
+        // Character-owned asset files (chat images + expression sprites)
         // went with the card.
-        expect(existsSync(galleryDir), 'gallery folder removed with character').toBe(false);
-        expect(existsSync(spritesDir), 'sprites folder removed with character').toBe(false);
+        expect(existsSync(resolve(galleryDir, 'ash-portrait.png')), 'gallery file removed with character').toBe(false);
+        expect(existsSync(resolve(spritesDir, 'happy.png')), 'sprite file removed with character').toBe(false);
 
         // Wait for the undo-toast window to expire (default 5000ms) so
         // commitDeletedCharacterUndoSnapshot fires CHARACTER_DELETED.

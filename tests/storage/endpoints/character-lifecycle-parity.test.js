@@ -119,6 +119,52 @@ describe.each(ENDPOINT_HARNESSES)('character lifecycle on $name', ({ mode }) => 
         expect(fs.existsSync(otherDir)).toBe(true);
     });
 
+    test('skip_asset_cascade leaves name-keyed folders alone while deleting the card', async () => {
+        seedRealCardPng(harness.dirs.characters, 'Alice', {
+            spec: 'chara_card_v2',
+            spec_version: '2.0',
+            name: 'Alice',
+            data: { name: 'Alice', description: '' },
+        });
+        const galleryDir = path.join(harness.dirs.userImages, 'Alice');
+        fs.mkdirSync(galleryDir, { recursive: true });
+        fs.writeFileSync(path.join(galleryDir, 'portrait.png'), 'gallery-bytes');
+
+        await request(harness.app)
+            .post('/api/characters/delete')
+            .send({ avatar_url: 'Alice.png', delete_chats: false, skip_asset_cascade: true })
+            .expect(200);
+
+        expect(fs.existsSync(path.join(harness.dirs.characters, 'Alice.png'))).toBe(false);
+        expect(fs.existsSync(path.join(galleryDir, 'portrait.png'))).toBe(true);
+    });
+
+    test('cascade keeps shared name folders when another card resolves to the same name', async () => {
+        seedRealCardPng(harness.dirs.characters, 'Alice', {
+            spec: 'chara_card_v2',
+            spec_version: '2.0',
+            name: 'Alice',
+            data: { name: 'Alice', description: '' },
+        });
+        seedRealCardPng(harness.dirs.characters, 'Alice-copy', {
+            spec: 'chara_card_v2',
+            spec_version: '2.0',
+            name: 'Alice',
+            data: { name: 'Alice', description: '' },
+        });
+        const sharedDir = path.join(harness.dirs.userImages, 'Alice');
+        fs.mkdirSync(sharedDir, { recursive: true });
+        fs.writeFileSync(path.join(sharedDir, 'keep.png'), 'keep-bytes');
+
+        await request(harness.app)
+            .post('/api/characters/delete')
+            .send({ avatar_url: 'Alice.png', delete_chats: false })
+            .expect(200);
+
+        expect(fs.existsSync(path.join(sharedDir, 'keep.png'))).toBe(true);
+        expect(fs.existsSync(path.join(harness.dirs.characters, 'Alice-copy.png'))).toBe(true);
+    });
+
     test('REGRESSION: /api/characters/chats reports chat_size + date_last_chat from Repo', async () => {
         seedCharacterPng(harness.dirs.characters, 'Alice', { name: 'Alice' });
         await getChatRepo().save(harness.handle, 'Alice', 'main', HEADER, MESSAGES, null);
