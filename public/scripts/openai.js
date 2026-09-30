@@ -567,22 +567,6 @@ export const MINIMAX_ENDPOINT = {
     CN: 'cn',
 };
 
-const sensitiveFields = [
-    'reverse_proxy',
-    'proxy_password',
-    'base_url',
-    'custom_url',
-    'responses_url',
-    'custom_include_body',
-    'custom_exclude_body',
-    'custom_include_headers',
-    'vertexai_region',
-    'vertexai_express_project_id',
-    'azure_base_url',
-    'azure_deployment_name',
-    'workers_ai_account_id',
-];
-
 /**
  * preset_name -> [selector, setting_name, is_checkbox, is_connection]
  * @type {Record<string, [string, string, boolean, boolean]>}
@@ -1540,7 +1524,6 @@ async function populateChatHistory(messages, prompts, chatCompletion, type = nul
     const batchedMessages = await Message.createManyAsync(batchedMessageDefinitions);
     for (const entry of chatEntries) {
         const chatMessage = batchedMessages[entry.chatMessageIndex];
-        const toolResultMessages = batchedMessages.slice(entry.toolResultStartIndex, entry.toolResultStartIndex + entry.toolResultCount);
 
         if (entry.postCountSignature) {
             chatMessage.signature = entry.postCountSignature;
