@@ -2,7 +2,7 @@
 
 This changelog covers every Luker release, from v1.0.0 to the current development version.
 
-## Unreleased
+## v2.8.0 (2026-10-01)
 
 ### Multi-Agent Orchestrator
 
